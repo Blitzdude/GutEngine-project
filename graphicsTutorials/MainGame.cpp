@@ -82,7 +82,7 @@ void MainGame::gameLoop() {
         static int frameCounter = 0;
         frameCounter++;
         if (frameCounter == 10) {
-            std::cout << _fps << std::endl;
+            //std::cout << _fps << std::endl;
             frameCounter = 0;
         }
     }
@@ -102,6 +102,7 @@ void MainGame::processInput() {
                 _gameState = GameState::EXIT;
                 break;
             case SDL_MOUSEMOTION:
+				std::cout << evnt.motion.x << " " << evnt.motion.y << std::endl;
                 _inputManager.setMouseCoords((float)evnt.motion.x, (float)evnt.motion.y);
                 break;
             case SDL_KEYDOWN:
@@ -194,6 +195,8 @@ void MainGame::drawGame() {
     _spriteBatch.end();
 
     _spriteBatch.renderBatch();
+
+	
 
     //unbind the texture
     glBindTexture(GL_TEXTURE_2D, 0);
