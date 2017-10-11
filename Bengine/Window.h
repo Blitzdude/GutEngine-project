@@ -10,6 +10,7 @@ namespace Bengine {
     class Window
     {
     public:
+
         Window();
         ~Window();
 
