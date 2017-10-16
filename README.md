@@ -1,5 +1,5 @@
-# GraphicsTutorials
+# GutEngine
 
-This is the repository for the Advanced C++/Graphics tutorial series on the youtube channel MakingGamesWithBen.
+This repository is heavily based on the bengine from the youtube channel "making games with ben"
 
-Dependencies can be downloaded at https://github.com/Barnold1953/GraphicsTutorialsDeps
+Dependencies can be downloaded at https://github.com/Blitzdude/GutEngineDeps
