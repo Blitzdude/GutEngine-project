@@ -208,7 +208,7 @@ void SpriteBatch::createVertexArray() {
     // Bind the VAO. All subsequent opengl calls will modify it's state.
     glBindVertexArray(_vao);
 
-    //G enerate the VBO if it isn't already generated
+    //Generate the VBO if it isn't already generated
     if (_vbo == 0) {
         glGenBuffers(1, &_vbo);
     }

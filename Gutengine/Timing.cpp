@@ -71,7 +71,7 @@ namespace Gutengine {
         if (frameTimeAverage > 0) {
             _fps = 1000.0f / frameTimeAverage;
         } else {
-            _fps = 60.0f;
+            _fps = 60.0f; // only happens once.
         }
     }
 

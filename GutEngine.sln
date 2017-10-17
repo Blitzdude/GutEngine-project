@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Gutengine", "Gutengine\Gutengine.vcxproj", "{53654A7C-9580-4968-9929-C91FC73DDFD2}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TopDownShooter-Project", "TopDownShooter-Project\TopDownShooter-Project.vcxproj", "{98E5ED53-F785-4E52-A606-ABA5A4C0F698}"
+	ProjectSection(ProjectDependencies) = postProject
+		{53654A7C-9580-4968-9929-C91FC73DDFD2} = {53654A7C-9580-4968-9929-C91FC73DDFD2}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
