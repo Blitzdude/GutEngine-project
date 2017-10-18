@@ -10,6 +10,7 @@ namespace Gutengine {
 
     Window::~Window()
     {
+		std::cout << "Destroy window" << std::endl;
     }
 
     int Window::create(std::string windowName, int screenWidth, int screenHeight, unsigned int currentFlags) {

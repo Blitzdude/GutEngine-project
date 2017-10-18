@@ -5,7 +5,7 @@
 #include <Gutengine/Camera2D.h>
 #include <Gutengine/InputManager.h>
 #include <Gutengine/SpriteBatch.h>
-//#include <Gutengine/SpriteFont.h>
+#include <Gutengine/SpriteFont.h>
 #include <Gutengine/AudioEngine.h>
 #include <Gutengine/ParticleEngine2D.h>
 #include <Gutengine/ParticleBatch2D.h>

@@ -10,6 +10,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TopDownShooter-Project", "T
 		{53654A7C-9580-4968-9929-C91FC73DDFD2} = {53654A7C-9580-4968-9929-C91FC73DDFD2}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ShadowCast", "ShadowCast\ShadowCast.vcxproj", "{8C8D083A-B7D1-46BF-B7D3-52F203CFC743}"
+	ProjectSection(ProjectDependencies) = postProject
+		{53654A7C-9580-4968-9929-C91FC73DDFD2} = {53654A7C-9580-4968-9929-C91FC73DDFD2}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -34,6 +39,14 @@ Global
 		{98E5ED53-F785-4E52-A606-ABA5A4C0F698}.Release|Win32.Build.0 = Release|Win32
 		{98E5ED53-F785-4E52-A606-ABA5A4C0F698}.Release|x64.ActiveCfg = Release|x64
 		{98E5ED53-F785-4E52-A606-ABA5A4C0F698}.Release|x64.Build.0 = Release|x64
+		{8C8D083A-B7D1-46BF-B7D3-52F203CFC743}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8C8D083A-B7D1-46BF-B7D3-52F203CFC743}.Debug|Win32.Build.0 = Debug|Win32
+		{8C8D083A-B7D1-46BF-B7D3-52F203CFC743}.Debug|x64.ActiveCfg = Debug|x64
+		{8C8D083A-B7D1-46BF-B7D3-52F203CFC743}.Debug|x64.Build.0 = Debug|x64
+		{8C8D083A-B7D1-46BF-B7D3-52F203CFC743}.Release|Win32.ActiveCfg = Release|Win32
+		{8C8D083A-B7D1-46BF-B7D3-52F203CFC743}.Release|Win32.Build.0 = Release|Win32
+		{8C8D083A-B7D1-46BF-B7D3-52F203CFC743}.Release|x64.ActiveCfg = Release|x64
+		{8C8D083A-B7D1-46BF-B7D3-52F203CFC743}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

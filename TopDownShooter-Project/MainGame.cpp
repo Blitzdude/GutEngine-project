@@ -103,7 +103,8 @@ void MainGame::initSystems() {
 void MainGame::initLevel() {
     // Level 1
     m_levels.push_back(new Level("Levels/level1.txt"));
-    m_currentLevel = 0;
+	m_levels.push_back(new Level("Levels/test1.txt"));
+    m_currentLevel = 1;
 
     m_player = new Player();
     m_player->init(PLAYER_SPEED, m_levels[m_currentLevel]->getStartPlayerPos(), &m_inputManager, &m_camera, &m_bullets);
@@ -157,7 +158,7 @@ void MainGame::gameLoop() {
 
     // Used to cap the FPS
     Gutengine::FpsLimiter fpsLimiter;
-    fpsLimiter.setMaxFPS(60000.0f);
+    fpsLimiter.setMaxFPS(60.0f);
 
     // Zoom out the camera by 3x
     const float CAMERA_SCALE = 1.0f / 3.0f;
