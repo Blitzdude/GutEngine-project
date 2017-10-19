@@ -138,7 +138,7 @@ namespace Gutengine {
         GLint success = 0;
         glGetShaderiv(id, GL_COMPILE_STATUS, &success);
 
-        if (success == GL_FALSE)
+        if (success == GL_FALSE) //error checking
         {
             GLint maxLength = 0;
             glGetShaderiv(id, GL_INFO_LOG_LENGTH, &maxLength);

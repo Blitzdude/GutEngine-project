@@ -1,57 +1,63 @@
 #pragma once
 
-#include <SDL/SDL.h>
-#include <GL/glew.h>
-
-#include <Gutengine/Gutengine.h>
-#include <Gutengine/GLSLProgram.h>
-#include <Gutengine/GLTexture.h>
-#include <Gutengine/Window.h>
-#include <Gutengine/InputManager.h>
-#include <Gutengine/Timing.h>
-
 #include <Gutengine/Camera2D.h>
+#include <Gutengine/SpriteBatch.h>
+#include <Gutengine/InputManager.h>
+#include <Gutengine/Window.h>
+#include <Gutengine/GLSLProgram.h>
+#include <Gutengine/Timing.h>
+#include <Gutengine/SpriteFont.h>
+#include <memory>
 
+#include "BallController.h"
+#include "BallRenderer.h"
+#include "Grid.h"
 
-#include <vector>
+// TODO:
+// Visualize momentum with color
+// Visualize velocity with color
+// Visualize position with color
 
-#include "Light.h"
+enum class GameState { RUNNING, EXIT };
 
-enum class GameState {PLAY, EXIT};
+const int CELL_SIZE = 12;
 
-//Our example game class, just for testing purposes right now
-class MainGame
-{
+class MainGame {
 public:
-    MainGame();
     ~MainGame();
-
     void run();
 
+
 private:
-    void initSystems();
-    void initShaders();
-    void gameLoop();
+    void init();
+    void initRenderers();
+    void initBalls();
+    void update(float deltaTime);
+    void draw();
+    void drawHud();
     void processInput();
-    void drawGame();
 
-	//void renderLightAlpha(float intensity);
+    int m_screenWidth = 0;
+    int m_screenHeight = 0;
 
-    Gutengine::Window _window;
-    int _screenWidth;
-    int _screenHeight;
-    GameState _gameState;
+    std::vector<Ball> m_balls; ///< All the balls
+    std::unique_ptr<Grid> m_grid; ///< Grid for spatial partitioning for collision
 
-    Gutengine::GLSLProgram _colorProgram;
-    Gutengine::Camera2D _camera;
+    int m_currentRenderer = 0;
+    std::vector<std::unique_ptr<BallRenderer> > m_ballRenderers;
 
-    Gutengine::InputManager _inputManager;
-    Gutengine::FpsLimiter _fpsLimiter;
-    
-    float _maxFPS;
-    float _fps;
-    float _time;
+    BallController m_ballController; ///< Controls balls
 
-	std::vector<Light*> _lights;
+    Gutengine::Window m_window; ///< The main window
+    Gutengine::SpriteBatch m_spriteBatch; ///< Renders all the balls
+    std::unique_ptr<Gutengine::SpriteFont> m_spriteFont; ///< For font rendering
+    Gutengine::Camera2D m_camera; ///< Renders the scene
+    Gutengine::InputManager m_inputManager; ///< Handles input
+    Gutengine::GLSLProgram m_textureProgram; ///< Shader for textures]
+
+    Gutengine::FpsLimiter m_fpsLimiter; ///< Limits and calculates fps
+    float m_fps = 0.0f;
+
+    GameState m_gameState = GameState::RUNNING; ///< The state of the game
 };
 
