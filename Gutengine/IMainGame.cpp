@@ -89,7 +89,7 @@ namespace Gutengine {
     }
 
     bool IMainGame::initSystems() {
-        m_window.create("Default", 1920, 1080, 0);
+        m_window.create("Default", 1680, 960, 0);
         return true;
     }
 
