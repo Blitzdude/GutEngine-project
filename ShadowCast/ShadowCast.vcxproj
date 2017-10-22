@@ -22,6 +22,7 @@
     <ClCompile Include="App.cpp" />
     <ClCompile Include="Box.cpp" />
     <ClCompile Include="GameplayScreen.cpp" />
+    <ClCompile Include="Light.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Player.cpp" />
   </ItemGroup>

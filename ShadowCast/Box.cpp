@@ -11,15 +11,23 @@ Box::~Box()
 {
 }
 
-void Box::init(b2World * world, const glm::vec2 position, const glm::vec2 dimensions, Gutengine::GLTexture texture, Gutengine::ColorRGBA8 color, bool fixedRotation)
+void Box::init(	b2World * world,
+				const glm::vec2 position,
+				const glm::vec2 dimensions,
+				Gutengine::GLTexture texture,
+				Gutengine::ColorRGBA8 color,
+				bool fixedRotation, 
+				b2BodyType bodyType,
+				glm::vec4 uvRect /*= glm::vec4(0.0f, 0.0f, 1.0f, 1.0f)*/)
 {
 	m_dimensions = dimensions;
 	m_color = color;
 	m_texture = texture;
+	m_uvRect = uvRect;
 
 	// make body.
 	b2BodyDef bodyDef;
-	bodyDef.type = b2_dynamicBody;					// declare as dynamic body, so that it can be affected by force
+	bodyDef.type = bodyType; 				
 	bodyDef.position.Set(position.x, position.y);	// set bodys position
 	bodyDef.fixedRotation = fixedRotation;			// sets if the body rotates
 	m_body = world->CreateBody(&bodyDef);			// use world to create the body 
@@ -42,8 +50,35 @@ void Box::draw(Gutengine::SpriteBatch& spriteBatch)
 	destRect.z = m_dimensions.x;
 	destRect.w = m_dimensions.y;
 	spriteBatch.draw(destRect,					// Destination rectangle
-		glm::vec4(0.0f, 0.0f, 1.0f, 1.0f),		// Uv-rectangle x,y,w,h
+		m_uvRect,								// Uv-rectangle x,y,w,h
 		m_texture.id, 0.0f,						// texture to draw
 		m_color,								// color
 		m_body->GetAngle());					// rotation of the spritebatch
+}
+
+const std::vector<glm::vec2> Box::getCorners() const
+{
+	// make temporary vector
+	std::vector<glm::vec2> tempVec;
+
+	/*
+	*	1 - 4
+	*	|	|
+	*	2 - 3
+	*/
+	// Get position return the center of the box, so we must off set it by half the dimesion // TODO : take rotation into account.
+	//get 1. corner /
+	tempVec.push_back(glm::vec2(this->getBody()->GetPosition().x - this->getDimensions().x / 2.0f,
+								this->getBody()->GetPosition().y - this->getDimensions().y / 2.0f));
+	// 2.
+	tempVec.push_back(glm::vec2(this->getBody()->GetPosition().x - this->getDimensions().x / 2.0f,
+								this->getBody()->GetPosition().y + this->getDimensions().y / 2.0f));
+	// 3.
+	tempVec.push_back(glm::vec2(this->getBody()->GetPosition().x + this->getDimensions().x / 2.0f,
+								this->getBody()->GetPosition().y - this->getDimensions().y / 2.0f));
+	// 4.
+	tempVec.push_back(glm::vec2(this->getBody()->GetPosition().x + this->getDimensions().x / 2.0f,
+								this->getBody()->GetPosition().y + this->getDimensions().y / 2.0f));
+	
+	return tempVec;
 }

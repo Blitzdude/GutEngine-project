@@ -66,11 +66,13 @@ void Gutengine::DebugRenderer::init() {
     glGenBuffers(1, &m_vbo);
     glGenBuffers(1, &m_ibo);
 
+	// bind gl objects
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
 
-    glEnableVertexAttribArray(0);
+	
+    glEnableVertexAttribArray(0);	
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(DebugVertex), (void*)offsetof(DebugVertex, position));
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(DebugVertex), (void*)offsetof(DebugVertex, color));
@@ -80,16 +82,16 @@ void Gutengine::DebugRenderer::init() {
 
 void Gutengine::DebugRenderer::end() {
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    // Orphan the buffer
+    // Orphan the vertex buffer
     glBufferData(GL_ARRAY_BUFFER, m_verts.size() * sizeof(DebugVertex), nullptr, GL_DYNAMIC_DRAW);
-    // Upload the data
+    // Upload the vertex data
     glBufferSubData(GL_ARRAY_BUFFER, 0, m_verts.size() * sizeof(DebugVertex), m_verts.data());
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
-    // Orphan the buffer
+    // Orphan the index buffer
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(GLuint), nullptr, GL_DYNAMIC_DRAW);
-    // Upload the data
+    // Upload the index data
     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m_indices.size() * sizeof(GLuint), m_indices.data());
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 

@@ -6,6 +6,7 @@
 #include <Gutengine\Camera2D.h>
 #include <Gutengine\GLTexture.h>
 #include <Gutengine\Window.h>
+#include <Gutengine\DebugRenderer.h>
 #include <Box2D\Box2D.h>
 #include <vector>
 #include "Box.h"
@@ -41,11 +42,18 @@ private:
 
 	void initShaders();
 
+	void makeLevelEdges();
+	void makeEdge(float x, float y , float w, float h);
+
+
 	Gutengine::SpriteBatch m_spriteBatch;
 	Gutengine::GLSLProgram m_textureProgram; //< renders textures
 	Gutengine::Camera2D m_camera; //< camera window
 	Gutengine::GLTexture m_texture;
 	Gutengine::Window* m_window;
+	Gutengine::DebugRenderer m_debugRenderer;
+
+	bool m_renderDebug = true;
 
 	Player m_player;
 

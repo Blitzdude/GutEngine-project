@@ -27,7 +27,7 @@ namespace Gutengine {
         Gutengine::GLSLProgram m_program;
         std::vector<DebugVertex> m_verts;
         std::vector<GLuint> m_indices;
-        GLuint m_vbo = 0, m_vao = 0, m_ibo = 0;
+        GLuint m_vbo = 0, m_vao = 0, m_ibo = 0; // ibo = index buffer
         int m_numElements = 0;
     };
 

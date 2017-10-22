@@ -33,14 +33,14 @@ MainGame::MainGame()  :
 
 MainGame::~MainGame() {
     // Don't forget to delete the levels!
-    for (int i = 0; i < m_levels.size(); i++) {
+    for (unsigned int i = 0; i < m_levels.size(); i++) {
         delete m_levels[i];
     }
     // Don't forget to delete the humans and zombies!
-    for (int i = 0; i < m_humans.size(); i++) {
+    for (unsigned int i = 0; i < m_humans.size(); i++) {
         delete m_humans[i];
     }
-    for (int i = 0; i < m_zombies.size(); i++) {
+    for (unsigned int i = 0; i < m_zombies.size(); i++) {
         delete m_zombies[i];
     }
 }
@@ -126,7 +126,7 @@ void MainGame::initLevel() {
 
     // Add the zombies
     const std::vector<glm::vec2>& zombiePositions = m_levels[m_currentLevel]->getZombieStartPositions();
-    for (int i = 0; i < zombiePositions.size(); i++) {
+    for (unsigned int i = 0; i < zombiePositions.size(); i++) {
         m_zombies.push_back(new Zombie);
         m_zombies.back()->init(ZOMBIE_SPEED, zombiePositions[i]);
     }
@@ -214,7 +214,7 @@ void MainGame::gameLoop() {
 
 void MainGame::updateAgents(float deltaTime) {
     // Update all humans
-    for (int i = 0; i < m_humans.size(); i++) {
+    for (unsigned int i = 0; i < m_humans.size(); i++) {
         m_humans[i]->update(m_levels[m_currentLevel]->getLevelData(),
                            m_humans,
                            m_zombies,
@@ -222,7 +222,7 @@ void MainGame::updateAgents(float deltaTime) {
     }
 
     // Update all zombies
-    for (int i = 0; i < m_zombies.size(); i++) {
+    for (unsigned int i = 0; i < m_zombies.size(); i++) {
         m_zombies[i]->update(m_levels[m_currentLevel]->getLevelData(),
                            m_humans,
                            m_zombies,
@@ -230,13 +230,13 @@ void MainGame::updateAgents(float deltaTime) {
     }
 
     // Update Zombie collisions
-    for (int i = 0; i < m_zombies.size(); i++) {
+    for (unsigned int i = 0; i < m_zombies.size(); i++) {
         // Collide with other zombies
-        for (int j = i + 1; j < m_zombies.size(); j++) {
+        for (unsigned int j = i + 1; j < m_zombies.size(); j++) {
             m_zombies[i]->collideWithAgent(m_zombies[j]);
         }
         // Collide with humans
-        for (int j = 1; j < m_humans.size(); j++) {
+        for (unsigned int j = 1; j < m_humans.size(); j++) {
             if (m_zombies[i]->collideWithAgent(m_humans[j])) {
                 // Add the new zombie
                 m_zombies.push_back(new Zombie);
@@ -255,9 +255,9 @@ void MainGame::updateAgents(float deltaTime) {
     }
 
     // Update Human collisions
-    for (int i = 0; i < m_humans.size(); i++) {
+    for (unsigned int i = 0; i < m_humans.size(); i++) {
         // Collide with other humans
-        for (int j = i + 1; j < m_humans.size(); j++) {
+        for (unsigned int j = i + 1; j < m_humans.size(); j++) {
             m_humans[i]->collideWithAgent(m_humans[j]);
         }
     }
@@ -267,7 +267,7 @@ void MainGame::updateAgents(float deltaTime) {
 
 void MainGame::updateBullets(float deltaTime) {
     // Update and collide with world
-    for (int i = 0; i < m_bullets.size(); ) {
+    for (unsigned int i = 0; i < m_bullets.size(); ) {
         // If update returns true, the bullet collided with a wall
         if (m_bullets[i].update(m_levels[m_currentLevel]->getLevelData(), deltaTime)) {
             m_bullets[i] = m_bullets.back();
@@ -280,10 +280,10 @@ void MainGame::updateBullets(float deltaTime) {
     bool wasBulletRemoved;
 
     // Collide with humans and zombies
-    for (int i = 0; i < m_bullets.size(); i++) {
+    for (unsigned int i = 0; i < m_bullets.size(); i++) {
         wasBulletRemoved = false;
         // Loop through zombies
-        for (int j = 0; j < m_zombies.size(); ) {
+        for (unsigned int j = 0; j < m_zombies.size(); ) {
             // Check collision
             if (m_bullets[i].collideWithAgent(m_zombies[j])) {
                 // Add blood
@@ -313,7 +313,7 @@ void MainGame::updateBullets(float deltaTime) {
         }
         // Loop through humans
         if (wasBulletRemoved == false) {
-            for (int j = 1; j < m_humans.size(); ) {
+            for (unsigned int j = 1; j < m_humans.size(); ) {
                 // Check collision
                 if (m_bullets[i].collideWithAgent(m_humans[j])) {
                     // Add blood
@@ -414,21 +414,21 @@ void MainGame::drawGame() {
     const glm::vec2 agentDims(AGENT_RADIUS * 2.0f);
 
     // Draw the humans
-    for (int i = 0; i < m_humans.size(); i++) {
+    for (unsigned int i = 0; i < m_humans.size(); i++) {
         if (m_camera.isBoxInView(m_humans[i]->getPosition(), agentDims)) {
             m_humans[i]->draw(m_agentSpriteBatch);
         }
     }
 
     // Draw the zombies
-    for (int i = 0; i < m_zombies.size(); i++) {
+    for (unsigned int i = 0; i < m_zombies.size(); i++) {
         if (m_camera.isBoxInView(m_zombies[i]->getPosition(), agentDims)) {
             m_zombies[i]->draw(m_agentSpriteBatch);
         }
     }
 
     // Draw the bullets
-    for (int i = 0; i < m_bullets.size(); i++) {
+    for (unsigned int i = 0; i < m_bullets.size(); i++) {
         m_bullets[i].draw(m_agentSpriteBatch);
     }
 
