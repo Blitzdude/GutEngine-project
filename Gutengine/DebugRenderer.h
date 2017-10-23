@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-namespace Gutengine {
+namespace Gutengine { // TODO: draw polygon
     class DebugRenderer {
     public:
         DebugRenderer();

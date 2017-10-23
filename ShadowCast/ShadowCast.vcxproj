@@ -25,12 +25,14 @@
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="RayCastCallback.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
     <ClInclude Include="Box.h" />
     <ClInclude Include="GameplayScreen.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="RayCastCallback.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{8C8D083A-B7D1-46BF-B7D3-52F203CFC743}</ProjectGuid>

@@ -33,6 +33,9 @@
     <ClCompile Include="Light.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="RayCastCallback.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h">
@@ -45,6 +48,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Player.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RayCastCallback.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

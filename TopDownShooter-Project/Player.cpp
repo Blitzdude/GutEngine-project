@@ -61,6 +61,7 @@ void Player::update(const std::vector<std::string>& levelData,
         _currentGunIndex = 2;
     }
 
+	// check the mouse coordinates and turn the player sprite to face there
     glm::vec2 mouseCoords = _inputManager->getMouseCoords();
     mouseCoords = _camera->convertScreenToWorld(mouseCoords);
 

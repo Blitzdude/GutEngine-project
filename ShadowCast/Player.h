@@ -3,6 +3,7 @@
 #include <Gutengine\SpriteBatch.h>
 #include <Gutengine\GLTexture.h>
 #include <Gutengine\InputManager.h>
+#include <Gutengine\Camera2D.h>
 
 const float PLAYER_MAX_SPEED = 7.0f;
 
@@ -16,12 +17,13 @@ public:
 
 	void draw(Gutengine::SpriteBatch& spriteBatch);
 
-	void update(Gutengine::InputManager& inputManager);
+	void update(Gutengine::InputManager& inputManager, Gutengine::Camera2D camera);
 
 	//getters
 	const Box& getBox() const { return m_collisionBox; };
 
 private:
 	Box m_collisionBox;
+	glm::vec2 m_direction;
 };
 

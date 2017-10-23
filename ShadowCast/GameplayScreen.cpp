@@ -116,7 +116,7 @@ void GameplayScreen::update()
 	
 
 	// Update the player
-	m_player.update(m_game->inputManager);
+	m_player.update(m_game->inputManager, m_camera);
 
 	// Update the camera
 	m_camera.update();
@@ -185,6 +185,7 @@ void GameplayScreen::draw()
 		circleCenter.x = p.getBody()->GetPosition().x;
 		circleCenter.y = p.getBody()->GetPosition().y;
 		m_debugRenderer.drawCircle(circleCenter, Gutengine::ColorRGBA8(255, 0, 0, 255 ), VISION_RADIUS);
+
 
 		// render lines from player center to box corners
 		for (auto& b : m_boxes) {
