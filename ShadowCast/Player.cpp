@@ -17,6 +17,7 @@ void Player::init(b2World* world, const glm::vec2 position, const glm::vec2 dime
 {
 	Gutengine::GLTexture m_texture = Gutengine::ResourceManager::getTexture("Assets/survivor-idle_rifle_0.png");
 	m_collisionBox.init(world, position, dimensions, m_texture, color, true, b2_dynamicBody);
+
 	
 }
 
@@ -30,19 +31,15 @@ void Player::update(Gutengine::InputManager& inputManager, Gutengine::Camera2D c
 	b2Body* body = m_collisionBox.getBody(); // reference to body
 
 	if (inputManager.isKeyDown(SDLK_a)) {
-		std::cout << "a-pressed \r";
 		body->ApplyForceToCenter(b2Vec2(-100.0f, 0.0f), true);
 	} 
 	else if (inputManager.isKeyDown(SDLK_d)) {
-		std::cout << "d-pressed \r";
 		body->ApplyForceToCenter(b2Vec2(100.0f, 0.0f), true);
 	}
 	if (inputManager.isKeyDown(SDLK_w)) {
-		std::cout << "w-pressed \r";
 		body->ApplyForceToCenter(b2Vec2(0.0f, 100.0f), true);
 	}
 	else if (inputManager.isKeyDown(SDLK_s)) {
-		std::cout << "s-pressed \r";
 		body->ApplyForceToCenter(b2Vec2(0.0f, -100.0f), true);
 	}
 	else { // apply damping - if no button is pressed, deaccelerate the player
@@ -71,7 +68,6 @@ void Player::update(Gutengine::InputManager& inputManager, Gutengine::Camera2D c
 
 	glm::vec2 playerCoord = glm::vec2(body->GetPosition().x, body->GetPosition().y);
 
-	std::cout << "x : " << mouseCoord.x << "y: " << mouseCoord.y << "\r";
 
 	m_direction = glm::normalize(mouseCoord - playerCoord);
 

@@ -166,7 +166,7 @@ void Gutengine::DebugRenderer::drawCircle(const glm::vec2& center, const ColorRG
     int start = m_verts.size();
     m_verts.resize(m_verts.size() + NUM_VERTS);
     for (int i = 0; i < NUM_VERTS; i++) {
-        float angle = ((float)i / NUM_VERTS) * PI * 2.0f;
+        float angle = ((float)i / NUM_VERTS) * PI * 2.0f; // in radians
         m_verts[start + i].position.x = cos(angle) * radius + center.x;
         m_verts[start + i].position.y = sin(angle) * radius + center.y;
         m_verts[start + i].color = color;
@@ -181,6 +181,32 @@ void Gutengine::DebugRenderer::drawCircle(const glm::vec2& center, const ColorRG
     m_indices.push_back(start + NUM_VERTS - 1);
     m_indices.push_back(start);
 }
+
+void Gutengine::DebugRenderer::drawPolygon(const std::map<float, glm::vec2> & vertices, const ColorRGBA8& color, const GLint numVertices)
+{
+	int start = m_verts.size();
+	m_verts.resize(m_verts.size() + numVertices);
+	
+	// set up iterator to go through vector
+	auto itr = vertices.begin();
+	
+	// Set up vertices
+	for (int i = 0; i < numVertices /*|| itr != vertices.end()*/ ; i++, itr++) {
+		m_verts[start + i].position.x = itr->second.x;
+		m_verts[start + i].position.y = itr->second.y;
+		m_verts[start + i].color = color;
+	}
+
+	// Set up indices for indexed drawing
+	m_indices.reserve(m_indices.size() + numVertices * 2);
+	for (int i = 0; i < numVertices - 1; i++) {
+		m_indices.push_back(start + i);
+		m_indices.push_back(start + i + 1);
+	}
+	m_indices.push_back(start + numVertices - 1);
+	m_indices.push_back(start);
+}
+
 
 void Gutengine::DebugRenderer::render(const glm::mat4& projectionMatrix, float lineWidth) {
     m_program.use();

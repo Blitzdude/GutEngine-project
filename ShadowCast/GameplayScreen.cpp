@@ -5,9 +5,11 @@
 #include <Gutengine\ResourceManager.h>
 
 #include <random>
+#include <math.h>
 
 
-const float VISION_RADIUS = 15.0f;
+const float VISION_RADIUS = 10.0f;
+const float PI = 3.14159265359f;
 
 GameplayScreen::GameplayScreen(Gutengine::Window * window) : m_window(window)
 {
@@ -40,15 +42,21 @@ void GameplayScreen::destroy()
 
 void GameplayScreen::onEntry()
 {
-	const int NUM_BOXES = 20;
+	const int NUM_BOXES = 1;
 
 	std::cout << "OnEntry: \n";
 
+	// Initialize spritebatch
+	m_spriteBatch.init();
+
+	// Shader initialization
+	initShaders();
+	
 	// Initialize debug Renderer
 	m_debugRenderer.init();
 
 	b2Vec2 gravity(0.0f, 0.0f); //< we don't want gravity
-	m_world = std::make_unique<b2World>(gravity);
+	m_world = new b2World(gravity);
 
 	// make the level edges
 	makeLevelEdges();
@@ -57,9 +65,9 @@ void GameplayScreen::onEntry()
 	std::mt19937 randGenerator;
 		// could seed the random generator with time, but we wont
 		// set distributions
-	std::uniform_real_distribution<float> xDistPos(-10.0f, 10.0f);
-	std::uniform_real_distribution<float> yDistPos(-15.0f, 15.0f);
-	std::uniform_real_distribution<float> sizeDistribution(0.5f, 2.5f);
+	std::uniform_real_distribution<float> xDistPos(-5.0f, 5.0f);
+	std::uniform_real_distribution<float> yDistPos(-5.0f, 5.0f);
+	std::uniform_real_distribution<float> sizeDistribution(2.5f, 4.5f);
 	std::uniform_int_distribution<int> ColorDist(0, 255);
 
 
@@ -76,7 +84,7 @@ void GameplayScreen::onEntry()
 
 		// create a new box with random pos(x,y), size(w,h) and color(r,g,b), set fixedRotation to false
 		Box newBox;
-		newBox.init(m_world.get(),
+		newBox.init(m_world,
 			glm::vec2(xDistPos(randGenerator), yDistPos(randGenerator)),
 			glm::vec2(sizeDistribution(randGenerator), sizeDistribution(randGenerator)),
 			Gutengine::ResourceManager::getTexture("Assets/bricks_top.png"),
@@ -87,21 +95,17 @@ void GameplayScreen::onEntry()
 		m_boxes.push_back(newBox);
 	}
 
-	
-
-	// Initialize spritebatch
-	m_spriteBatch.init();
-
-	// Shader initialization
-	initShaders();
-	
+	// make enemies
+	Enemy enemy1;
+	enemy1.init(m_world, glm::vec2(-0.5f, 0.0f), 1.0f, Gutengine::ColorRGBA8(255, 255, 255, 255));
+	m_enemies.push_back(enemy1);
 	
 	// initialize camera.
 	m_camera.init(m_window->getScreenWidth(), m_window->getScreenHeight());
 	m_camera.setScale(32.0f); // 32 pixels / meter
 
 	// Initialize player
-	m_player.init(m_world.get(), glm::vec2(0.0f, 0.0f), glm::vec2(2.0f, 2.0f), Gutengine::ColorRGBA8(255, 255, 255, 255));
+	m_player.init(m_world, glm::vec2(0.0f, 0.0f), glm::vec2(1.5f, 1.5f), Gutengine::ColorRGBA8(255, 255, 255, 255));
 
 }
 
@@ -114,7 +118,6 @@ void GameplayScreen::onExit()
 void GameplayScreen::update()
 {
 	
-
 	// Update the player
 	m_player.update(m_game->inputManager, m_camera);
 
@@ -125,13 +128,57 @@ void GameplayScreen::update()
 	// update The physics simulation in BOX2D world
 	m_world->Step(1.0f / 60.0f, 6, 2);
 
+	// RAYCASTING 
+	// clear the raycastResults container, so it won't grow infinitely
+	m_vision.rayCastResults.clear();
 
+	static const float OFFSET_ANGLE = 0.0001f;
+	b2Vec2 v1, v2;
+
+	// Players position vector v1
+	v1.x = m_player.getBox().getBody()->GetPosition().x;
+	v1.y = m_player.getBox().getBody()->GetPosition().y;
+
+	// convert vector to glm
+	
+	
+	int counter = 0;
+	for (auto& box_itr : m_boxes) {
+	// ray cast to all corners within radius
+		for (auto& corner_itr : box_itr.getCorners()) { // getCorners returns a vector container with the corners
+			
+			v2.x = corner_itr.x;
+			v2.y = corner_itr.y;
+			b2Vec2 checkVec = v2 - v1;
+			float checkLength = checkVec.Length();
+			std::cout << checkLength << "\r";
+			// see if corner is within vision radius
+			if (checkLength < VISION_RADIUS) {
+			// if so 
+				
+				m_vision.rayCastAndEmblace(v1, v2, m_world);
+				
+			counter++;
+			}
+		}
+	}
+	// Ray cast towards the corners by adding vision radius to the player position
+	// right top ++
+	/*
+	m_vision.rayCastAndEmblace(gVec1, glm::vec2(gVec1.x + VISION_RADIUS, gVec1.y + VISION_RADIUS), m_world.get());
+	// left top -+
+	m_vision.rayCastAndEmblace(gVec1, glm::vec2(gVec1.x - VISION_RADIUS, gVec1.y + VISION_RADIUS), m_world.get());
+	// left bottom --
+	m_vision.rayCastAndEmblace(gVec1, glm::vec2(gVec1.x - VISION_RADIUS, gVec1.y - VISION_RADIUS), m_world.get());
+	// right bottom +-
+	m_vision.rayCastAndEmblace(gVec1, glm::vec2(gVec1.x + VISION_RADIUS, gVec1.y - VISION_RADIUS), m_world.get());
+	*/
+
+	
 }
 
 void GameplayScreen::draw()
 {
-
-	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); ///< Clear gl color and depth buffers
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); ///< set Clear color to Solid red
 
@@ -149,6 +196,8 @@ void GameplayScreen::draw()
 
 	m_spriteBatch.begin();
 
+	auto p = m_player.getBox();
+
 	// draw all the boxes
 	for (auto b : m_boxes) {
 		b.draw(m_spriteBatch);
@@ -156,6 +205,14 @@ void GameplayScreen::draw()
 
 	// draw the player
 	m_player.draw(m_spriteBatch);
+
+	// draw the enemies
+	for (auto itr : m_enemies) {
+		if (b2Distance(p.getBody()->GetPosition(), itr.getCircle().getBody()->GetPosition()) < VISION_RADIUS) {
+			itr.draw(m_spriteBatch);
+
+		}
+	}
 
 	m_spriteBatch.end();
 
@@ -165,6 +222,7 @@ void GameplayScreen::draw()
 	// Debug rendering
 	if (m_renderDebug) {
 		glm::vec4 destRect;
+		// Render obstacle box collision boxes
 		for (auto& b : m_boxes) {
 			destRect.x = b.getBody()->GetPosition().x - b.getDimensions().x / 2.0f;
 			destRect.y = b.getBody()->GetPosition().y - b.getDimensions().y / 2.0f;
@@ -173,39 +231,43 @@ void GameplayScreen::draw()
 			m_debugRenderer.drawBox(destRect, Gutengine::ColorRGBA8(255, 255, 255, 255), b.getBody()->GetAngle());
 		}
 		//render player collision box
-		auto p = m_player.getBox();
+		
 		destRect.x = p.getBody()->GetPosition().x - p.getDimensions().x / 2.0f;
 		destRect.y = p.getBody()->GetPosition().y - p.getDimensions().y / 2.0f;
 		destRect.z = p.getDimensions().x;
 		destRect.w = p.getDimensions().y;
 		m_debugRenderer.drawBox(destRect, Gutengine::ColorRGBA8(255, 255, 255, 255), p.getBody()->GetAngle());
 
-		// draw player vision circle
+		// draw player vision radius
 		glm::vec2 circleCenter;
 		circleCenter.x = p.getBody()->GetPosition().x;
 		circleCenter.y = p.getBody()->GetPosition().y;
-		m_debugRenderer.drawCircle(circleCenter, Gutengine::ColorRGBA8(255, 0, 0, 255 ), VISION_RADIUS);
+		m_debugRenderer.drawCircle(circleCenter, Gutengine::ColorRGBA8(255, 255, 0, 255 ), VISION_RADIUS);
 
 
-		// render lines from player center to box corners
-		for (auto& b : m_boxes) {
+		// draw lines raycast results
+		
+		for (auto& it : m_vision.rayCastResults) {
 			glm::vec2 v1, v2;
 
 			// Players position vector v1
 			v1.x = p.getBody()->GetPosition().x;
 			v1.y = p.getBody()->GetPosition().y;
 
-			for (auto& c : b.getCorners()) { // getCorners returns a vector container with the corners
-				// get vector to corner
-				v2.x = c.x;
-				v2.y = c.y;
-				// see if the corner is within vision radius
-				if (glm::length(v1 - v2) < VISION_RADIUS) {
-					m_debugRenderer.drawLine(v1, v2, Gutengine::ColorRGBA8(255, 255, 255, 255));
-				}
-			}	
-		}
+			v2.x = it.second.x;
+			v2.y = it.second.y;
 
+			m_debugRenderer.drawLine(v1, v2, Gutengine::ColorRGBA8(255, 0, 0, 255));	
+		}
+		
+
+		// draw the polygon from raycast results
+		m_debugRenderer.drawPolygon(m_vision.rayCastResults, Gutengine::ColorRGBA8(0, 0, 255, 255), m_vision.rayCastResults.size());
+		
+		
+		// drawing end
+
+		
 		m_debugRenderer.end();
 		m_debugRenderer.render(projectionMatrix, 2.0f);
 		// debug rendering - end.
@@ -234,8 +296,8 @@ void GameplayScreen::makeLevelEdges()
 {
 	makeEdge(0.0f, 25.0f, 50.0f, 10.0f); // top edge
 	makeEdge(0.0f, -25.0f, 50.0f, 10.0f); // bottom edge
-	makeEdge(-37.0f, 0.0f,  10.0f, 50.0f); // left edge
-	makeEdge(37.0f, 0.0f,  10.0f, 50.0f); // right edge
+	makeEdge(-35.0f, 0.0f,  10.0f, 50.0f); // left edge
+	makeEdge(35.0f, 0.0f,  10.0f, 50.0f); // right edge
 }
 
 void GameplayScreen::makeEdge(float x, float y, float w, float h) {

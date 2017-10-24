@@ -9,13 +9,17 @@
 #include <Gutengine\DebugRenderer.h>
 #include <Box2D\Box2D.h>
 #include <vector>
+#include <map>
 #include "Box.h"
 #include "Player.h"
+#include "Enemy.h"
+#include "Vision.h"
 
 class GameplayScreen : public Gutengine::IGameScreen {
 public:
 	GameplayScreen(Gutengine::Window* window); //< constructor
 	~GameplayScreen();
+
 
 	// Return the index of the next or previous screen when changing screens
 	virtual int getNextScreenIndex() const override;
@@ -56,8 +60,12 @@ private:
 	bool m_renderDebug = true;
 
 	Player m_player;
+	std::vector<Enemy> m_enemies;
 
-	std::unique_ptr<b2World> m_world;
+
+	Vision m_vision;
+	b2World* m_world;
 	std::vector<Box> m_boxes;
+	std::vector<float> m_corners;
 };
 

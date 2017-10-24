@@ -24,6 +24,7 @@ public:
 
 private:
 	Box m_collisionBox;
+	//b2Fixture m_visionBox;
 	glm::vec2 m_direction;
 };
 
