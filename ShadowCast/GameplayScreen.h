@@ -63,8 +63,10 @@ private:
 	std::vector<Enemy> m_enemies;
 
 
-	Vision m_vision;
-	b2World* m_world;
+	//Vision m_vision;
+	RayCastCallback m_rcCallback;
+	std::unique_ptr<b2World> m_world;
+	std::vector<b2Vec2> m_callbackResults;
 	std::vector<Box> m_boxes;
 	std::vector<float> m_corners;
 };

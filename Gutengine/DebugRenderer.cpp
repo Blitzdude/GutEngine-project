@@ -182,7 +182,7 @@ void Gutengine::DebugRenderer::drawCircle(const glm::vec2& center, const ColorRG
     m_indices.push_back(start);
 }
 
-void Gutengine::DebugRenderer::drawPolygon(const std::map<float, glm::vec2> & vertices, const ColorRGBA8& color, const GLint numVertices)
+void Gutengine::DebugRenderer::drawPolygon(const std::vector<glm::vec2> & vertices, const ColorRGBA8& color, const GLint numVertices)
 {
 	int start = m_verts.size();
 	m_verts.resize(m_verts.size() + numVertices);
@@ -192,8 +192,8 @@ void Gutengine::DebugRenderer::drawPolygon(const std::map<float, glm::vec2> & ve
 	
 	// Set up vertices
 	for (int i = 0; i < numVertices /*|| itr != vertices.end()*/ ; i++, itr++) {
-		m_verts[start + i].position.x = itr->second.x;
-		m_verts[start + i].position.y = itr->second.y;
+		m_verts[start + i].position.x = itr->x;
+		m_verts[start + i].position.y = itr->y;
 		m_verts[start + i].color = color;
 	}
 

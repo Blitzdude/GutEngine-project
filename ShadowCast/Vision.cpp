@@ -24,7 +24,7 @@ void Vision::rayCastAndEmblace(b2Vec2 p1, b2Vec2 p2, b2World* world)
 	//float fraction = 0.0f;
 	world->RayCast(&rcCallback, p1, p2);
 
-	angle = angleBetweenVecs(p1, reference);
+	angle = angleBetweenVecs(p1, p2);
 	
 	rayCastResults.emplace(angle, glm::vec2(rcCallback.m_point.x, rcCallback.m_point.y));
 }

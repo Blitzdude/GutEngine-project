@@ -18,7 +18,6 @@ void Player::init(b2World* world, const glm::vec2 position, const glm::vec2 dime
 	Gutengine::GLTexture m_texture = Gutengine::ResourceManager::getTexture("Assets/survivor-idle_rifle_0.png");
 	m_collisionBox.init(world, position, dimensions, m_texture, color, true, b2_dynamicBody);
 
-	
 }
 
 void Player::draw(Gutengine::SpriteBatch& spriteBatch)

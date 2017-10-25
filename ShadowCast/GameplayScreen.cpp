@@ -8,7 +8,7 @@
 #include <math.h>
 
 
-const float VISION_RADIUS = 10.0f;
+const float VISION_RADIUS = 20.0f;
 const float PI = 3.14159265359f;
 
 GameplayScreen::GameplayScreen(Gutengine::Window * window) : m_window(window)
@@ -42,7 +42,7 @@ void GameplayScreen::destroy()
 
 void GameplayScreen::onEntry()
 {
-	const int NUM_BOXES = 1;
+	const int NUM_BOXES = 3;
 
 	std::cout << "OnEntry: \n";
 
@@ -56,7 +56,7 @@ void GameplayScreen::onEntry()
 	m_debugRenderer.init();
 
 	b2Vec2 gravity(0.0f, 0.0f); //< we don't want gravity
-	m_world = new b2World(gravity);
+	m_world = std::make_unique<b2World>(gravity);
 
 	// make the level edges
 	makeLevelEdges();
@@ -84,7 +84,7 @@ void GameplayScreen::onEntry()
 
 		// create a new box with random pos(x,y), size(w,h) and color(r,g,b), set fixedRotation to false
 		Box newBox;
-		newBox.init(m_world,
+		newBox.init(m_world.get(),
 			glm::vec2(xDistPos(randGenerator), yDistPos(randGenerator)),
 			glm::vec2(sizeDistribution(randGenerator), sizeDistribution(randGenerator)),
 			Gutengine::ResourceManager::getTexture("Assets/bricks_top.png"),
@@ -97,7 +97,7 @@ void GameplayScreen::onEntry()
 
 	// make enemies
 	Enemy enemy1;
-	enemy1.init(m_world, glm::vec2(-0.5f, 0.0f), 1.0f, Gutengine::ColorRGBA8(255, 255, 255, 255));
+	enemy1.init(m_world.get(), glm::vec2(-0.5f, 0.0f), 1.0f, Gutengine::ColorRGBA8(255, 255, 255, 255));
 	m_enemies.push_back(enemy1);
 	
 	// initialize camera.
@@ -105,7 +105,7 @@ void GameplayScreen::onEntry()
 	m_camera.setScale(32.0f); // 32 pixels / meter
 
 	// Initialize player
-	m_player.init(m_world, glm::vec2(0.0f, 0.0f), glm::vec2(1.5f, 1.5f), Gutengine::ColorRGBA8(255, 255, 255, 255));
+	m_player.init(m_world.get(), glm::vec2(0.0f, 0.0f), glm::vec2(1.5f, 1.5f), Gutengine::ColorRGBA8(255, 255, 255, 255));
 
 }
 
@@ -130,7 +130,7 @@ void GameplayScreen::update()
 
 	// RAYCASTING 
 	// clear the raycastResults container, so it won't grow infinitely
-	m_vision.rayCastResults.clear();
+	m_callbackResults.clear();
 
 	static const float OFFSET_ANGLE = 0.0001f;
 	b2Vec2 v1, v2;
@@ -140,40 +140,54 @@ void GameplayScreen::update()
 	v1.y = m_player.getBox().getBody()->GetPosition().y;
 
 	// convert vector to glm
-	
-	
-	int counter = 0;
+
 	for (auto& box_itr : m_boxes) {
 	// ray cast to all corners within radius
-		for (auto& corner_itr : box_itr.getCorners()) { // getCorners returns a vector container with the corners
 			
+		for(auto& corner_itr : box_itr.getCorners()) {
 			v2.x = corner_itr.x;
 			v2.y = corner_itr.y;
-			b2Vec2 checkVec = v2 - v1;
-			float checkLength = checkVec.Length();
-			std::cout << checkLength << "\r";
-			// see if corner is within vision radius
-			if (checkLength < VISION_RADIUS) {
-			// if so 
-				
-				m_vision.rayCastAndEmblace(v1, v2, m_world);
-				
-			counter++;
+			b2Vec2 vLeft, vRight;
+			
+
+			if (b2Distance(v1, v2) < VISION_RADIUS) {
+
+				// center
+				m_world->RayCast(&m_rcCallback, v1, v2);
+				m_callbackResults.push_back(m_rcCallback.m_point);
+
+				// calculate left offset
+				vLeft.x = v2.x * cosf(OFFSET_ANGLE) - v2.y * sinf(OFFSET_ANGLE);
+				vLeft.y = v2.x * sinf(OFFSET_ANGLE) + v2.y * cosf(OFFSET_ANGLE);
+				// left 
+				m_world->RayCast(&m_rcCallback, v1, vLeft);
+				m_callbackResults.push_back(m_rcCallback.m_point);
+
+				// calculate right offset
+				vRight.x = v2.x * cosf(-OFFSET_ANGLE) - v2.y * sinf(-OFFSET_ANGLE);
+				vRight.y = v2.x * sinf(-OFFSET_ANGLE) + v2.y * cosf(-OFFSET_ANGLE);
+				// right
+				m_world->RayCast(&m_rcCallback, v1, vRight);
+				m_callbackResults.push_back(m_rcCallback.m_point);
 			}
 		}
 	}
 	// Ray cast towards the corners by adding vision radius to the player position
-	// right top ++
-	/*
-	m_vision.rayCastAndEmblace(gVec1, glm::vec2(gVec1.x + VISION_RADIUS, gVec1.y + VISION_RADIUS), m_world.get());
-	// left top -+
-	m_vision.rayCastAndEmblace(gVec1, glm::vec2(gVec1.x - VISION_RADIUS, gVec1.y + VISION_RADIUS), m_world.get());
-	// left bottom --
-	m_vision.rayCastAndEmblace(gVec1, glm::vec2(gVec1.x - VISION_RADIUS, gVec1.y - VISION_RADIUS), m_world.get());
-	// right bottom +-
-	m_vision.rayCastAndEmblace(gVec1, glm::vec2(gVec1.x + VISION_RADIUS, gVec1.y - VISION_RADIUS), m_world.get());
-	*/
-
+	
+	// topright ++
+	m_world->RayCast(&m_rcCallback, v1, b2Vec2((v1.x + VISION_RADIUS), (v1.y + VISION_RADIUS)));
+	m_callbackResults.push_back(m_rcCallback.m_point);
+	// topleft -+
+	m_world->RayCast(&m_rcCallback, v1, b2Vec2((v1.x - VISION_RADIUS), (v1.y + VISION_RADIUS)));
+	m_callbackResults.push_back(m_rcCallback.m_point);
+	// bottomright +-
+	m_world->RayCast(&m_rcCallback, v1, b2Vec2((v1.x + VISION_RADIUS), (v1.y - VISION_RADIUS)));
+	m_callbackResults.push_back(m_rcCallback.m_point);
+	// bottomleft --
+	m_world->RayCast(&m_rcCallback, v1, b2Vec2((v1.x - VISION_RADIUS), (v1.y - VISION_RADIUS)));
+	m_callbackResults.push_back(m_rcCallback.m_point);
+	
+	
 	
 }
 
@@ -232,37 +246,48 @@ void GameplayScreen::draw()
 		}
 		//render player collision box
 		
+		
 		destRect.x = p.getBody()->GetPosition().x - p.getDimensions().x / 2.0f;
 		destRect.y = p.getBody()->GetPosition().y - p.getDimensions().y / 2.0f;
 		destRect.z = p.getDimensions().x;
 		destRect.w = p.getDimensions().y;
 		m_debugRenderer.drawBox(destRect, Gutengine::ColorRGBA8(255, 255, 255, 255), p.getBody()->GetAngle());
+		
 
 		// draw player vision radius
+		
 		glm::vec2 circleCenter;
 		circleCenter.x = p.getBody()->GetPosition().x;
 		circleCenter.y = p.getBody()->GetPosition().y;
 		m_debugRenderer.drawCircle(circleCenter, Gutengine::ColorRGBA8(255, 255, 0, 255 ), VISION_RADIUS);
+		
 
 
 		// draw lines raycast results
 		
-		for (auto& it : m_vision.rayCastResults) {
+		for (auto& it : m_callbackResults) {
 			glm::vec2 v1, v2;
 
 			// Players position vector v1
 			v1.x = p.getBody()->GetPosition().x;
 			v1.y = p.getBody()->GetPosition().y;
 
-			v2.x = it.second.x;
-			v2.y = it.second.y;
+			v2.x = it.x;
+			v2.y = it.y;
 
 			m_debugRenderer.drawLine(v1, v2, Gutengine::ColorRGBA8(255, 0, 0, 255));	
 		}
 		
+		
 
 		// draw the polygon from raycast results
-		m_debugRenderer.drawPolygon(m_vision.rayCastResults, Gutengine::ColorRGBA8(0, 0, 255, 255), m_vision.rayCastResults.size());
+		// make glm format
+		std::vector<glm::vec2> toDraw;
+		for (auto& itr : m_callbackResults) {
+			toDraw.push_back(glm::vec2(itr.x, itr.y));
+		}
+
+		m_debugRenderer.drawPolygon(toDraw, Gutengine::ColorRGBA8(0, 0, 255, 255), toDraw.size());
 		
 		
 		// drawing end

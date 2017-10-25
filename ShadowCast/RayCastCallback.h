@@ -18,7 +18,9 @@ public:
 		m_point = point;
 		m_normal = normal;
 		m_fraction = fraction;
+
 		return m_fraction;
+		
 	}
 
 	b2Fixture* m_fixture;
