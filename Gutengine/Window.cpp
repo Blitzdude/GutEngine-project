@@ -49,6 +49,12 @@ namespace Gutengine {
 
         //Check the OpenGL version
         std::printf("***   OpenGL Version: %s   ***\n", glGetString(GL_VERSION));
+		std::printf("***   OpenGL Vendor: %s   ***\n", glGetString(GL_VENDOR));
+		std::printf("***   OpenGL Renderer: %s   ***\n", glGetString(GL_RENDERER));
+		std::printf("***   OpenGL GLSL Version: %s   ***\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
+
+
+
 
         //Set the background color to blue
         glClearColor(0.0f, 0.0f, 1.0f, 1.0f);

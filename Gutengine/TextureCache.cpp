@@ -24,7 +24,7 @@ namespace Gutengine {
 
             //Insert it into the map
             _textureMap.insert(make_pair(texturePath, newTexture));
-
+			std::cout << "New texture created: " << texturePath << "\n" << std::endl;
             return newTexture;
         }
         return mit->second;
