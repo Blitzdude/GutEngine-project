@@ -18,6 +18,25 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AABBQueryCallback.h" />
+    <ClInclude Include="App.h" />
+    <ClInclude Include="Box.h" />
+    <ClInclude Include="Circle.h" />
+    <ClInclude Include="Enemy.h" />
+    <ClInclude Include="GameplayScreen.h" />
+    <ClInclude Include="Player.h" />
+    <ClInclude Include="RayCastCallback.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="App.cpp" />
+    <ClCompile Include="Box.cpp" />
+    <ClCompile Include="Circle.cpp" />
+    <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="GameplayScreen.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Player.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{47ED9513-3B56-4419-B1B0-730E453F2417}</ProjectGuid>
     <RootNamespace>PinballShooter</RootNamespace>
@@ -117,23 +136,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="App.cpp" />
-    <ClCompile Include="GameObject.cpp" />
-    <ClCompile Include="GameplayScreen.cpp" />
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Monster.cpp" />
-    <ClCompile Include="Pinball.cpp" />
-    <ClCompile Include="Player.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="App.h" />
-    <ClInclude Include="GameObject.h" />
-    <ClInclude Include="GameplayScreen.h" />
-    <ClInclude Include="Monster.h" />
-    <ClInclude Include="Pinball.h" />
-    <ClInclude Include="Player.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

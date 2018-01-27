@@ -6,7 +6,34 @@
 
 #include <random>
 #include <math.h>
+#include <glm/gtx/rotate_vector.hpp>
+#include <glm/gtx/vector_angle.hpp>
 
+#define b2_velocityThreshold = 0.0f
+
+const float VISION_RADIUS = 20.0f;
+const float WEAPON_ANGLE = 30.0f;
+const float BLAST_POWER = 45.0f;
+const float PI = 3.14159265359f;
+
+float angleBetweenVectors(glm::vec2 a, glm::vec2 b) { 
+	return glm::angle(glm::normalize(a), glm::normalize(b));
+}
+
+bool isWithinAngle(glm::vec2 a, glm::vec2 b, float angle) {
+	return angle <= angleBetweenVectors(a, b) ? false : true;
+}
+
+void applyBlastImpulse(b2Body* body, b2Vec2 blastCenter, b2Vec2 applyPoint, float blastPower) {
+	b2Vec2 blastDir = applyPoint - blastCenter;
+	float distance = blastDir.Normalize();
+	//ignore bodies exactly at the blast point - blast direction is undefined
+	if (distance == 0)
+		return;
+	float invDistance = 1 / distance;
+	float impulseMag = blastPower * invDistance * invDistance;
+	body->ApplyLinearImpulse(impulseMag * blastDir, applyPoint, true );
+}
 
 GameplayScreen::GameplayScreen(Gutengine::Window * window) : m_window(window)
 {
@@ -39,6 +66,9 @@ void GameplayScreen::destroy()
 
 void GameplayScreen::onEntry()
 {
+	const int NUM_BOXES = 4;
+	const int NUM_ENEMIES = 50;
+
 	std::cout << "OnEntry: \n";
 
 	// Initialize spritebatch
@@ -46,28 +76,69 @@ void GameplayScreen::onEntry()
 
 	// Shader initialization
 	initShaders();
-
+	
 	// Initialize debug Renderer
 	m_debugRenderer.init();
-	std::cout << "Debug Renderer initialized" << std::endl;
 
 	b2Vec2 gravity(0.0f, 0.0f); //< we don't want gravity
 	m_world = std::make_unique<b2World>(gravity);
 
-	// create player
-	m_player.init(m_world.get(),
-		glm::vec2(0, 0),
-		glm::vec2(10, 10),
-		Gutengine::ResourceManager::getTexture("Assets/survivor-idle_rifle_0.png"),
-		Gutengine::ColorRGBA8(255, 255, 255, 255),
-		false,
-		b2_dynamicBody,
-		glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+	// make the level edges
+	makeLevelEdges();
+
+		// initialize random generator 
+	std::mt19937 randGenerator;
+		// could seed the random generator with time, but we wont
+		// set distributions
+	std::uniform_real_distribution<float> xDistPos(-10.0f, 10.0f);
+	std::uniform_real_distribution<float> yDistPos(-10.0f, 10.0f);
+	std::uniform_real_distribution<float> sizeDistribution(25.f, 45.f);
+	std::uniform_int_distribution<int> ColorDist(0, 255);
 
 
+	
+
+	//make a bunch of new boxes and push them into the boxes vector container
+	/*
+	for (int i = 0; i < NUM_BOXES; i++) {
+		// randomize color
+		Gutengine::ColorRGBA8 randColor;
+		randColor.r = ColorDist(randGenerator);
+		randColor.g = ColorDist(randGenerator);
+		randColor.b = ColorDist(randGenerator);
+		randColor.a = 255;
+
+		// create a new box with random pos(x,y), size(w,h) and color(r,g,b), set fixedRotation to false
+		Box newBox;
+		newBox.init(m_world.get(),
+			glm::vec2(xDistPos(randGenerator), yDistPos(randGenerator)),
+			glm::vec2(sizeDistribution(randGenerator), sizeDistribution(randGenerator)),
+			Gutengine::ResourceManager::getTexture("Assets/bricks_top.png"),
+			randColor,
+			false,
+			b2_dynamicBody);
+		// push new created box to vector container
+		m_boxes.push_back(newBox);
+	}
+	m_boxes[1].getBody()->SetFixedRotation(true);
+	*/
+
+	// make enemies
+	for (int i = 0; i < NUM_ENEMIES; i++) {
+		Enemy newEnemy;
+		newEnemy.init(m_world.get(),
+			glm::vec2(xDistPos(randGenerator), yDistPos(randGenerator)),
+			1.0f,
+			Gutengine::ColorRGBA8(255, 255, 255, 255));
+		m_enemies.push_back(newEnemy);
+	}
+	
 	// initialize camera.
 	m_camera.init(m_window->getScreenWidth(), m_window->getScreenHeight());
-	m_camera.setScale(2.0f); // 32 pixels / meter
+	m_camera.setScale(32.0f); // 32 pixels / meter
+
+	// Initialize player
+	m_player.init(m_world.get(), glm::vec2(0.0f, 0.0f), glm::vec2(2.f, 2.f), Gutengine::ColorRGBA8(255, 255, 255, 255));
 
 }
 
@@ -79,18 +150,54 @@ void GameplayScreen::onExit()
 
 void GameplayScreen::update()
 {
-	// Game Logic here
+	// Update the player
+	m_player.update(m_game->inputManager, m_camera);
+
+	b2Vec2 playerPos;
+	
+	playerPos.x = m_player.getCircle().getBody()->GetPosition().x;
+	playerPos.y = m_player.getCircle().getBody()->GetPosition().y;
+
 
 	// Update the camera
 	m_camera.update();
+
+	// Update the enemies
+	for (auto itr : m_enemies)
+		itr.update(m_game->inputManager, m_camera, glm::vec2(playerPos.x, playerPos.y));
+
+	// RAYCASTING
+	glm::vec2 mousePosition = m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords());
+
+	// clear the results vector
+	m_callbackResults.clear();
+	// ray cast to each enemy;
+	b2Vec2 enemypos;
+	for (auto enemyItr : m_enemies) {
+		
+		enemypos.x = enemyItr.getCircle().getBody()->GetPosition().x;
+		enemypos.y = enemyItr.getCircle().getBody()->GetPosition().y;
+		
+		if (isWithinAngle(m_player.getPosition() - mousePosition, m_player.getPosition() - enemyItr.getPosition(), WEAPON_ANGLE)) 
+		{
+			m_world->RayCast(&m_rcCallback, playerPos, enemypos);
+			m_callbackResults.push_back(m_rcCallback.m_fixture->GetBody());
+		}
+	}
+
 	checkInput();
+	
+	// update The physics simulation in BOX2D world
+	m_world->Step(1.0f / 60.0f, 6, 2);
+
+
+	
 }
 
 void GameplayScreen::draw()
 {
-	// Rendercode here
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); ///< Clear gl color and depth buffers
-	glClearColor(0.30f, 0.40f, 0.0f, 1.0f); ///< set Clear color to Solid red
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); ///< set Clear color to Solid red
 
 	m_textureProgram.use();
 
@@ -106,8 +213,27 @@ void GameplayScreen::draw()
 
 	m_spriteBatch.begin();
 
-	// Draw code here
+	// player collider
+	auto p = m_player.getCircle();
+	// plaer position
+	glm::vec2 playerPosition = glm::vec2(m_player.getCircle().getBody()->GetPosition().x,
+										 m_player.getCircle().getBody()->GetPosition().y);
+
+	// mouse position
+	glm::vec2 mousePosition = m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords());
+
+	// draw all the boxes
+	for (auto b : m_boxes) {
+		b.draw(m_spriteBatch);
+	}
+
+	// draw the player
 	m_player.draw(m_spriteBatch);
+
+	// draw the enemies
+	for (auto itr : m_enemies) {
+		itr.draw(m_spriteBatch);
+	}
 
 	m_spriteBatch.end();
 
@@ -117,20 +243,56 @@ void GameplayScreen::draw()
 	// Debug rendering
 	if (m_renderDebug) {
 		glm::vec4 destRect;
-		destRect.x = 0;
-		destRect.y = 0;
-		destRect.z = 10;
-		destRect.w = 10;
+		// Render obstacle box collision boxes
+		for (auto& b : m_boxes) {
+			destRect.x = b.getBody()->GetPosition().x - b.getDimensions().x / 2.0f;
+			destRect.y = b.getBody()->GetPosition().y - b.getDimensions().y / 2.0f;
+			destRect.z = b.getDimensions().x;
+			destRect.w = b.getDimensions().y;
+			m_debugRenderer.drawBox(destRect, Gutengine::ColorRGBA8(255, 255, 255, 255), b.getBody()->GetAngle());
+		}
+		// render enemy collision boxes
 
+		for (auto& itr : m_enemies) {
+			glm::vec2 enemyPosition = glm::vec2(itr.getCircle().getBody()->GetPosition().x,
+												itr.getCircle().getBody()->GetPosition().y);
 
-		m_debugRenderer.drawBox(destRect, Gutengine::ColorRGBA8(255, 0, 255, 255), 0.0f);
-		glm::vec2 circle;
-		circle.x = m_player.getBody()->GetPosition().x;
-		circle.y = m_player.getBody()->GetPosition().y;
-		m_debugRenderer.drawCircle(circle, Gutengine::ColorRGBA8(255, 255, 255, 255), m_player.getDimensions().x);
+			if (isWithinAngle(playerPosition - mousePosition, playerPosition - enemyPosition, WEAPON_ANGLE)) {
+				m_debugRenderer.drawCircle(glm::vec2(itr.getCircle().getBody()->GetPosition().x, itr.getCircle().getBody()->GetPosition().y),
+					Gutengine::ColorRGBA8(255, 0, 0, 255),
+					itr.getCircle().getDimensions().x / 2.0f);
+			}
+		}
+
+		//render player collision Circle
+		m_debugRenderer.drawCircle( playerPosition,
+									Gutengine::ColorRGBA8(255, 255, 255, 255),
+									p.getDimensions().x / 2.0f);
+		
+
+		// draw arc lines
+		m_debugRenderer.drawLine(playerPosition,
+								 mousePosition,
+								 Gutengine::ColorRGBA8(255, 255, 0, 255));
+
+		m_debugRenderer.drawLine(playerPosition,
+			glm::rotate(mousePosition, WEAPON_ANGLE),
+			Gutengine::ColorRGBA8(255, 255, 0, 255));
+
+		m_debugRenderer.drawLine(playerPosition,
+			glm::rotate(mousePosition, -WEAPON_ANGLE),
+			Gutengine::ColorRGBA8(255, 255, 0, 255));
+
+		
+		// draw lines raycast results
+		for (auto itr : m_callbackResults) {
+			m_debugRenderer.drawLine
+			(glm::vec2(itr->GetPosition().x, itr->GetPosition().y),
+				glm::vec2(p.getBody()->GetPosition().x, p.getBody()->GetPosition().y),
+				Gutengine::ColorRGBA8(126, 126, 126, 126));
+		}
 		// drawing end
-
-
+		
 		m_debugRenderer.end();
 		m_debugRenderer.render(projectionMatrix, 2.0f);
 		// debug rendering - end.
@@ -142,6 +304,28 @@ void GameplayScreen::checkInput()
 	SDL_Event evnt;
 	while (SDL_PollEvent(&evnt)) {
 		m_game->onSDLEvent(evnt);
+	}
+	
+	// Weapon: blast all enemies in arc
+	if (m_game->inputManager.isKeyPressed(SDLK_x)) {
+		// get Player position, which will be the center of the blast
+		glm::vec2 playerPosition = glm::vec2(	m_player.getCircle().getBody()->GetPosition().x,
+												m_player.getCircle().getBody()->GetPosition().y);
+		
+		for (auto itr : m_callbackResults) {
+				applyBlastImpulse(itr,
+					b2Vec2(playerPosition.x, playerPosition.y),
+					b2Vec2(itr->GetPosition().x, itr->GetPosition().y),
+					BLAST_POWER);
+			
+		}
+	}
+	if (m_game->inputManager.isKeyPressed(SDLK_q)) {
+
+		if (m_renderDebug)
+			m_renderDebug = false;
+		else
+			m_renderDebug = true;
 	}
 }
 
@@ -155,4 +339,25 @@ void GameplayScreen::initShaders()
 	m_textureProgram.linkShaders();
 }
 
+void GameplayScreen::makeLevelEdges()
+{
+	makeEdge(0.0f, 25.0f, 50.0f, 10.0f); // top edge
+	makeEdge(0.0f, -25.0f, 50.0f, 10.0f); // bottom edge
+	makeEdge(-35.0f, 0.0f,  10.0f, 50.0f); // left edge
+	makeEdge(35.0f, 0.0f,  10.0f, 50.0f); // right edge
+}
 
+void GameplayScreen::makeEdge(float x, float y, float w, float h) {
+	// make the level edges
+	b2BodyDef BarrierDef;
+	BarrierDef.position.Set(x, y);
+
+	//allocates barrier in memory
+	b2Body* Barrier = m_world->CreateBody(&BarrierDef);
+	// make the ground fixture - bind the shape of the body.
+	b2PolygonShape box;
+	box.SetAsBox(w, h);
+	Barrier->CreateFixture(&box, 0.0f); // density is 0.0f so they can't be moved
+
+	//make level edges - end
+}

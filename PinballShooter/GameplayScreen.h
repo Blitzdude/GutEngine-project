@@ -1,6 +1,5 @@
 #pragma once
 
-// Gutengine includes
 #include <Gutengine\IGameScreen.h>
 #include <Gutengine\SpriteBatch.h>
 #include <Gutengine\GLSLProgram.h>
@@ -8,13 +7,13 @@
 #include <Gutengine\GLTexture.h>
 #include <Gutengine\Window.h>
 #include <Gutengine\DebugRenderer.h>
-// Third party
 #include <Box2D\Box2D.h>
-// STL
 #include <vector>
 #include <map>
-
+#include "Box.h"
 #include "Player.h"
+#include "Enemy.h"
+#include "RayCastCallback.h"
 
 class GameplayScreen : public Gutengine::IGameScreen {
 public:
@@ -60,8 +59,16 @@ private:
 
 	bool m_renderDebug = true;
 
+	Player m_player;
+	std::vector<Enemy> m_enemies;
+
 
 	std::unique_ptr<b2World> m_world;
-	Player m_player;
+	//std::vector<b2Vec2> m_callbackResults;
+	std::vector<b2Body*> m_callbackResults;
+
+	std::vector<Box> m_boxes;
+	std::vector<float> m_corners;
+	RayCastCallback m_rcCallback;
 };
 
