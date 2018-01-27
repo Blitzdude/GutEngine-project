@@ -30,6 +30,8 @@ void Box::init(	b2World * world,
 	bodyDef.type = bodyType; 				
 	bodyDef.position.Set(position.x, position.y);	// set bodys position
 	bodyDef.fixedRotation = fixedRotation;			// sets if the body rotates
+	bodyDef.allowSleep = true;						// allow resting objects to sleep 
+	bodyDef.bullet = false;							// do not compute bullet collision
 	m_body = world->CreateBody(&bodyDef);			// use world to create the body 
 
 	b2PolygonShape boxShape;

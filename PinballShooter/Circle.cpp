@@ -16,7 +16,9 @@ void Circle::init(b2World * world,
 	Gutengine::ColorRGBA8 color,
 	bool fixedRotation,
 	b2BodyType bodyType,
-	glm::vec4 uvRect /*= glm::vec4(0.0f, 0.0f, 1.0f, 1.0f)*/)
+	glm::vec4 uvRect, /*= glm::vec4(0.0f, 0.0f, 1.0f, 1.0f)*/
+	float density, /*= 1.0f*/
+	float friction/* = 0.3f*/)
 {
 	m_dimensions.x = radius;
 	m_dimensions.y = radius;
@@ -29,6 +31,7 @@ void Circle::init(b2World * world,
 	bodyDef.type = bodyType;
 	bodyDef.position.Set(position.x, position.y);	// set bodys position
 	bodyDef.fixedRotation = fixedRotation;			// sets if the body rotates
+	bodyDef.linearDamping = 0.001f;
 	m_body = world->CreateBody(&bodyDef);			// use world to create the body 
 
 	b2CircleShape circleShape;
@@ -38,8 +41,8 @@ void Circle::init(b2World * world,
 
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &circleShape;
-	fixtureDef.density = 1.0f;
-	fixtureDef.friction = 0.3f;
+	fixtureDef.density = density;
+	fixtureDef.friction = friction;
 	m_fixture = m_body->CreateFixture(&fixtureDef);
 }
 

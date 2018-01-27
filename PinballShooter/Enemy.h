@@ -1,14 +1,15 @@
 #pragma once
 #include "Circle.h"
+#include "GameEntity.h"
 #include <Gutengine\SpriteBatch.h>
 #include <Gutengine\GLTexture.h>
 #include <Gutengine\InputManager.h>
 #include <Gutengine\Camera2D.h>
 
-const float ENEMY_MAX_SPEED = 7.0f;
+const float ENEMY_MAX_SPEED = 5.0f;
 const float ENEMY_SPEED = 3.0f;
 
-class Enemy
+class Enemy : public GameEntity
 {
 public:
 	Enemy();
@@ -19,6 +20,8 @@ public:
 	void draw(Gutengine::SpriteBatch& spriteBatch);
 
 	void update(Gutengine::InputManager& inputManager, Gutengine::Camera2D camera, glm::vec2 playerPosition);
+
+	EntityType getEntityType() override { return EntityType::ET_ENEMY; };
 
 	//getters
 	const Circle& getCircle() const { return m_collisionCircle; };

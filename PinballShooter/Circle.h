@@ -19,7 +19,9 @@ public:
 		Gutengine::ColorRGBA8 color,
 		bool fixedRotation,
 		b2BodyType bodyType,
-		glm::vec4 uvRect = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+		glm::vec4 uvRect = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f),
+		float density = 1.0f,
+		float friction = 0.3f );
 
 	void draw(Gutengine::SpriteBatch& spriteBatch);
 
@@ -29,6 +31,8 @@ public:
 	const glm::vec2& getDimensions() const { return m_dimensions; };
 	const Gutengine::ColorRGBA8& getColor() const { return m_color; };
 
+	// setter methods
+	void setColor(const Gutengine::ColorRGBA8 newColor) { m_color = newColor; };
 
 private:
 	glm::vec4 m_uvRect;
