@@ -7,11 +7,16 @@
 #include <Gutengine\Camera2D.h>
 #include <Gutengine\GLTexture.h>
 #include <Gutengine\Window.h>
+#include <Gutengine/GUI.h>
 #include <Gutengine\DebugRenderer.h>
 #include <Gutengine/AudioEngine.h>
 #include <Box2D\Box2D.h>
+#include <CEGUI/CEGUI.h>
+#include <CEGUI/RendererModules/OpenGL/GL3Renderer.h>
+
 #include <vector>
 #include <map>
+
 #include "Box.h"
 #include "Player.h"
 #include "Enemy.h"
@@ -60,10 +65,11 @@ private:
 	Gutengine::GLTexture m_texture;
 	Gutengine::Window* m_window;
 	Gutengine::DebugRenderer m_debugRenderer;
-
+	
 	Gutengine::AudioEngine m_audioEngine;
 	Gutengine::Music m_audioTrack;
 	Gutengine::SoundEffect m_fireEffect;
+	Gutengine::GUI m_gui;
 
 	bool m_renderDebug = true;
 

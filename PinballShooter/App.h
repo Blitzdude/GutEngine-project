@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Gutengine\IMainGame.h>
+#include <Gutengine/IMainGame.h>
 
 #include "GameplayScreen.h"
 

@@ -9,7 +9,6 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
-#define b2_velocityThreshold = 0.0f
 
 const float VISION_RADIUS = 20.0f;
 const float WEAPON_ANGLE = 12.0f;
@@ -138,6 +137,14 @@ void GameplayScreen::onEntry()
 	// Initialize player
 	m_player.init(m_world.get(), glm::vec2(0.0f, 0.0f), glm::vec2(2.f, 2.f), Gutengine::ColorRGBA8(255, 255, 255, 255));
 
+	// Initialize GUI
+	m_gui.init("GUI");
+	m_gui.loadScheme("AlfiskoSkin.scheme");
+	m_gui.setFont("DejaVuSans-10");
+	CEGUI::PushButton* exitButton = static_cast<CEGUI::PushButton*>(m_gui.createWidget("AlfiskoSkin/Button", glm::vec4(0.1f, 0.1f, 0.1f, 0.05f), glm::vec4(0.0f), "ExitButton"));
+	exitButton->setText("Hello World!");
+
+
 }
 
 void GameplayScreen::onExit()
@@ -247,13 +254,7 @@ void GameplayScreen::draw()
 	// mouse position
 	glm::vec2 mouseWorldPosition = m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords());
 
-	// draw all the boxes
-	/*
-	for (auto b : m_boxes) {
-		b.draw(m_spriteBatch);
-	}
-	*/
-
+	
 	// draw all the pinballs
 	for (auto itr : m_pinballs) {
 		itr->draw(m_spriteBatch);
@@ -335,6 +336,8 @@ void GameplayScreen::draw()
 		m_debugRenderer.render(projectionMatrix, 2.0f);
 		// debug rendering - end.
 	}
+	// draw GUI
+	m_gui.draw();
 }
 
 void GameplayScreen::checkInput()
