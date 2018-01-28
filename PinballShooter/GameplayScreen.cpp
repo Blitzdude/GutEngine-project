@@ -393,7 +393,7 @@ void GameplayScreen::initUI()
 	// set event function to be handled, when button is clicked
 	exitButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameplayScreen::onExitClicked, this));
 
-	CEGUI::Combobox* myComboBox = static_cast<CEGUI::Combobox*>(m_gui.createWidget("TaharezLook/Combobox", glm::vec4(0.2f, 0.2f, 0.1f, 0.05f), glm::vec4(0.0f), "myComboBox"));
+	//CEGUI::Combobox* myComboBox = static_cast<CEGUI::Combobox*>(m_gui.createWidget("TaharezLook/Combobox", glm::vec4(0.2f, 0.2f, 0.1f, 0.05f), glm::vec4(0.0f), "myComboBox"));
 
 	m_gui.setMouseCursor("TaharezLook/MouseArrow");
 	m_gui.showMouseCursor();

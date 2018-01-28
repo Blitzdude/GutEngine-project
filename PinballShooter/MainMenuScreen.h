@@ -42,6 +42,8 @@ private:
 
 	bool onExitClicked(const CEGUI::EventArgs& e);
 
+	bool onNewGameClicked(const CEGUI::EventArgs& e);
+
 	Gutengine::Camera2D m_camera; //< camera window
 	Gutengine::Window* m_window;
 

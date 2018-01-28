@@ -26,10 +26,10 @@ void Pinball::init(b2World * world, const glm::vec2 position, const float radius
 
 void Pinball::draw(Gutengine::SpriteBatch & spriteBatch)
 {
-	if (m_contacts != 0)
-		m_collisionCircle.setColor(Gutengine::ColorRGBA8(255, 255, 255, 255));
-	else
+	if (m_contacts > 0)
 		m_collisionCircle.setColor(Gutengine::ColorRGBA8(255, 0, 0, 255));
+	else
+		m_collisionCircle.setColor(Gutengine::ColorRGBA8(255, 255, 255, 255));
 
 	m_collisionCircle.draw(spriteBatch);
 }
