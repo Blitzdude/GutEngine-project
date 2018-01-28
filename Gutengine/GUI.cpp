@@ -213,12 +213,12 @@ void Gutengine::GUI::onSDLEvent(SDL_Event& evnt) {
             // or function that can convert the text, such as from UTF8-CPP: http://utfcpp.sourceforge.net/
             // If you use UTF8-CPP just use this code and it should work:
 
-            // std::string evntText = std::string(evnt.text.text);
-            // std::vector<int> utf32result;
-            // case SDL_TEXTINPUT:
-            //   utf8::utf8to32(evnt.text.text, evnt.text.text + evntText.size(), std::back_inserter(utf32result));
-            //   codePoint = (CEGUI::utf32)utf32result[0];
-            //   m_context->injectChar(codePoint);
+           // std::string evntText = std::string(evnt.text.text);
+           // std::vector<int> utf32result;
+           // case SDL_TEXTINPUT:
+           //   utf8::utf8to32(evnt.text.text, evnt.text.text + evntText.size(), std::back_inserter(utf32result));
+           //   codePoint = (CEGUI::utf32)utf32result[0];
+           //   m_context->injectChar(codePoint);
 
             for (int i = 0; evnt.text.text[i] != '\0'; i++) {
                 codePoint |= (((CEGUI::utf32 )*(unsigned char*)&evnt.text.text[i]) << (i * 8));

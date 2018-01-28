@@ -50,14 +50,17 @@ public:
 
 	virtual void draw() override;
 
+
 private:
 	void checkInput();
 
 	void initShaders();
-
+	void initUI();
 	void makeLevelEdges();
 	void makeEdge(float x, float y , float w, float h);
 
+	// CEGUI Event handling functions
+	bool onExitClicked(const CEGUI::EventArgs& e);
 
 	Gutengine::SpriteBatch m_spriteBatch;
 	Gutengine::GLSLProgram m_textureProgram; //< renders textures

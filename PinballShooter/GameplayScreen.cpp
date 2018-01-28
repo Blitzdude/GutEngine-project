@@ -9,6 +9,7 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
+#include "ScreenIndices.h"
 
 const float VISION_RADIUS = 20.0f;
 const float WEAPON_ANGLE = 12.0f;
@@ -37,6 +38,7 @@ void applyBlastImpulse(b2Body* body, b2Vec2 blastCenter, b2Vec2 applyPoint, floa
 
 GameplayScreen::GameplayScreen(Gutengine::Window * window) : m_window(window)
 {
+	m_screenIndex = SCREEN_INDEX_GAMEPLAY;
 }
 
 
@@ -51,7 +53,7 @@ int GameplayScreen::getNextScreenIndex() const
 
 int GameplayScreen::getPreviousScreenIndex() const
 {
-	return SCREEN_INDEX_NO_SCREEN;
+	return SCREEN_INDEX_MAINMENU;
 }
 
 void GameplayScreen::build()
@@ -138,12 +140,8 @@ void GameplayScreen::onEntry()
 	m_player.init(m_world.get(), glm::vec2(0.0f, 0.0f), glm::vec2(2.f, 2.f), Gutengine::ColorRGBA8(255, 255, 255, 255));
 
 	// Initialize GUI
-	m_gui.init("GUI");
-	m_gui.loadScheme("AlfiskoSkin.scheme");
-	m_gui.setFont("DejaVuSans-10");
-	CEGUI::PushButton* exitButton = static_cast<CEGUI::PushButton*>(m_gui.createWidget("AlfiskoSkin/Button", glm::vec4(0.1f, 0.1f, 0.1f, 0.05f), glm::vec4(0.0f), "ExitButton"));
-	exitButton->setText("Hello World!");
-
+	initUI();
+	
 
 }
 
@@ -340,11 +338,14 @@ void GameplayScreen::draw()
 	m_gui.draw();
 }
 
+
+
 void GameplayScreen::checkInput()
 {
 	SDL_Event evnt;
 	while (SDL_PollEvent(&evnt)) {
 		m_game->onSDLEvent(evnt);
+		m_gui.onSDLEvent(evnt);
 	}
 	
 	// Weapon: blast all enemies in arc
@@ -381,6 +382,24 @@ void GameplayScreen::initShaders()
 	m_textureProgram.linkShaders();
 }
 
+void GameplayScreen::initUI()
+{
+	m_gui.init("GUI");
+	m_gui.loadScheme("TaharezLook.scheme");
+	m_gui.setFont("DejaVuSans-10");
+	CEGUI::PushButton* exitButton = static_cast<CEGUI::PushButton*>(m_gui.createWidget("TaharezLook/Button", glm::vec4(0.1f, 0.1f, 0.1f, 0.05f), glm::vec4(0.0f), "ExitButton"));
+	exitButton->setText("Exit Game");
+
+	// set event function to be handled, when button is clicked
+	exitButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameplayScreen::onExitClicked, this));
+
+	CEGUI::Combobox* myComboBox = static_cast<CEGUI::Combobox*>(m_gui.createWidget("TaharezLook/Combobox", glm::vec4(0.2f, 0.2f, 0.1f, 0.05f), glm::vec4(0.0f), "myComboBox"));
+
+	m_gui.setMouseCursor("TaharezLook/MouseArrow");
+	m_gui.showMouseCursor();
+	SDL_ShowCursor(0);
+}
+
 void GameplayScreen::makeLevelEdges()
 {
 	makeEdge(0.0f, 25.0f, 50.0f, 10.0f); // top edge
@@ -402,4 +421,12 @@ void GameplayScreen::makeEdge(float x, float y, float w, float h) {
 	Barrier->CreateFixture(&box, 0.0f); // density is 0.0f so they can't be moved
 
 	//make level edges - end
+}
+
+bool GameplayScreen::onExitClicked(const CEGUI::EventArgs& e)
+{
+	std::cout << "IM QUITTING!" << std::endl;
+	m_currentState = Gutengine::ScreenState::EXIT_APPLICATION;
+
+	return true;
 }

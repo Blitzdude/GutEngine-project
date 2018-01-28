@@ -27,9 +27,11 @@
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="GameEntity.h" />
     <ClInclude Include="GameplayScreen.h" />
+    <ClInclude Include="MainMenuScreen.h" />
     <ClInclude Include="Pinball.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="RayCastCallback.h" />
+    <ClInclude Include="ScreenIndices.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp" />
@@ -39,6 +41,7 @@
     <ClCompile Include="GameEntity.cpp" />
     <ClCompile Include="GameplayScreen.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MainMenuScreen.cpp" />
     <ClCompile Include="Pinball.cpp" />
     <ClCompile Include="Player.cpp" />
   </ItemGroup>
