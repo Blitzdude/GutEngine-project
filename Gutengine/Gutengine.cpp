@@ -3,17 +3,20 @@
 
 #include "Gutengine.h"
 
-namespace Gutengine {
+namespace Gutengine 
+{
 
-    int init() {
-        //Initialize SDL
-        SDL_Init(SDL_INIT_EVERYTHING);
-
-        //Tell SDL that we want a double buffered window so we dont get
-        //any flickering
-        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-        return 0;
-    }
-
+int 
+init() 
+{
+	//Initialize SDL
+	SDL_Init(SDL_INIT_EVERYTHING);
+	
+	//Tell SDL that we want a double buffered window so we dont get
+	//any flickering
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	
+	return 0;
 }
+
+} // namespace end

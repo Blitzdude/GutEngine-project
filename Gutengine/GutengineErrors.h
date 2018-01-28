@@ -3,8 +3,9 @@
 
 #include <string>
 
-namespace Gutengine {
+namespace Gutengine 
+{
 
     extern void fatalError(std::string errorString);
 
-}
+} // namespace end

@@ -21,9 +21,6 @@
 
 #pragma once
 
-#ifndef SpriteFont_h__
-#define SpriteFont_h__
-
 #include <TTF/SDL_ttf.h>
 #include <glm/glm.hpp>
 #include <map>
@@ -31,60 +28,68 @@
 
 #include "Vertex.h"
 
-namespace Gutengine {
+namespace Gutengine 
+{
 
-    struct GLTexture;
-    class SpriteBatch;
+struct GLTexture;
+class SpriteBatch;
 
-    struct CharGlyph {
-    public:
-        char character;
-        glm::vec4 uvRect;
-        glm::vec2 size;
-    };
+struct CharGlyph 
+{
+public:
+    char character;
+    glm::vec4 uvRect;
+    glm::vec2 size;
+};
 
 #define FIRST_PRINTABLE_CHAR ((char)32)
 #define LAST_PRINTABLE_CHAR ((char)126)
 
-    /// For text justification
-    enum class Justification {
-        LEFT, MIDDLE, RIGHT
-    };
+/// For text justification
+enum class Justification 
+{
+    LEFT, MIDDLE, RIGHT
+};
 
-    class SpriteFont {
-    public:
-        SpriteFont() {};
-        SpriteFont(const char* font, int size, char cs, char ce);
-        SpriteFont(const char* font, int size) :
-            SpriteFont(font, size, FIRST_PRINTABLE_CHAR, LAST_PRINTABLE_CHAR) {
-        }
+class SpriteFont 
+{
+public:
+	SpriteFont() 
+	{
+	};
 
-        void init(const char* font, int size);
-        void init(const char* font, int size, char cs, char ce);
+    SpriteFont(const char* font, int size, char cs, char ce);
 
-        /// Destroys the font resources
-        void dispose();
+    SpriteFont(const char* font, int size) :
+           SpriteFont(font, size, FIRST_PRINTABLE_CHAR, LAST_PRINTABLE_CHAR) 
+	{
+    }
 
-        int getFontHeight() const {
-            return _fontHeight;
-        }
+    void init(const char* font, int size);
+    void init(const char* font, int size, char cs, char ce);
 
-        /// Measures the dimensions of the text
-        glm::vec2 measure(const char* s);
+    /// Destroys the font resources
+    void dispose();
 
-        /// Draws using a spritebatch
-        void draw(SpriteBatch& batch, const char* s, glm::vec2 position, glm::vec2 scaling, 
-                  float depth, ColorRGBA8 tint, Justification just = Justification::LEFT);
-    private:
-        static std::vector<int>* createRows(glm::ivec4* rects, int rectsLength, int r, int padding, int& w);
+    int getFontHeight() const 
+	{
+		return m_fontHeight;
+    }
 
-        int _regStart, _regLength;
-        CharGlyph* _glyphs;
-        int _fontHeight;
+    /// Measures the dimensions of the text
+    glm::vec2 measure(const char* s);
 
-        unsigned int _texID;
-    };
+    /// Draws using a spritebatch
+    void draw(SpriteBatch& batch, const char* s, glm::vec2 position, glm::vec2 scaling, 
+              float depth, ColorRGBA8 tint, Justification just = Justification::LEFT);
+private:
+    static std::vector<int>* createRows(glm::ivec4* rects, int rectsLength, int r, int padding, int& w);
 
-}
+    int m_regStart, m_regLength;
+    CharGlyph* m_glyphs;
+    int m_fontHeight;
 
-#endif // SpriteFont_h__
+    unsigned int m_texID;
+};
+
+} // namespace end

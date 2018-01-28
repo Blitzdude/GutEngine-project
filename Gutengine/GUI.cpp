@@ -8,9 +8,12 @@
 
 CEGUI::OpenGL3Renderer* Gutengine::GUI::m_renderer = nullptr;
 
-void Gutengine::GUI::init(const std::string& resourceDirectory) {
+void
+Gutengine::GUI::init(const std::string& resourceDirectory) 
+{
     // Check if the renderer and system were not already initialized
-    if (m_renderer == nullptr) {
+    if (m_renderer == nullptr) 
+	{
         m_renderer = &CEGUI::OpenGL3Renderer::bootstrapSystem();
     }
 
@@ -34,14 +37,18 @@ void Gutengine::GUI::init(const std::string& resourceDirectory) {
     m_context->setRootWindow(m_root);
 }
 
-void Gutengine::GUI::destroy() {
+void
+Gutengine::GUI::destroy() 
+{
     CEGUI::System::getSingleton().destroyGUIContext(*m_context);
     CEGUI::WindowManager::getSingleton().destroyWindow(m_root);
     m_context = nullptr;
     m_root = nullptr;
 }
 
-void Gutengine::GUI::draw() {
+void
+Gutengine::GUI::draw() 
+{
     glDisable(GL_DEPTH_TEST);
     m_renderer->beginRendering();
     m_context->draw();
@@ -57,12 +64,16 @@ void Gutengine::GUI::draw() {
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
-void Gutengine::GUI::update() {
+void 
+Gutengine::GUI::update() 
+{
     unsigned int elapsed;
-    if (m_lastTime == 0) {
+    if (m_lastTime == 0) 
+	{
         elapsed = 0;
         m_lastTime = SDL_GetTicks();
-    } else {
+    } else
+	{
         unsigned int nextTime = SDL_GetTicks();
         elapsed = nextTime - m_lastTime;
         m_lastTime = nextTime;
@@ -70,19 +81,27 @@ void Gutengine::GUI::update() {
     m_context->injectTimePulse((float)elapsed / 1000.0f);
 }
 
-void Gutengine::GUI::setMouseCursor(const std::string& imageFile) {
+void 
+Gutengine::GUI::setMouseCursor(const std::string& imageFile) 
+{
     m_context->getMouseCursor().setDefaultImage(imageFile);
 }
 
-void Gutengine::GUI::showMouseCursor() {
+void
+Gutengine::GUI::showMouseCursor() 
+{
     m_context->getMouseCursor().show();
 }
 
-void Gutengine::GUI::hideMouseCursor() {
+void
+Gutengine::GUI::hideMouseCursor() 
+{
     m_context->getMouseCursor().hide();
 }
 
-CEGUI::Key::Scan SDLKeyToCEGUIKey(SDL_Keycode key) {
+CEGUI::Key::Scan
+SDLKeyToCEGUIKey(SDL_Keycode key) 
+{
     using namespace CEGUI;
     switch (key) {
         case SDLK_BACKSPACE:    return Key::Backspace;
@@ -182,8 +201,11 @@ CEGUI::Key::Scan SDLKeyToCEGUIKey(SDL_Keycode key) {
     }
 }
 
-CEGUI::MouseButton SDLButtonToCEGUIButton(Uint8 sdlButton) {
-    switch (sdlButton) {
+CEGUI::MouseButton 
+SDLButtonToCEGUIButton(Uint8 sdlButton) 
+{
+    switch (sdlButton) 
+	{
         case SDL_BUTTON_LEFT: return CEGUI::MouseButton::LeftButton;
         case SDL_BUTTON_MIDDLE: return CEGUI::MouseButton::MiddleButton;
         case SDL_BUTTON_RIGHT: return CEGUI::MouseButton::RightButton;
@@ -193,9 +215,12 @@ CEGUI::MouseButton SDLButtonToCEGUIButton(Uint8 sdlButton) {
     return CEGUI::MouseButton::NoButton;
 }
 
-void Gutengine::GUI::onSDLEvent(SDL_Event& evnt) {
+void 
+Gutengine::GUI::onSDLEvent(SDL_Event& evnt) 
+{
     CEGUI::utf32 codePoint;
-    switch (evnt.type) {
+    switch (evnt.type) 
+	{
         case SDL_MOUSEMOTION:
             // m_context->injectMouseMove(evnt.motion.xrel, evnt.motion.yrel);
             m_context->injectMousePosition((float)evnt.motion.x, (float)evnt.motion.y);
@@ -220,7 +245,8 @@ void Gutengine::GUI::onSDLEvent(SDL_Event& evnt) {
            //   codePoint = (CEGUI::utf32)utf32result[0];
            //   m_context->injectChar(codePoint);
 
-            for (int i = 0; evnt.text.text[i] != '\0'; i++) {
+            for (int i = 0; evnt.text.text[i] != '\0'; i++) 
+			{
                 codePoint |= (((CEGUI::utf32 )*(unsigned char*)&evnt.text.text[i]) << (i * 8));
             }
             m_context->injectChar(codePoint);
@@ -234,30 +260,40 @@ void Gutengine::GUI::onSDLEvent(SDL_Event& evnt) {
     }
 }
 
-void Gutengine::GUI::loadScheme(const std::string& schemeFile) {
+void
+Gutengine::GUI::loadScheme(const std::string& schemeFile)
+{
     CEGUI::SchemeManager::getSingleton().createFromFile(schemeFile);
 }
 
-CEGUI::Window* Gutengine::GUI::createWidget(const std::string& type, const glm::vec4& destRectPerc, const glm::vec4& destRectPix, const std::string& name /*= ""*/) {
+CEGUI::Window* 
+Gutengine::GUI::createWidget(const std::string& type, const glm::vec4& destRectPerc, const glm::vec4& destRectPix, const std::string& name /*= ""*/)
+{
     CEGUI::Window* newWindow = CEGUI::WindowManager::getSingleton().createWindow(type, name);
     m_root->addChild(newWindow);
     setWidgetDestRect(newWindow, destRectPerc, destRectPix);
     return newWindow;
 }
 
-CEGUI::Window* Gutengine::GUI::createWidget(CEGUI::Window* parent, const std::string& type, const glm::vec4& destRectPerc, const glm::vec4& destRectPix, const std::string& name /*= ""*/) {
+CEGUI::Window*
+Gutengine::GUI::createWidget(CEGUI::Window* parent, const std::string& type, const glm::vec4& destRectPerc, const glm::vec4& destRectPix, const std::string& name /*= ""*/) 
+{
     CEGUI::Window* newWindow = CEGUI::WindowManager::getSingleton().createWindow(type, name);
     parent->addChild(newWindow);
     setWidgetDestRect(newWindow, destRectPerc, destRectPix);
     return newWindow;
 }
 
-void Gutengine::GUI::setWidgetDestRect(CEGUI::Window* widget, const glm::vec4& destRectPerc, const glm::vec4& destRectPix) {
+void 
+Gutengine::GUI::setWidgetDestRect(CEGUI::Window* widget, const glm::vec4& destRectPerc, const glm::vec4& destRectPix)
+{
     widget->setPosition(CEGUI::UVector2(CEGUI::UDim(destRectPerc.x, destRectPix.x), CEGUI::UDim(destRectPerc.y, destRectPix.y)));
     widget->setSize(CEGUI::USize(CEGUI::UDim(destRectPerc.z, destRectPix.z), CEGUI::UDim(destRectPerc.w, destRectPix.w)));
 }
 
-void Gutengine::GUI::setFont(const std::string& fontFile) {
+void
+Gutengine::GUI::setFont(const std::string& fontFile) 
+{
     CEGUI::FontManager::getSingleton().createFromFile(fontFile + ".font");
     m_context->setDefaultFont(fontFile);
 }

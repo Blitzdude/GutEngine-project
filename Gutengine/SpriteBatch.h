@@ -6,10 +6,12 @@
 
 #include "Vertex.h"
 
-namespace Gutengine{
+namespace Gutengine
+{
 
 // Determines how we should sort the glyphs
-enum class GlyphSortType {
+enum class GlyphSortType 
+{
     NONE,
     FRONT_TO_BACK,
     BACK_TO_FRONT,
@@ -17,7 +19,8 @@ enum class GlyphSortType {
 };
 
 // A glyph is a single quad. These are added via SpriteBatch::draw
-class Glyph {
+class Glyph 
+{
 public:
     Glyph() {};
     Glyph(const glm::vec4& destRect, const glm::vec4& uvRect, GLuint Texture, float Depth, const ColorRGBA8& color);
@@ -36,10 +39,12 @@ private:
 };
 
 // Each render batch is used for a single draw call
-class RenderBatch {
+class RenderBatch 
+{
 public:
-    RenderBatch(GLuint Offset, GLuint NumVertices, GLuint Texture) : offset(Offset),
-        numVertices(NumVertices), texture(Texture) {
+    RenderBatch( GLuint Offset, GLuint NumVertices, GLuint Texture) : offset(Offset),
+				 numVertices(NumVertices), texture(Texture) 
+	{
     }
     GLuint offset;
     GLuint numVertices;
@@ -80,22 +85,22 @@ private:
     // Generates our VAO and VBO
     void createVertexArray();
 
-    // Sorts glyphs according to _sortType
+    // Sorts glyphs according to m_sortType
     void sortGlyphs();
 
     // Comparators used by sortGlyphs()
     static bool compareFrontToBack(Glyph* a, Glyph* b);
     static bool compareBackToFront(Glyph* a, Glyph* b);
-    static bool compareTexture(Glyph* a, Glyph* b);
+    static bool compareTexture	  (Glyph* a, Glyph* b);
 
-    GLuint _vbo;
-    GLuint _vao;
+    GLuint m_vbo;
+    GLuint m_vao;
 
-    GlyphSortType _sortType;
+    GlyphSortType m_sortType;
 
-    std::vector<Glyph*> _glyphPointers; ///< This is for sorting
-    std::vector<Glyph> _glyphs; ///< These are the actual glyphs
-    std::vector<RenderBatch> _renderBatches;
+    std::vector<Glyph*> m_glyphPointers; ///< This is for sorting
+    std::vector<Glyph> m_glyphs; ///< These are the actual glyphs
+    std::vector<RenderBatch> m_renderBatches;
 };
 
-}
+} // namespace end

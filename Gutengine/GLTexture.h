@@ -2,12 +2,15 @@
 #include <GL/glew.h>
 #include <string>
 
-namespace Gutengine {
+namespace Gutengine 
+{
 
-    struct GLTexture {
-        std::string filePath = "";
-        GLuint id;
-        int width;
-        int height;
-    };
-}
+struct GLTexture 
+{
+    std::string filePath = "";
+    GLuint id;
+    int width;
+    int height;
+};
+
+} // namespace end

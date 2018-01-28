@@ -3,13 +3,14 @@
 
 #include <string>
 
-namespace Gutengine {
+namespace Gutengine 
+{
 
-    //Loads images into GLTextures
-    class ImageLoader
-    {
-    public:
-        static GLTexture loadPNG(std::string filePath);
-    };
+//Loads images into GLTextures
+class ImageLoader
+{
+public:
+    static GLTexture loadPNG(std::string filePath);
+};
 
-}
+} // namespace end

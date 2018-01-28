@@ -2,47 +2,49 @@
 
 const float PI = 3.14159265359f;
 
-namespace {
-    const char* VERT_SRC = R"(#version 130
-//The vertex shader operates on each vertex
+namespace 
+{
 
-//input data from the VBO. Each vertex is 2 floats
-in vec2 vertexPosition;
-in vec4 vertexColor;
+const char* VERT_SRC = R"(#version 130
+	//The vertex shader operates on each vertex
+	
+	//input data from the VBO. Each vertex is 2 floats
+	in vec2 vertexPosition;
+	in vec4 vertexColor;
+	
+	out vec2 fragmentPosition;
+	out vec4 fragmentColor;
+	
+	uniform mat4 P;
+	
+	void main() {
+	    //Set the x,y position on the screen
+	    gl_Position.xy = (P * vec4(vertexPosition, 0.0, 1.0)).xy;
+	    //the z position is zero since we are in 2D
+	    gl_Position.z = 0.0;
+	    
+	    //Indicate that the coordinates are normalized
+	    gl_Position.w = 1.0;
+	    
+	    fragmentPosition = vertexPosition;
+	    
+	    fragmentColor = vertexColor;
+	})";
 
-out vec2 fragmentPosition;
-out vec4 fragmentColor;
-
-uniform mat4 P;
-
-void main() {
-    //Set the x,y position on the screen
-    gl_Position.xy = (P * vec4(vertexPosition, 0.0, 1.0)).xy;
-    //the z position is zero since we are in 2D
-    gl_Position.z = 0.0;
-    
-    //Indicate that the coordinates are normalized
-    gl_Position.w = 1.0;
-    
-    fragmentPosition = vertexPosition;
-    
-    fragmentColor = vertexColor;
-})";
-
-    const char* FRAG_SRC = R"(#version 130
-//The fragment shader operates on each pixel in a given polygon
-
-in vec2 fragmentPosition;
-in vec4 fragmentColor;
-
-//This is the 3 component float vector that gets outputted to the screen
-//for each pixel.
-out vec4 color;
-
-void main() {
-
-    color = fragmentColor;
-})";
+const char* FRAG_SRC = R"(#version 130
+	//The fragment shader operates on each pixel in a given polygon
+	
+	in vec2 fragmentPosition;
+	in vec4 fragmentColor;
+	
+	//This is the 3 component float vector that gets outputted to the screen
+	//for each pixel.
+	out vec4 color;
+	
+	void main() {
+	
+	    color = fragmentColor;
+	})";
 }
 
 Gutengine::DebugRenderer::DebugRenderer() {
@@ -53,7 +55,9 @@ Gutengine::DebugRenderer::~DebugRenderer() {
     dispose();
 }
 
-void Gutengine::DebugRenderer::init() {
+void
+Gutengine::DebugRenderer::init() 
+{
 
     // Shader init
     m_program.compileShadersFromSource(VERT_SRC, FRAG_SRC);
@@ -80,7 +84,9 @@ void Gutengine::DebugRenderer::init() {
     glBindVertexArray(0);
 }
 
-void Gutengine::DebugRenderer::end() {
+void 
+Gutengine::DebugRenderer::end() 
+{
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
     // Orphan the vertex buffer
     glBufferData(GL_ARRAY_BUFFER, m_verts.size() * sizeof(DebugVertex), nullptr, GL_DYNAMIC_DRAW);
@@ -100,14 +106,18 @@ void Gutengine::DebugRenderer::end() {
     m_verts.clear();
 }
 
-glm::vec2 rotatePoint(const glm::vec2& pos, float angle) {
+glm::vec2 
+rotatePoint(const glm::vec2& pos, float angle) 
+{
     glm::vec2 newv;
     newv.x = pos.x * cos(angle) - pos.y * sin(angle);
     newv.y = pos.x * sin(angle) + pos.y * cos(angle);
     return newv;
 }
 
-void Gutengine::DebugRenderer::drawLine(const glm::vec2& a, const glm::vec2& b, const ColorRGBA8& color) {
+void
+Gutengine::DebugRenderer::drawLine(const glm::vec2& a, const glm::vec2& b, const ColorRGBA8& color) 
+{
     int i = m_verts.size();
     m_verts.resize(m_verts.size() + 2);
 
@@ -120,7 +130,9 @@ void Gutengine::DebugRenderer::drawLine(const glm::vec2& a, const glm::vec2& b, 
     m_indices.push_back(i + 1);
 }
 
-void Gutengine::DebugRenderer::drawBox(const glm::vec4& destRect, const ColorRGBA8& color, float angle) {
+void
+Gutengine::DebugRenderer::drawBox(const glm::vec4& destRect, const ColorRGBA8& color, float angle)
+{
     
     int i = m_verts.size();
     m_verts.resize(m_verts.size() + 4);
@@ -160,7 +172,9 @@ void Gutengine::DebugRenderer::drawBox(const glm::vec4& destRect, const ColorRGB
     m_indices.push_back(i);
 }
 
-void Gutengine::DebugRenderer::drawCircle(const glm::vec2& center, const ColorRGBA8& color, float radius) {
+void
+Gutengine::DebugRenderer::drawCircle(const glm::vec2& center, const ColorRGBA8& color, float radius) 
+{
     static const int NUM_VERTS = 100;
     // Set up vertices
     int start = m_verts.size();
@@ -182,7 +196,8 @@ void Gutengine::DebugRenderer::drawCircle(const glm::vec2& center, const ColorRG
     m_indices.push_back(start);
 }
 
-void Gutengine::DebugRenderer::drawPolygon(const std::vector<glm::vec2> & vertices, const ColorRGBA8& color, const GLint numVertices)
+void
+Gutengine::DebugRenderer::drawPolygon(const std::vector<glm::vec2> & vertices, const ColorRGBA8& color, const GLint numVertices)
 {
 	int start = m_verts.size();
 	m_verts.resize(m_verts.size() + numVertices);
@@ -208,7 +223,9 @@ void Gutengine::DebugRenderer::drawPolygon(const std::vector<glm::vec2> & vertic
 }
 
 
-void Gutengine::DebugRenderer::render(const glm::mat4& projectionMatrix, float lineWidth) {
+void
+Gutengine::DebugRenderer::render(const glm::mat4& projectionMatrix, float lineWidth) 
+{
     m_program.use();
 
     GLint pUniform = m_program.getUniformLocation("P");
@@ -222,7 +239,9 @@ void Gutengine::DebugRenderer::render(const glm::mat4& projectionMatrix, float l
     m_program.unuse();
 }
 
-void Gutengine::DebugRenderer::dispose() {
+void 
+Gutengine::DebugRenderer::dispose() 
+{
     if (m_vao) {
         glDeleteVertexArrays(1, &m_vao);
     }

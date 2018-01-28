@@ -3,28 +3,34 @@
 #include "GLTexture.h"
 #include <glm/glm.hpp>
 
-namespace Gutengine {
-    class TileSheet {
-    public:
-        void init(const GLTexture& texture, const glm::ivec2& tileDims) {
-            this->texture = texture;
-            this->dims = tileDims;
-        }
+namespace Gutengine 
+{
 
-        glm::vec4 getUVs(int index) {
-            int xTile = index % dims.x;
-            int yTile = index / dims.x;
+class TileSheet 
+{
+public:
+    void init(const GLTexture& texture, const glm::ivec2& tileDims) 
+	{
+        this->texture = texture;
+        this->dims = tileDims;
+    }
 
-            glm::vec4 uvs;
-            uvs.x = xTile / (float)dims.x;
-            uvs.y = yTile / (float)dims.y;
-            uvs.z = 1.0f / dims.x;
-            uvs.w = 1.0f / dims.y;
+    glm::vec4 getUVs(int index) 
+	{
+        int xTile = index % dims.x;
+        int yTile = index / dims.x;
 
-            return uvs;
-        }
+        glm::vec4 uvs;
+        uvs.x = xTile / (float)dims.x;
+        uvs.y = yTile / (float)dims.y;
+        uvs.z = 1.0f / dims.x;
+        uvs.w = 1.0f / dims.y;
 
-        GLTexture texture;
-        glm::ivec2 dims;
-    };
-}
+        return uvs;
+    }
+
+    GLTexture texture;
+    glm::ivec2 dims;
+};
+
+} // namespace end

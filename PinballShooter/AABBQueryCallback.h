@@ -2,12 +2,16 @@
 #include <Box2D\Box2D.h>
 // this class captures the closest hit shape : box2d.org/manual.pdf
 class AABBQueryCallback :
-	public AABBQueryCallback
+	public b2QueryCallback
 {
 public:
-	AABBQueryCallback() {
+	AABBQueryCallback() 
+	{
 	}
-	~AABBQueryCallback() {}
+
+	~AABBQueryCallback() 
+	{
+	}
 
 	bool ReportFixture(b2Fixture* fixture) 
 	{
@@ -17,6 +21,5 @@ public:
 		// return true to continue the query
 		return true;
 	}
-
 };
 

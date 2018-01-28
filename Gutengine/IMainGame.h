@@ -5,49 +5,53 @@
 #include "InputManager.h"
 #include <memory>
 
-namespace Gutengine {
+namespace Gutengine 
+{
 
-    class ScreenList;
-    class IGameScreen;
+class ScreenList;
+class IGameScreen;
 
-    class IMainGame {
-    public:
-        IMainGame();
-        virtual ~IMainGame();
+class IMainGame 
+{
+public:
+    IMainGame();
+    virtual ~IMainGame();
 
-        // Runs and initializes the game
-        void run();
-        // Exits the game
-        void exitGame();
+    // Runs and initializes the game
+    void run();
+    // Exits the game
+    void exitGame();
 
-        // Called on initialization
-        virtual void onInit() = 0;
-        // For adding all screens
-        virtual void addScreens() = 0;
-        // Called when exiting
-        virtual void onExit() = 0;
+    // Called on initialization
+    virtual void onInit() = 0;
+    // For adding all screens
+    virtual void addScreens() = 0;
+    // Called when exiting
+    virtual void onExit() = 0;
 
-        void onSDLEvent(SDL_Event& evnt);
+    void onSDLEvent(SDL_Event& evnt);
 
-        const float getFps() const {
-            return m_fps;
-        }
+    const float getFps() const 
+    {
+		return m_fps;
+    }
 
-        InputManager inputManager;
+    InputManager inputManager;
 
-    protected:
-        // Custom update function
-        virtual void update();
-        // Custom render function
-        virtual void draw();
+protected:
+    // Custom update function
+    virtual void update();
+    // Custom render function
+    virtual void draw();
 
-        bool init();
-        bool initSystems();
+    bool init();
+    bool initSystems();
 
-        std::unique_ptr<ScreenList> m_screenList = nullptr;
-        IGameScreen* m_currentScreen = nullptr;
-        bool m_isRunning = false;
-        float m_fps = 0.0f;
-        Window m_window;
-    };
-}
+    std::unique_ptr<ScreenList> m_screenList = nullptr;
+    IGameScreen* m_currentScreen			 = nullptr;
+    bool m_isRunning						 = false;
+    float m_fps								 = 0.0f;
+    Window m_window;
+};
+
+} // namespace end
