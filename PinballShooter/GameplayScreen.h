@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Gutengine/GutengineErrors.h>
 #include <Gutengine\IGameScreen.h>
 #include <Gutengine\SpriteBatch.h>
 #include <Gutengine\GLSLProgram.h>
@@ -7,6 +8,7 @@
 #include <Gutengine\GLTexture.h>
 #include <Gutengine\Window.h>
 #include <Gutengine\DebugRenderer.h>
+#include <Gutengine/AudioEngine.h>
 #include <Box2D\Box2D.h>
 #include <vector>
 #include <map>
@@ -58,6 +60,10 @@ private:
 	Gutengine::GLTexture m_texture;
 	Gutengine::Window* m_window;
 	Gutengine::DebugRenderer m_debugRenderer;
+
+	Gutengine::AudioEngine m_audioEngine;
+	Gutengine::Music m_audioTrack;
+	Gutengine::SoundEffect m_fireEffect;
 
 	bool m_renderDebug = true;
 

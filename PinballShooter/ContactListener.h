@@ -17,7 +17,7 @@ class ContactListener : public b2ContactListener
 
 	}
 
-	void EndContact(b2Contact* contact) {
+	void EndContact(b2Contact* contact) override {
 
 		//check if fixture A was a ballpin
 		void* bodyUserData = contact->GetFixtureA()->GetBody()->GetUserData();
@@ -30,4 +30,5 @@ class ContactListener : public b2ContactListener
 			static_cast<Pinball*>(bodyUserData)->endContact();
 
 	}
+
 };

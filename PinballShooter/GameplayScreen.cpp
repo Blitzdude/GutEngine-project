@@ -14,7 +14,7 @@
 const float VISION_RADIUS = 20.0f;
 const float WEAPON_ANGLE = 12.0f;
 const float WEAPON_RANGE = 10.0f;
-const float BLAST_POWER = 50.0f;
+const float BLAST_POWER = 10.0f;
 const float PI = 3.14159265359f;
 
 float angleBetweenVectors(glm::vec2 a, glm::vec2 b) { 
@@ -73,6 +73,8 @@ void GameplayScreen::onEntry()
 
 	std::cout << "OnEntry: \n";
 
+	
+
 	// Initialize spritebatch
 	m_spriteBatch.init();
 
@@ -81,6 +83,14 @@ void GameplayScreen::onEntry()
 	
 	// Initialize debug Renderer
 	m_debugRenderer.init();
+
+	// Initialize audio engine
+	m_audioEngine.init();
+	
+	m_audioTrack = m_audioEngine.loadMusic("Audio/DEmo_3.ogg");
+	m_fireEffect = m_audioEngine.loadSoundEffect("Audio/laser5.wav");
+	m_audioTrack.play(-1);
+
 
 	b2Vec2 gravity(0.0f, 0.0f); //< we don't want gravity
 	m_world = std::make_unique<b2World>(gravity);
@@ -100,31 +110,6 @@ void GameplayScreen::onEntry()
 
 
 	
-
-	//make a bunch of new boxes and push them into the boxes vector container
-	/*
-	for (int i = 0; i < NUM_BOXES; i++) {
-		// randomize color
-		Gutengine::ColorRGBA8 randColor;
-		randColor.r = ColorDist(randGenerator);
-		randColor.g = ColorDist(randGenerator);
-		randColor.b = ColorDist(randGenerator);
-		randColor.a = 255;
-
-		// create a new box with random pos(x,y), size(w,h) and color(r,g,b), set fixedRotation to false
-		Box newBox;
-		newBox.init(m_world.get(),
-			glm::vec2(xDistPos(randGenerator), yDistPos(randGenerator)),
-			glm::vec2(sizeDistribution(randGenerator), sizeDistribution(randGenerator)),
-			Gutengine::ResourceManager::getTexture("Assets/bricks_top.png"),
-			randColor,
-			false,
-			b2_dynamicBody);
-		// push new created box to vector container
-		m_boxes.push_back(newBox);
-	}
-	m_boxes[1].getBody()->SetFixedRotation(true);
-	*/
 
 	// make enemies
 	for (int i = 0; i < NUM_ENEMIES; i++) {
@@ -290,17 +275,6 @@ void GameplayScreen::draw()
 	// Debug rendering
 	if (m_renderDebug) {
 		glm::vec4 destRect;
-		// Render obstacle box collision boxes
-		/*
-		for (auto& b : m_boxes) {
-			destRect.x = b.getBody()->GetPosition().x - b.getDimensions().x / 2.0f;
-			destRect.y = b.getBody()->GetPosition().y - b.getDimensions().y / 2.0f;
-			destRect.z = b.getDimensions().x;
-			destRect.w = b.getDimensions().y;
-			m_debugRenderer.drawBox(destRect, Gutengine::ColorRGBA8(255, 255, 255, 255), b.getBody()->GetAngle());
-		}
-		*/
-		// render enemy collision boxes
 
 		for (auto& itr : m_enemies) {
 			glm::vec2 enemyPosition = glm::vec2(itr->getCircle().getBody()->GetPosition().x,
@@ -316,11 +290,6 @@ void GameplayScreen::draw()
 			}
 		}
 
-		// draw Origin lines
-		m_debugRenderer.drawLine(glm::vec2(0.0f, 0.0f), glm::vec2(0.25f, 0.0f), Gutengine::ColorRGBA8(0, 0, 255, 255));
-		m_debugRenderer.drawLine(m_camera.convertScreenToWorld(glm::vec2(0.0f, 0.0f)),
-								 m_camera.convertScreenToWorld(glm::vec2(24.0f, 24.0f)),
-								 Gutengine::ColorRGBA8(0, 0, 255, 255));
 
 
 		//render player collision Circle
@@ -376,7 +345,7 @@ void GameplayScreen::checkInput()
 	}
 	
 	// Weapon: blast all enemies in arc
-	if (m_game->inputManager.isKeyPressed(SDL_BUTTON_LEFT)) {
+	if (m_game->inputManager.isKeyDown(SDL_BUTTON_LEFT)) {
 		// get Player position, which will be the center of the blast
 		glm::vec2 playerPosition = glm::vec2(	m_player.getCircle().getBody()->GetPosition().x,
 												m_player.getCircle().getBody()->GetPosition().y);
@@ -388,6 +357,7 @@ void GameplayScreen::checkInput()
 					BLAST_POWER);
 			
 		}
+		m_fireEffect.play();
 	}
 	if (m_game->inputManager.isKeyPressed(SDLK_q)) {
 

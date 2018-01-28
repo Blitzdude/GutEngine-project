@@ -19,7 +19,6 @@ void Enemy::init(b2World* world, const glm::vec2 position, const float radius, G
 	m_collisionCircle.init(world, position, radius, m_texture, color, true, b2_dynamicBody,
 							glm::vec4(0.0f, 0.0f, 1.0f, 1.0f), 1.0f, 0.5f);
 
-
 }
 
 void Enemy::draw(Gutengine::SpriteBatch& spriteBatch)
