@@ -175,6 +175,12 @@ setting CMake options and regenerating, rather than editing directly.
 // Uncomment this to use an external fribidi library.
 /* #undef CEGUI_USE_FRIBIDI */
 
+// Controls whether to use GLEW as an OpenGL loading library.
+#define CEGUI_USE_GLEW
+
+// Controls whether to use Epoxy as an OpenGL loading library.
+/* #undef CEGUI_USE_EPOXY */
+
 //////////////////////////////////////////////////////////////////////////
 // The following controls whether the MinizipResourceProvider will be
 // built into the CEGUIBase library.  You can uncomment the following line
@@ -188,8 +194,8 @@ setting CMake options and regenerating, rather than editing directly.
 // Define the default place where cegui will look for loadable modules
 // this can be changed at runtime via the CEGUI_MODULE_DIR environment var.
 #if defined(_WIN32) || defined(__WIN32__)
-#   define CEGUI_MODULE_DIR "J:/projects/graphicsTutorials/deps/cegui-0.8.4/cegui-0.8.4/build/bin/"
-#else
+#   define CEGUI_MODULE_DIR "C:/Users/joelkan/Desktop/GutEngineDeps/cegui-0.8.7/build/bin/"
+#elif !defined(__ANDROID__)
 #   define CEGUI_MODULE_DIR "C:/Program Files (x86)/cegui/lib/cegui-0.8/"
 #endif
 
