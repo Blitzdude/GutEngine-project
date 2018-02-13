@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Box.h"
-#include "Player.h"
 #include <Gutengine/IGameScreen.h>
 #include <Box2D/Box2D.h>
 #include <vector>
@@ -53,8 +51,7 @@ private:
 
     bool m_renderDebug = false;
 
-    Player m_player;
-    std::vector<Box> m_boxes;
+   // std::vector<Box> m_boxes;
     std::unique_ptr<b2World> m_world;
 };
 

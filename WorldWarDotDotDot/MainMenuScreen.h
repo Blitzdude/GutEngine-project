@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Player.h"
 #include <Gutengine/IGameScreen.h>
 #include <vector>
 #include <Gutengine/SpriteBatch.h>

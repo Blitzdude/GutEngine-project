@@ -7,7 +7,7 @@
 
 #include "ScreenIndices.h"
 
-#include "Light.h"
+//#include "Light.h"
 
 GameplayScreen::GameplayScreen(Gutengine::Window* window) : m_window(window){
     m_screenIndex = SCREEN_INDEX_GAMEPLAY;
@@ -17,53 +17,31 @@ GameplayScreen::~GameplayScreen() {
 
 }
 
-int GameplayScreen::getNextScreenIndex() const {
+int
+GameplayScreen::getNextScreenIndex() const {
     return SCREEN_INDEX_NO_SCREEN;
 }
 
-int GameplayScreen::getPreviousScreenIndex() const {
+int
+GameplayScreen::getPreviousScreenIndex() const {
     return SCREEN_INDEX_MAINMENU;
 }
 
-void GameplayScreen::build() {
+void
+GameplayScreen::build() {
 }
 
-void GameplayScreen::destroy() {
+void
+GameplayScreen::destroy() {
 }
 
-void GameplayScreen::onEntry() {
+void
+GameplayScreen::onEntry() {
 
     b2Vec2 gravity(0.0f, -25.0);
     m_world = std::make_unique<b2World>(gravity);
 
     m_debugRenderer.init();
-
-    // Load the texture
-    m_texture = Gutengine::ResourceManager::getTexture("Assets/bricks_top.png");
-
-    // Make the ground
-    Box groundBox;
-    groundBox.init(m_world.get(), glm::vec2(0.0f, -20.0f), glm::vec2(50.0f, 10.0f), m_texture, Gutengine::ColorRGBA8(255, 255, 255, 255), false, false);
-    m_boxes.push_back(groundBox);
-
-    // Make a bunch of boxes
-    std::mt19937 randGenerator;
-    std::uniform_real_distribution<float> xPos(-10.0, 10.0f);
-    std::uniform_real_distribution<float> yPos(-10.0, 25.0f);
-    std::uniform_real_distribution<float> size(0.5, 2.5f);
-    std::uniform_int_distribution<int> color(50, 255);
-    const int NUM_BOXES = 10;
-
-    for (int i = 0; i < NUM_BOXES; i++) {
-        Gutengine::ColorRGBA8 randColor;
-        randColor.r = color(randGenerator);
-        randColor.g = color(randGenerator);
-        randColor.b = color(randGenerator);
-        randColor.a = 255;
-        Box newBox;
-        newBox.init(m_world.get(), glm::vec2(xPos(randGenerator), yPos(randGenerator)), glm::vec2(size(randGenerator), size(randGenerator)), m_texture, randColor, false, true);
-        m_boxes.push_back(newBox);
-    }
 
     // Initialize spritebatch
     m_spriteBatch.init();
@@ -75,39 +53,31 @@ void GameplayScreen::onEntry() {
     m_textureProgram.addAttribute("vertexColor");
     m_textureProgram.addAttribute("vertexUV");
     m_textureProgram.linkShaders();
-    // Compile our light shader
-    m_lightProgram.compileShaders("Shaders/lightShading.vert", "Shaders/lightShading.frag");
-    m_lightProgram.addAttribute("vertexPosition");
-    m_lightProgram.addAttribute("vertexColor");
-    m_lightProgram.addAttribute("vertexUV");
-    m_lightProgram.linkShaders();
 
     // Init camera
     m_camera.init(m_window->getScreenWidth(), m_window->getScreenHeight());
     m_camera.setScale(32.0f);
 
-    // Init player
-    m_player.init(m_world.get(), glm::vec2(0.0f, 30.0f), glm::vec2(2.0f), glm::vec2(1.0f, 1.8f), Gutengine::ColorRGBA8(255, 255, 255, 255));
-
     initUI();
 }
 
-void GameplayScreen::onExit() {
+void
+GameplayScreen::onExit() {
     m_debugRenderer.dispose();
-    m_boxes.clear();
     m_world.reset();
 }
 
-void GameplayScreen::update() {
+void
+GameplayScreen::update() {
     m_camera.update();
     checkInput();
-    m_player.update(m_game->inputManager);
 
     // Update the physics simulation
     m_world->Step(1.0f / 60.0f, 6, 2);
 }
 
-void GameplayScreen::draw() {
+void 
+GameplayScreen::draw() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -125,12 +95,6 @@ void GameplayScreen::draw() {
 
     m_spriteBatch.begin();
 
-    // Draw all the boxes
-    for (auto& b : m_boxes) {
-        b.draw(m_spriteBatch);
-    }
-    m_player.draw(m_spriteBatch);
-
     m_spriteBatch.end();
     m_spriteBatch.renderBatch();
     m_textureProgram.unuse();
@@ -138,55 +102,16 @@ void GameplayScreen::draw() {
     // Debug rendering
     if (m_renderDebug) {
         glm::vec4 destRect;
-        for (auto& b : m_boxes) {       
-            destRect.x = b.getBody()->GetPosition().x - b.getDimensions().x / 2.0f;
-            destRect.y = b.getBody()->GetPosition().y - b.getDimensions().y / 2.0f;
-            destRect.z = b.getDimensions().x;
-            destRect.w = b.getDimensions().y;
-            m_debugRenderer.drawBox(destRect, Gutengine::ColorRGBA8(255, 255, 255, 255), b.getBody()->GetAngle());
-        }
-        m_player.drawDebug(m_debugRenderer);
-        // Render player
+       
         m_debugRenderer.end();
         m_debugRenderer.render(projectionMatrix, 2.0f);
     }
-
-    // Render some test lights
-    // TODO: Don't hardcode this!
-    Light playerLight;
-    playerLight.color = Gutengine::ColorRGBA8(255, 255, 255, 128);
-    playerLight.position = m_player.getPosition();
-    playerLight.size = 30.0f;
-
-    Light mouseLight;
-    mouseLight.color = Gutengine::ColorRGBA8(255, 0, 255, 150);
-    mouseLight.position = m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords());
-    mouseLight.size = 45.0f;
-
-    m_lightProgram.use();
-    pUniform = m_textureProgram.getUniformLocation("P");
-    glUniformMatrix4fv(pUniform, 1, GL_FALSE, &projectionMatrix[0][0]);
-
-    // Additive blending
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-
-    m_spriteBatch.begin();
-
-    playerLight.draw(m_spriteBatch);
-    mouseLight.draw(m_spriteBatch);
-
-    m_spriteBatch.end();
-    m_spriteBatch.renderBatch();
-
-    m_lightProgram.unuse();
-
-    // Reset to regular alpha blending
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+   
     m_gui.draw();
 }
 
-void GameplayScreen::initUI() {
+void
+GameplayScreen::initUI() {
     // Init the UI
     m_gui.init("GUI");
     m_gui.loadScheme("TaharezLook.scheme");
@@ -197,12 +122,13 @@ void GameplayScreen::initUI() {
     // Set the event to be called when we click
     testButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameplayScreen::onExitClicked, this));
 
-    m_gui.setMouseCursor("TaharezLook/MouseArrow");
-    m_gui.showMouseCursor();
-    SDL_ShowCursor(0);
+    //m_gui.setMouseCursor("TaharezLook/MouseArrow");
+    //m_gui.showMouseCursor();
+    SDL_ShowCursor(1);
 }
 
-void GameplayScreen::checkInput() {
+void
+GameplayScreen::checkInput() {
     SDL_Event evnt;
     while (SDL_PollEvent(&evnt)) {
         m_game->onSDLEvent(evnt);
@@ -215,7 +141,8 @@ void GameplayScreen::checkInput() {
     }
 }
 
-bool GameplayScreen::onExitClicked(const CEGUI::EventArgs& e) {
+bool
+GameplayScreen::onExitClicked(const CEGUI::EventArgs& e) {
     m_currentState = Gutengine::ScreenState::EXIT_APPLICATION;
     return true;
 }

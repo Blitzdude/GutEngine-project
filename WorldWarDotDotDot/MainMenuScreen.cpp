@@ -50,27 +50,27 @@ void MainMenuScreen::draw() {
 void MainMenuScreen::initUI() {
     // Init the UI
     m_gui.init("GUI");
-    m_gui.loadScheme("TaharezLook.scheme");
-    m_gui.setFont("DejaVuSans-10");
+    m_gui.loadScheme("WindowsLook.scheme");
+    m_gui.setFont("Batang-18");
 
-    CEGUI::PushButton* playGameButton = static_cast<CEGUI::PushButton*>(m_gui.createWidget("TaharezLook/Button", glm::vec4(0.45f, 0.5f, 0.1f, 0.05f), glm::vec4(0.0f), "NewGameButton"));
+    CEGUI::PushButton* playGameButton = static_cast<CEGUI::PushButton*>(m_gui.createWidget("WindowsLook/Button", glm::vec4(0.45f, 0.5f, 0.1f, 0.05f), glm::vec4(0.0f), "NewGameButton"));
     playGameButton->setText("New Game");
     // Set up event to be called when we click
     playGameButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&MainMenuScreen::onNewGameClicked, this));
 
-    CEGUI::PushButton* editorButton = static_cast<CEGUI::PushButton*>(m_gui.createWidget("TaharezLook/Button", glm::vec4(0.45f, 0.56f, 0.1f, 0.05f), glm::vec4(0.0f), "EditorButton"));
+    CEGUI::PushButton* editorButton = static_cast<CEGUI::PushButton*>(m_gui.createWidget("WindowsLook/Button", glm::vec4(0.45f, 0.56f, 0.1f, 0.05f), glm::vec4(0.0f), "EditorButton"));
     editorButton->setText("Level Editor");
     // Set up event to be called when we click
     editorButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&MainMenuScreen::onEditorClicked, this));
 
-    CEGUI::PushButton* exitButton = static_cast<CEGUI::PushButton*>(m_gui.createWidget("TaharezLook/Button", glm::vec4(0.45f, 0.62f, 0.1f, 0.05f), glm::vec4(0.0f), "ExitButton"));
+    CEGUI::PushButton* exitButton = static_cast<CEGUI::PushButton*>(m_gui.createWidget("WindowsLook/Button", glm::vec4(0.45f, 0.62f, 0.1f, 0.05f), glm::vec4(0.0f), "ExitButton"));
     exitButton->setText("Exit Game");
     // Set the event to be called when we click
     exitButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&MainMenuScreen::onExitClicked, this));
 
-    m_gui.setMouseCursor("TaharezLook/MouseArrow");
-    m_gui.showMouseCursor();
-    SDL_ShowCursor(0);
+   // m_gui.setMouseCursor("TaharezLook/MouseArrow");
+    //m_gui.showMouseCursor();
+    SDL_ShowCursor(1);
 }
 
 void MainMenuScreen::checkInput() {
