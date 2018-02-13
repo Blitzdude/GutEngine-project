@@ -9,7 +9,7 @@
 #include <Gutengine/GLTexture.h>
 #include <Gutengine/Window.h>
 #include <Gutengine/DebugRenderer.h>
-
+#include "Grid.h"
 #include <Gutengine/GUI.h>
 
 // Our custom gameplay screen that inherits from the IGameScreen
@@ -52,6 +52,7 @@ private:
     bool m_renderDebug = false;
 
    // std::vector<Box> m_boxes;
+	std::unique_ptr<Grid> m_grid;
     std::unique_ptr<b2World> m_world;
 };
 

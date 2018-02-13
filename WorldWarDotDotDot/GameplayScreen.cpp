@@ -9,6 +9,9 @@
 
 //#include "Light.h"
 
+// GLOBALS
+const int CELL_SIZE = 128;
+
 GameplayScreen::GameplayScreen(Gutengine::Window* window) : m_window(window){
     m_screenIndex = SCREEN_INDEX_GAMEPLAY;
 }
@@ -33,6 +36,7 @@ GameplayScreen::build() {
 
 void
 GameplayScreen::destroy() {
+	// Empty
 }
 
 void
@@ -41,6 +45,10 @@ GameplayScreen::onEntry() {
     b2Vec2 gravity(0.0f, -25.0);
     m_world = std::make_unique<b2World>(gravity);
 
+	// Initialize grid
+	m_grid = std::make_unique<Grid>(m_window->getScreenWidth(), m_window->getScreenHeight(), CELL_SIZE);
+
+	// Initialize debug renderer
     m_debugRenderer.init();
 
     // Initialize spritebatch
@@ -102,6 +110,15 @@ GameplayScreen::draw() {
     // Debug rendering
     if (m_renderDebug) {
         glm::vec4 destRect;
+		for (int j = 0; j < m_grid->getNumYCells(); j++) {
+			for (int i = 0; i < m_grid->getNumXCells(); i++) {
+				Cell* curCell = m_grid->getCell(i, j);
+				//destRect.x = ;
+				//destRect.y;
+				//destRect.w;
+				//destRect.h;
+			}
+		}
        
         m_debugRenderer.end();
         m_debugRenderer.render(projectionMatrix, 2.0f);
