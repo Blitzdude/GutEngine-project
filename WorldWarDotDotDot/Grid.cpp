@@ -16,7 +16,7 @@ Grid::~Grid()
 {
 }
 
-Cell & Grid::getCell(int x, int y)
+Cell* Grid::getCell(int x, int y)
 {
 	// bound x and y positions within the cell grid
 	if (x < 0)
@@ -30,7 +30,13 @@ Cell & Grid::getCell(int x, int y)
 		y = m_numYCells - 1;
 	// ---
 
-	return m_cells[y * m_numXCells + x];
+	return &m_cells[y * m_numXCells + x];
+}
 
-	// TODO: insert return statement here
+Cell* Grid::getCell(const glm::vec2 & pos)
+{
+	int cellX = (int)(pos.x / m_cellSize);
+	int cellY = (int)(pos.y / m_cellSize);
+
+	return getCell(cellX, cellY);
 }

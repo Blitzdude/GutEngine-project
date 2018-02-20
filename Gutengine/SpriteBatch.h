@@ -68,6 +68,8 @@ public:
     // Ends the spritebatch
     void end();
 
+	// Adds a primitive shape to the spritebatch
+	void draw(const glm::vec4& destRect, float depth, const ColorRGBA8& color);
     // Adds a glyph to the spritebatch
     void draw(const glm::vec4& destRect, const glm::vec4& uvRect, GLuint texture, float depth, const ColorRGBA8& color);
     // Adds a glyph to the spritebatch with rotation

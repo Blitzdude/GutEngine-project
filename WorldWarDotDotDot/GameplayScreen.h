@@ -49,7 +49,7 @@ private:
     Gutengine::DebugRenderer m_debugRenderer;
     Gutengine::GUI m_gui;
 
-    bool m_renderDebug = false;
+    bool m_renderDebug = true;
 
    // std::vector<Box> m_boxes;
 	std::unique_ptr<Grid> m_grid;

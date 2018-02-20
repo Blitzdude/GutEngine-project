@@ -10,7 +10,7 @@
 //#include "Light.h"
 
 // GLOBALS
-const int CELL_SIZE = 128;
+const int CELL_SIZE = 12;
 
 GameplayScreen::GameplayScreen(Gutengine::Window* window) : m_window(window){
     m_screenIndex = SCREEN_INDEX_GAMEPLAY;
@@ -32,6 +32,7 @@ GameplayScreen::getPreviousScreenIndex() const {
 
 void
 GameplayScreen::build() {
+	// empty
 }
 
 void
@@ -42,7 +43,7 @@ GameplayScreen::destroy() {
 void
 GameplayScreen::onEntry() {
 
-    b2Vec2 gravity(0.0f, -25.0);
+    b2Vec2 gravity(0.0f, 0.0f);
     m_world = std::make_unique<b2World>(gravity);
 
 	// Initialize grid
@@ -63,8 +64,10 @@ GameplayScreen::onEntry() {
     m_textureProgram.linkShaders();
 
     // Init camera
+
     m_camera.init(m_window->getScreenWidth(), m_window->getScreenHeight());
-    m_camera.setScale(32.0f);
+	// move the camera, so the world origin is in the bottom-left corner
+	m_camera.setPosition(glm::vec2(m_window->getScreenWidth() / 2.0f, m_window->getScreenHeight() / 2.0f));
 
     initUI();
 }
@@ -104,22 +107,32 @@ GameplayScreen::draw() {
     m_spriteBatch.begin();
 
     m_spriteBatch.end();
+	// add grid rendering here
     m_spriteBatch.renderBatch();
     m_textureProgram.unuse();
 
     // Debug rendering
     if (m_renderDebug) {
         glm::vec4 destRect;
-		for (int j = 0; j < m_grid->getNumYCells(); j++) {
-			for (int i = 0; i < m_grid->getNumXCells(); i++) {
-				Cell* curCell = m_grid->getCell(i, j);
-				//destRect.x = ;
-				//destRect.y;
-				//destRect.w;
-				//destRect.h;
-			}
+		for (int y = 0; y <= m_grid->getNumYCells(); y++) { // y direction
+			glm::vec2 start = glm::vec2(0.0f, (float)y*CELL_SIZE);
+			glm::vec2 end = glm::vec2(m_grid->getNumXCells()*CELL_SIZE, (float)y*CELL_SIZE);
+			if (y % 10 == 0)
+				m_debugRenderer.drawLine(start, end, Gutengine::ColorRGBA8(255, 255, 255, 100));
+			else
+				m_debugRenderer.drawLine(start, end, Gutengine::ColorRGBA8(255, 255, 255, 40));
+
 		}
-       
+		for (int x = 0; x <= m_grid->getNumXCells(); x++) { // x direction
+			glm::vec2 start = glm::vec2((float)x*CELL_SIZE, 0.0f);
+			glm::vec2 end = glm::vec2((float)x*CELL_SIZE, m_grid->getNumYCells()*CELL_SIZE);
+			if (x % 10 == 0)
+				m_debugRenderer.drawLine(start, end, Gutengine::ColorRGBA8(255, 255, 255, 100));
+			else
+				m_debugRenderer.drawLine(start, end, Gutengine::ColorRGBA8(255, 255, 255, 40));
+		}
+		
+		m_debugRenderer.drawBox(glm::vec4(0.0f, 0.0f, 1.0f, 1.0f), Gutengine::ColorRGBA8(255, 0, 255, 255), 0.0f);
         m_debugRenderer.end();
         m_debugRenderer.render(projectionMatrix, 2.0f);
     }

@@ -123,6 +123,13 @@ SpriteBatch::end() {
     createRenderBatches();
 }
 
+// draws a rectangle with no texture
+void SpriteBatch::draw(const glm::vec4 & destRect, float depth, const ColorRGBA8 & color)
+{
+	// uv is same as destRect
+	m_glyphs.emplace_back(destRect, destRect, 0, depth, color);
+}
+
 void
 SpriteBatch::draw(const glm::vec4& destRect, const glm::vec4& uvRect, GLuint texture, float depth, const ColorRGBA8& color)
 {
