@@ -84,7 +84,7 @@ FpsLimiter::calculateFPS()
         frameTimeAverage += frameTimes[i];
     }
     frameTimeAverage /= count;
-
+	
     //Calculate FPS
     if (frameTimeAverage > 0) 
 	{

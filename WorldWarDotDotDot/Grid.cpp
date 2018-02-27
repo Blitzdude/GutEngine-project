@@ -1,4 +1,5 @@
 #include "Grid.h"
+#include <SDL/SDL.h>
 
 
 Grid::Grid(int width, int height, int cellSize) : 
@@ -39,4 +40,12 @@ Cell* Grid::getCell(const glm::vec2 & pos)
 	int cellY = (int)(pos.y / m_cellSize);
 
 	return getCell(cellX, cellY);
+}
+
+void Grid::update(Gutengine::InputManager &inputManager)
+{
+	if (inputManager.isKeyPressed(SDLK_SPACE)) {
+		getCell(inputManager.getMouseCoords())->color = Gutengine::ColorRGBA8(0, 255, 0, 255);
+
+	}
 }

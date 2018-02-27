@@ -172,10 +172,11 @@ Gutengine::DebugRenderer::drawBox(const glm::vec4& destRect, const ColorRGBA8& c
     m_indices.push_back(i);
 }
 
+
 void
-Gutengine::DebugRenderer::drawCircle(const glm::vec2& center, const ColorRGBA8& color, float radius) 
+Gutengine::DebugRenderer::drawCircle(const glm::vec2& center, const ColorRGBA8& color, float radius, int sides /*= 100*/) 
 {
-    static const int NUM_VERTS = 100;
+    static const int NUM_VERTS = sides;
     // Set up vertices
     int start = m_verts.size();
     m_verts.resize(m_verts.size() + NUM_VERTS);

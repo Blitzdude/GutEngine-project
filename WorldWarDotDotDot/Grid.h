@@ -5,11 +5,13 @@
 #include <vector>
 #include <Gutengine/Vertex.h>
 #include <Gutengine/SpriteBatch.h>
+#include <Gutengine/GLTexture.h>
+#include <Gutengine/InputManager.h>
 
 // Cell contains force vector?
 struct  Cell
 {
-	Gutengine::ColorRGBA8 color = Gutengine::ColorRGBA8(255, 0, 255, 255);
+	Gutengine::ColorRGBA8 color = Gutengine::ColorRGBA8(255, 255, 255, 255);
 	//glm::vec2 pos;
 };
 
@@ -24,20 +26,16 @@ public:
 	Cell* getCell(int x, int y);
 	// get cell based on window coordinates
 	Cell* getCell(const glm::vec2& pos);
-	
+
+	glm::vec2 getCellPos(int x, int y) { return glm::vec2(x * m_cellSize, y * m_cellSize);  };
+	glm::vec2 getCellPos(const glm::vec2& pos) { return glm::vec2(pos.x * m_cellSize, pos.y * m_cellSize); };
+
 	int getNumXCells() const { return m_numXCells; };
 	int getNumYCells() const { return m_numYCells; };
+	
+	Gutengine::GLTexture m_cellTexture;
 
-	/*
-	void draw(Gutengine::SpriteBatch& spriteBatch, const glm::vec2& pos) {
-		glm::vec4 destRect;
-		destRect.x = (float)pos.x - m_cellSize / 2.0f;
-		destRect.y = (float)pos.y - m_cellSize / 2.0f;
-		destRect.z = (float)m_cellSize;
-		destRect.w = (float)m_cellSize;
-		spriteBatch.draw(destRect, 0.0f, getCell(pos)->color);
-	}
-	*/
+	void update(Gutengine::InputManager &inputManager);
 
 private:
 	std::vector<Cell> m_cells;

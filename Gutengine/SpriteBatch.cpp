@@ -127,7 +127,7 @@ SpriteBatch::end() {
 void SpriteBatch::draw(const glm::vec4 & destRect, float depth, const ColorRGBA8 & color)
 {
 	// uv is same as destRect
-	m_glyphs.emplace_back(destRect, destRect, 0, depth, color);
+	m_glyphs.emplace_back(destRect, destRect, 0.0f, depth, color);
 }
 
 void

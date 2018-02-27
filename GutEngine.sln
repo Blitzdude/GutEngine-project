@@ -5,11 +5,6 @@ VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Gutengine", "Gutengine\Gutengine.vcxproj", "{53654A7C-9580-4968-9929-C91FC73DDFD2}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SuperDuperNinjaPlatformer", "SuperDuperNinjaPlatformer\SuperDuperNinjaPlatformer.vcxproj", "{BCE27830-D3A5-4A27-AEED-C4244B780D9B}"
-	ProjectSection(ProjectDependencies) = postProject
-		{53654A7C-9580-4968-9929-C91FC73DDFD2} = {53654A7C-9580-4968-9929-C91FC73DDFD2}
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WorldWarDotDotDot", "WorldWarDotDotDot\WorldWarDotDotDot.vcxproj", "{25A6027C-5F17-4687-9FC3-D8664295C009}"
 	ProjectSection(ProjectDependencies) = postProject
 		{53654A7C-9580-4968-9929-C91FC73DDFD2} = {53654A7C-9580-4968-9929-C91FC73DDFD2}
@@ -31,14 +26,6 @@ Global
 		{53654A7C-9580-4968-9929-C91FC73DDFD2}.Release|Win32.Build.0 = Release|Win32
 		{53654A7C-9580-4968-9929-C91FC73DDFD2}.Release|x64.ActiveCfg = Release|x64
 		{53654A7C-9580-4968-9929-C91FC73DDFD2}.Release|x64.Build.0 = Release|x64
-		{BCE27830-D3A5-4A27-AEED-C4244B780D9B}.Debug|Win32.ActiveCfg = Debug|Win32
-		{BCE27830-D3A5-4A27-AEED-C4244B780D9B}.Debug|Win32.Build.0 = Debug|Win32
-		{BCE27830-D3A5-4A27-AEED-C4244B780D9B}.Debug|x64.ActiveCfg = Debug|x64
-		{BCE27830-D3A5-4A27-AEED-C4244B780D9B}.Debug|x64.Build.0 = Debug|x64
-		{BCE27830-D3A5-4A27-AEED-C4244B780D9B}.Release|Win32.ActiveCfg = Release|Win32
-		{BCE27830-D3A5-4A27-AEED-C4244B780D9B}.Release|Win32.Build.0 = Release|Win32
-		{BCE27830-D3A5-4A27-AEED-C4244B780D9B}.Release|x64.ActiveCfg = Release|x64
-		{BCE27830-D3A5-4A27-AEED-C4244B780D9B}.Release|x64.Build.0 = Release|x64
 		{25A6027C-5F17-4687-9FC3-D8664295C009}.Debug|Win32.ActiveCfg = Debug|Win32
 		{25A6027C-5F17-4687-9FC3-D8664295C009}.Debug|Win32.Build.0 = Debug|Win32
 		{25A6027C-5F17-4687-9FC3-D8664295C009}.Debug|x64.ActiveCfg = Debug|x64
