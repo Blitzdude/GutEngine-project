@@ -35,14 +35,16 @@ public:
     virtual void draw() override;
 
 private:
+	// methods
     void initUI();
     void checkInput();
 
     bool onExitClicked(const CEGUI::EventArgs& e);
 
+	// attributes
     Gutengine::SpriteBatch		m_spriteBatch;
     Gutengine::GLSLProgram		m_textureProgram;
-    Gutengine::GLSLProgram		m_lightProgram;
+   // Gutengine::GLSLProgram	m_lightProgram;
     Gutengine::Camera2D			m_camera;
     Gutengine::GLTexture		m_texture;
     Gutengine::Window*			m_window;
@@ -50,8 +52,9 @@ private:
     Gutengine::GUI				m_gui;
 
     bool m_renderDebug = true;
+	bool m_mouse1 = false;
+	glm::vec2 m_mouseFirstPos;
 
-   // std::vector<Box> m_boxes;
 	std::unique_ptr<Grid> m_grid;
     std::unique_ptr<b2World> m_world;
 };

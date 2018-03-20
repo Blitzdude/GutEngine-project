@@ -58,7 +58,7 @@ GameplayScreen::onEntry() {
 
 	// Initialize inputmanager
     // Shader init
-    // Compile our texture
+    // Compile our texture program
     m_textureProgram.compileShaders("Shaders/textureShading.vert", "Shaders/textureShading.frag");
     m_textureProgram.addAttribute("vertexPosition");
     m_textureProgram.addAttribute("vertexColor");
@@ -75,15 +75,18 @@ GameplayScreen::onEntry() {
 	m_grid->m_cellTexture = Gutengine::ResourceManager::getTexture("Assets/blank.png");
 
 	// initialize cell colors FOR FUN
+	/*
 	for (int j = 0; j < m_grid->getNumYCells(); j++)
 		for (int i = 0; i < m_grid->getNumXCells(); i++)
 			m_grid->getCell(i, j)->color = Gutengine::ColorRGBA8(i % 256, j % 256, (i*j) % 256, 255);
+	*/
 
     initUI();
 }
 
 void
 GameplayScreen::onExit() {
+	m_textureProgram.dispose();
     m_debugRenderer.dispose();
     m_world.reset();
 }
@@ -91,10 +94,10 @@ GameplayScreen::onExit() {
 void
 GameplayScreen::update() {
     m_camera.update();
-	m_grid->update(m_game->inputManager);
+	m_grid->update(m_game->inputManager, m_camera);
     checkInput();
 
-    // Update the physics simulation
+    // Update the physics simulation DELETE
     //m_world->Step(1.0f / 60.0f, 6, 2);
 }
 
@@ -115,24 +118,23 @@ GameplayScreen::draw() {
     GLint pUniform = m_textureProgram.getUniformLocation("P");
     glUniformMatrix4fv(pUniform, 1, GL_FALSE, &projectionMatrix[0][0]);
 
+	// begin spritebatch drawing
     m_spriteBatch.begin();
 	
 	glm::vec4 destRect;
 
-
+	// draw the grid squares by color
 	for (int j = 0; j < m_grid->getNumYCells(); j++) {
 		for (int i = 0; i < m_grid->getNumXCells(); i++) {
 			auto curCell = m_grid->getCell(i, j);
-			glm::vec2 curPos  = m_grid->getCellPos(i, j);
+			glm::vec2 currentPos  = m_grid->getCellPos(i, j);
 
 
 			m_spriteBatch.draw(
-				glm::vec4(curPos.x, curPos.y, CELL_SIZE, CELL_SIZE),
+				glm::vec4(currentPos.x, currentPos.y, CELL_SIZE, CELL_SIZE),
 				glm::vec4(0.0f, 1.0f, 0.0f, 1.0f),
 				m_grid->m_cellTexture.id, 0.0f,
 				curCell->color);
-			
-
 		}
 	}
 	
@@ -166,11 +168,21 @@ GameplayScreen::draw() {
 		/*****************************/
 		//////////////////////////////
 
+		// draw a line if mouse1 is down
+		if (m_mouse1) {
+			if (m_mouseFirstPos == glm::vec2(0.0f, 0.0f)) {
+				m_mouseFirstPos = m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords());
+			}
+			m_debugRenderer.drawLine(
+				m_mouseFirstPos,
+				m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()),
+				Gutengine::ColorRGBA8(0, 255, 0, 255));
+		}
+		else {
+			m_mouseFirstPos = glm::vec2(0.0f, 0.0f);
+		}
 
-
-		// origin
-		m_debugRenderer.drawBox(glm::vec4(0.0f, 0.0f, 1.0f, 1.0f), Gutengine::ColorRGBA8(255, 0, 255, 255), 0.0f);
-        m_debugRenderer.end();
+		m_debugRenderer.end();
         m_debugRenderer.render(projectionMatrix, 2.0f);
     }
    
@@ -203,12 +215,16 @@ GameplayScreen::checkInput() {
             case SDL_QUIT:
                 onExitClicked(CEGUI::EventArgs());
                 break;
+			/* DELETE already done above by m_game
 			case SDL_MOUSEBUTTONDOWN:
 				m_game->inputManager.pressKey(evnt.button.button);
+				std::cout << "mouse down" << std::endl;
 				break;
 			case SDL_MOUSEBUTTONUP:
 				m_game->inputManager.releaseKey(evnt.button.button);
+				std::cout << "mouse up" << std::endl;
 				break;
+			*/
 		}
     }
 	if (m_game->inputManager.isKeyDown(SDLK_UP))
@@ -225,6 +241,15 @@ GameplayScreen::checkInput() {
 
 	if (m_game->inputManager.isKeyDown(SDLK_ESCAPE))
 		GameplayScreen::onExitClicked(CEGUI::EventArgs());
+
+	if (m_game->inputManager.isKeyDown(SDL_BUTTON_LEFT)) {
+		m_mouse1 = true;
+	}
+	else {
+		m_mouse1 = false;
+	}
+
+	
 }
 
 bool

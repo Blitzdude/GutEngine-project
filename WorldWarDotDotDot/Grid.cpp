@@ -36,16 +36,26 @@ Cell* Grid::getCell(int x, int y)
 
 Cell* Grid::getCell(const glm::vec2 & pos)
 {
+	// return integer, so mouse position corresponds to cell
 	int cellX = (int)(pos.x / m_cellSize);
 	int cellY = (int)(pos.y / m_cellSize);
 
 	return getCell(cellX, cellY);
 }
 
-void Grid::update(Gutengine::InputManager &inputManager)
+void Grid::update(Gutengine::InputManager &inputManager, Gutengine::Camera2D &camera)
 {
-	if (inputManager.isKeyPressed(SDLK_SPACE)) {
-		getCell(inputManager.getMouseCoords())->color = Gutengine::ColorRGBA8(0, 255, 0, 255);
+	// Camera is needed to convert mouse coordinates
+
+	// if space key is down
+	if (inputManager.isKeyDown(SDL_BUTTON_LEFT)) {
+		// get the cell pointed to by mouse
+		Cell* cell = getCell(camera.convertScreenToWorld(inputManager.getMouseCoords()));
+		// change the cells color. 
+		cell->color.r = cell->color.r + 10;
+		cell->color.g = cell->color.g + 20;
+		cell->color.b = cell->color.b + 30;
+		cell->color.a = 255;
 
 	}
 }

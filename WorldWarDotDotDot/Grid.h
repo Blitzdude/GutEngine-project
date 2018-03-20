@@ -1,17 +1,21 @@
 #pragma once
 
-#include <glm\glm.hpp>
+#include <glm/glm.hpp>
 
-#include <vector>
+// Gutengine
 #include <Gutengine/Vertex.h>
 #include <Gutengine/SpriteBatch.h>
 #include <Gutengine/GLTexture.h>
 #include <Gutengine/InputManager.h>
+#include <Gutengine/Camera2D.h>
+
+// standard library
+#include <vector>
 
 // Cell contains force vector?
 struct  Cell
 {
-	Gutengine::ColorRGBA8 color = Gutengine::ColorRGBA8(255, 255, 255, 255);
+	Gutengine::ColorRGBA8 color;// = Gutengine::ColorRGBA8(255, 255, 255, 255);
 	//glm::vec2 pos;
 };
 
@@ -35,7 +39,7 @@ public:
 	
 	Gutengine::GLTexture m_cellTexture;
 
-	void update(Gutengine::InputManager &inputManager);
+	void update(Gutengine::InputManager &inputManager, Gutengine::Camera2D &camera);
 
 private:
 	std::vector<Cell> m_cells;
@@ -44,5 +48,6 @@ private:
 	int m_height;
 	int m_numXCells;
 	int m_numYCells;
+	bool m_isDirty;
 };
 
