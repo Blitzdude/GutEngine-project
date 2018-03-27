@@ -39,6 +39,7 @@ private:
     void initUI();
     void checkInput();
 
+	// CEGUI methods
     bool onExitClicked(const CEGUI::EventArgs& e);
 
 	// attributes
@@ -50,10 +51,10 @@ private:
     Gutengine::Window*			m_window;
     Gutengine::DebugRenderer	m_debugRenderer;
     Gutengine::GUI				m_gui;
-
+	
     bool m_renderDebug = true;
 	bool m_mouse1 = false;
-	glm::vec2 m_mouseFirstPos;
+	std::vector<glm::vec2> m_mouseCoordVector;
 
 	std::unique_ptr<Grid> m_grid;
     std::unique_ptr<b2World> m_world;

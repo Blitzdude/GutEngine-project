@@ -170,16 +170,45 @@ GameplayScreen::draw() {
 
 		// draw a line if mouse1 is down
 		if (m_mouse1) {
-			if (m_mouseFirstPos == glm::vec2(0.0f, 0.0f)) {
-				m_mouseFirstPos = m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords());
+			
+			// make sure the vectors size is greater then one
+			if (m_mouseCoordVector.size() > 1) {
+
+				for (auto itr = m_mouseCoordVector.begin();
+					itr != m_mouseCoordVector.end() - 1;	// last element
+					++itr) 
+				{
+					m_debugRenderer.drawLine(*itr, *std::next(itr), 
+						Gutengine::ColorRGBA8(0, 255, 0, 255));
+				}
 			}
+			else if (m_mouseCoordVector.empty()) {
+				// if the mouseCoordsVector is empty, push coords to it
+				m_mouseCoordVector.push_back(
+					m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()));
+			}
+
+			// if mouse is adjequet distance away from last saved point, push it to the vector
+			if (glm::distance(m_mouseCoordVector.back(), m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords())) > CELL_SIZE)
+			{
+				m_mouseCoordVector.push_back(m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()));
+			}
+
+			// draw the mouseline green
 			m_debugRenderer.drawLine(
-				m_mouseFirstPos,
+				m_mouseCoordVector.back(),
 				m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()),
 				Gutengine::ColorRGBA8(0, 255, 0, 255));
+			// draw the dots for vector elements
+			for (auto itr : m_mouseCoordVector) {
+				m_debugRenderer.drawCircle(
+					itr, Gutengine::ColorRGBA8(255, 125, 125, 255),
+					2.0f, 10
+				);
+			}
 		}
 		else {
-			m_mouseFirstPos = glm::vec2(0.0f, 0.0f);
+			m_mouseCoordVector.clear();
 		}
 
 		m_debugRenderer.end();
@@ -195,8 +224,11 @@ GameplayScreen::initUI() {
     m_gui.init("GUI");
     m_gui.loadScheme("TaharezLook.scheme");
     m_gui.setFont("DejaVuSans-10");
+	// Exit button
     CEGUI::PushButton* testButton = static_cast<CEGUI::PushButton*>(m_gui.createWidget("TaharezLook/Button", glm::vec4(0.01f, 0.01f, 0.1f, 0.05f), glm::vec4(0.0f), "TestButton"));
     testButton->setText("Exit Game!");
+	
+	
 
     // Set the event to be called when we click
     testButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameplayScreen::onExitClicked, this));
@@ -215,16 +247,6 @@ GameplayScreen::checkInput() {
             case SDL_QUIT:
                 onExitClicked(CEGUI::EventArgs());
                 break;
-			/* DELETE already done above by m_game
-			case SDL_MOUSEBUTTONDOWN:
-				m_game->inputManager.pressKey(evnt.button.button);
-				std::cout << "mouse down" << std::endl;
-				break;
-			case SDL_MOUSEBUTTONUP:
-				m_game->inputManager.releaseKey(evnt.button.button);
-				std::cout << "mouse up" << std::endl;
-				break;
-			*/
 		}
     }
 	if (m_game->inputManager.isKeyDown(SDLK_UP))
