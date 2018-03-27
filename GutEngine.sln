@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Gutengine", "Gutengine\Gutengine.vcxproj", "{53654A7C-9580-4968-9929-C91FC73DDFD2}"
 EndProject
@@ -10,15 +10,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PinballShooter", "PinballSh
 		{53654A7C-9580-4968-9929-C91FC73DDFD2} = {53654A7C-9580-4968-9929-C91FC73DDFD2}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ZombieGame2New4Skuul", "ZombieGame2New4Skuul\ZombieGame2New4Skuul.vcxproj", "{DAB57A36-FBE7-43FD-8D7D-48B165A846BA}"
-	ProjectSection(ProjectDependencies) = postProject
-		{53654A7C-9580-4968-9929-C91FC73DDFD2} = {53654A7C-9580-4968-9929-C91FC73DDFD2}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SuperDuperNinjaPlatformer", "SuperDuperNinjaPlatformer\SuperDuperNinjaPlatformer.vcxproj", "{BCE27830-D3A5-4A27-AEED-C4244B780D9B}"
-	ProjectSection(ProjectDependencies) = postProject
-		{53654A7C-9580-4968-9929-C91FC73DDFD2} = {53654A7C-9580-4968-9929-C91FC73DDFD2}
-	EndProjectSection
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GutPhysicsTest", "GutPhysicsTest\GutPhysicsTest.vcxproj", "{BCE27830-D3A5-4A27-AEED-C4244B780D9B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,14 +36,6 @@ Global
 		{47ED9513-3B56-4419-B1B0-730E453F2417}.Release|Win32.Build.0 = Release|Win32
 		{47ED9513-3B56-4419-B1B0-730E453F2417}.Release|x64.ActiveCfg = Release|x64
 		{47ED9513-3B56-4419-B1B0-730E453F2417}.Release|x64.Build.0 = Release|x64
-		{DAB57A36-FBE7-43FD-8D7D-48B165A846BA}.Debug|Win32.ActiveCfg = Debug|Win32
-		{DAB57A36-FBE7-43FD-8D7D-48B165A846BA}.Debug|Win32.Build.0 = Debug|Win32
-		{DAB57A36-FBE7-43FD-8D7D-48B165A846BA}.Debug|x64.ActiveCfg = Debug|x64
-		{DAB57A36-FBE7-43FD-8D7D-48B165A846BA}.Debug|x64.Build.0 = Debug|x64
-		{DAB57A36-FBE7-43FD-8D7D-48B165A846BA}.Release|Win32.ActiveCfg = Release|Win32
-		{DAB57A36-FBE7-43FD-8D7D-48B165A846BA}.Release|Win32.Build.0 = Release|Win32
-		{DAB57A36-FBE7-43FD-8D7D-48B165A846BA}.Release|x64.ActiveCfg = Release|x64
-		{DAB57A36-FBE7-43FD-8D7D-48B165A846BA}.Release|x64.Build.0 = Release|x64
 		{BCE27830-D3A5-4A27-AEED-C4244B780D9B}.Debug|Win32.ActiveCfg = Debug|Win32
 		{BCE27830-D3A5-4A27-AEED-C4244B780D9B}.Debug|Win32.Build.0 = Debug|Win32
 		{BCE27830-D3A5-4A27-AEED-C4244B780D9B}.Debug|x64.ActiveCfg = Debug|x64

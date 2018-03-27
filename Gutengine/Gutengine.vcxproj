@@ -156,6 +156,7 @@
     <ClInclude Include="GLSLProgram.h" />
     <ClInclude Include="GLTexture.h" />
     <ClInclude Include="GUI.h" />
+    <ClInclude Include="GutPhysics2D.h" />
     <ClInclude Include="IGameScreen.h" />
     <ClInclude Include="ImageLoader.h" />
     <ClInclude Include="IMainGame.h" />
@@ -183,6 +184,7 @@
     <ClCompile Include="DebugRenderer.cpp" />
     <ClCompile Include="GLSLProgram.cpp" />
     <ClCompile Include="GUI.cpp" />
+    <ClCompile Include="GutPhysics2D.cpp" />
     <ClCompile Include="ImageLoader.cpp" />
     <ClCompile Include="IMainGame.cpp" />
     <ClCompile Include="InputManager.cpp" />

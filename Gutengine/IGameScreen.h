@@ -72,4 +72,4 @@ protected:
     int m_screenIndex = -1;
 };
 
-}
+} // namespace end
