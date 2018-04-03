@@ -18,6 +18,11 @@ struct  Cell
 	Gutengine::ColorRGBA8 color;// = Gutengine::ColorRGBA8(255, 255, 255, 255);
 	glm::vec2 force {0.0f, 0.0f};
 
+	void setForce(const glm::vec2& vec)
+	{
+		force.x = vec.x;
+		force.y = vec.y;
+	}
 };
 
 class Grid

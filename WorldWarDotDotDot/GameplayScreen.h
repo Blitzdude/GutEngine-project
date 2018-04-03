@@ -54,6 +54,8 @@ private:
 	
     bool m_renderDebug = true;
 	bool m_mouse1 = false;
+	bool m_isForceDirty = false;
+
 	std::vector<glm::vec2> m_mouseCoordVector;
 
 	std::unique_ptr<Grid> m_grid;

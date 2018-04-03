@@ -11,6 +11,7 @@
 
 // GLOBALS
 const int CELL_SIZE = 24;
+const float FORCE_MAX = 24.0f;
 
 GameplayScreen::GameplayScreen(Gutengine::Window* window) : m_window(window){
     m_screenIndex = SCREEN_INDEX_GAMEPLAY;
@@ -191,7 +192,16 @@ GameplayScreen::draw() {
 			// if mouse is adjequet distance away from last saved point, push it to the vector
 			if (glm::distance(m_mouseCoordVector.back(), m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords())) > CELL_SIZE)
 			{
-				m_mouseCoordVector.push_back(m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()));
+				glm::vec2 back = m_mouseCoordVector.back();
+				glm::vec2 temp =  m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()) - back;
+				
+				m_mouseCoordVector.push_back(m_mouseCoordVector.back() + glm::normalize(temp) * 24.0f);
+			}
+
+			// FUN: Remove front elements until size ok
+			while (m_mouseCoordVector.size() >= 10 )
+			{
+				m_mouseCoordVector.erase(m_mouseCoordVector.begin());
 			}
 
 			// draw the mouseline green
@@ -203,12 +213,43 @@ GameplayScreen::draw() {
 			for (auto itr : m_mouseCoordVector) {
 				m_debugRenderer.drawCircle(
 					itr, Gutengine::ColorRGBA8(255, 125, 125, 255),
-					2.0f, 10
+					20.0f, 40 // FUN: size is big
 				);
 			}
 		}
 		else {
+			if (!m_mouseCoordVector.empty()) {
+				m_isForceDirty = true;
+			}
+		}
+
+		if (m_isForceDirty) { // if force cells need to be updated
+			// DEBUG : print the vector
+			for (auto itr = m_mouseCoordVector.begin(); std::next(itr) != m_mouseCoordVector.end(); ++itr) {
+				std::cout << "current: " << itr->x << " " << itr->y
+					<< " next: " << std::next(itr)->x << " " << std::next(itr)->y << std::endl;
+			}
+			std::cout << std::endl;
+			for (auto itr = m_mouseCoordVector.begin(); std::next(itr) != m_mouseCoordVector.end(); ++itr) {
+				
+				// if the cells force is zero
+				if (m_grid->getCell(*itr)->force == glm::vec2(0.0f, 0.0f)) {
+					Cell* cell = m_grid->getCell(*itr);
+
+					glm::vec2 temp = glm::normalize(m_grid->getCellPos(*std::next(itr) - *itr));
+					cell->setForce(temp * FORCE_MAX);
+					cell->color = Gutengine::ColorRGBA8(
+						atan2f(cell->force.y, cell->force.x) * 255,
+						cell->force.y,
+						cell->force.x,
+						255);
+					
+				}
+			}
+			// clear the vector
 			m_mouseCoordVector.clear();
+			// set the flag to not dirty
+			m_isForceDirty = false;
 		}
 
 		m_debugRenderer.end();
@@ -228,8 +269,6 @@ GameplayScreen::initUI() {
     CEGUI::PushButton* testButton = static_cast<CEGUI::PushButton*>(m_gui.createWidget("TaharezLook/Button", glm::vec4(0.01f, 0.01f, 0.1f, 0.05f), glm::vec4(0.0f), "TestButton"));
     testButton->setText("Exit Game!");
 	
-	
-
     // Set the event to be called when we click
     testButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameplayScreen::onExitClicked, this));
 
