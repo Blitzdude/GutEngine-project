@@ -130,6 +130,7 @@ Gutengine::DebugRenderer::drawLine(const glm::vec2& a, const glm::vec2& b, const
     m_indices.push_back(i + 1);
 }
 
+/* destRect = x,y,width,height ; color ; angle*/
 void
 Gutengine::DebugRenderer::drawBox(const glm::vec4& destRect, const ColorRGBA8& color, float angle)
 {

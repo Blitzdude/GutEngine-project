@@ -38,6 +38,7 @@ private:
     void initUI();
     void checkInput();
 	void updateParticles();
+	void updateRigidbodies();
 
     bool onExitClicked(const CEGUI::EventArgs& e);
 

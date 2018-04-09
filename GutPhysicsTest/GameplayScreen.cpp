@@ -7,6 +7,8 @@
 
 #include "ScreenIndices.h"
 
+#define PARTICLES_ON 0
+#define RIGID_BOXES_ON 1
 
 GameplayScreen::GameplayScreen(Gutengine::Window* window) : m_window(window){
     m_screenIndex = SCREEN_INDEX_GAMEPLAY;
@@ -31,8 +33,6 @@ void GameplayScreen::destroy() {
 }
 
 void GameplayScreen::onEntry() {
-
-    
 
     // Load the texture
 	Gutengine::ResourceManager::getTexture("assets/blank.png");
@@ -60,12 +60,21 @@ void GameplayScreen::onEntry() {
     m_camera.init(m_window->getScreenWidth(), m_window->getScreenHeight());
     m_camera.setScale(2.0f);
 
+#if PARTICLES_ON
+
 	// init particles
 	glm::vec2 temp = (glm::vec2(100.0f, 100.0f));
 	m_particles.push_back(Gutengine::Particle2D(temp, glm::vec2(-1.0f, 20.0f)));
-	// Init rigidBodies
-	m_rigidBodies.push_back(Gutengine::RigidBody2D(glm::vec2(1.0f, 1.0f), glm::vec2(0.0f, 0.0f)));
+#endif // PARTICLES_ON
 
+	// Init rigidBodies
+#if RIGID_BOXES_ON
+	m_rigidBodies.push_back(Gutengine::RigidBody2D
+	(glm::vec2(0.0f, 100.0f), // position
+	glm::vec2(0.0f, 0.0f),  // velocity 
+		100.0f,				// width	
+		100.0f ));			// height
+#endif // RIGID_BOXES_ON
     initUI();
 }
 
@@ -74,7 +83,12 @@ void GameplayScreen::onExit() {
 }
 
 void GameplayScreen::update() {
-	updateParticles();
+
+	if (PARTICLES_ON)
+		updateParticles();
+	if (RIGID_BOXES_ON)
+		updateRigidbodies();
+
     m_camera.update();
     checkInput();
 
@@ -112,10 +126,24 @@ void GameplayScreen::draw() {
     // Debug rendering
     if (m_renderDebug) {
        
+		#if PARTICLES_ON
 		for (auto itr : m_particles) {
 			m_debugRenderer.drawCircle(itr.position, Gutengine::ColorRGBA8(255, 0, 255, 255), 10.0f);
 		}
-        // Render
+		#endif // PARTICLES_ON
+
+		#ifdef RIGID_BOXES_ON
+		for (auto itr : m_rigidBodies) {
+			glm::vec4 destRect;
+			destRect.x = itr.position.x;
+			destRect.y = itr.position.y;
+			destRect.z = itr.width;
+			destRect.w = itr.height;
+			m_debugRenderer.drawBox(destRect, Gutengine::ColorRGBA8(255, 255, 255, 255), 0.0f);
+		}
+		#endif // RIGID_BOXES_ON
+        
+		// Render
         m_debugRenderer.end();
         m_debugRenderer.render(projectionMatrix, 2.0f);
     }
@@ -156,23 +184,45 @@ void GameplayScreen::checkInput() {
 void GameplayScreen::updateParticles()
 {
 	for (auto&& itr : m_particles) {
-		static const float GUTPHYS_MAX_VELOCITY = 20.0f;
-		glm::vec2 gravity = glm::vec2(0.0f, -0.3f);
-		itr.velocity += gravity;
+		static const float GUTPHYS_MAX_VELOCITY = 5.0f;
+		glm::vec2 gravity = { 0.0f, -0.3f }; // set gravity
+		itr.velocity += gravity; // add gravity to particle
 
+		// clamp velocity to max velocity
 		if (itr.velocity.y > GUTPHYS_MAX_VELOCITY) {
 			itr.velocity.y = GUTPHYS_MAX_VELOCITY;
 		}
 		else if (itr.velocity.y < (-GUTPHYS_MAX_VELOCITY)) {
 			itr.velocity.y = -GUTPHYS_MAX_VELOCITY;
 		}
+
 		std::cout << "xV: " << itr.velocity.x << " yV: " << itr.velocity.y << std::endl;
 
+		// move particle position
 		itr.position = itr.position + itr.velocity;
 
 		if (itr.position.y < 0.0f ) {
 			itr.position = m_camera.convertScreenToWorld(glm::vec2(1.0f, 200.0f));
 		}
+	}
+}
+
+void GameplayScreen::updateRigidbodies()
+{
+	for (auto&& itr : m_rigidBodies) {
+		glm::vec2 gravity = { 0.0f, -0.05f };
+		std::cout << "xV: " << itr.velocity.x << " yV: " << itr.velocity.y << std::endl;
+		itr.velocity += gravity;
+
+		// move particles per position
+		itr.position = itr.position + itr.velocity;
+
+		if (itr.position.y < -200.0f) {
+			itr.position.y = -200.0f;
+			itr.velocity = { 0.0f, 0.0f };
+		}
+		std::cout << "x: " << itr.position.x << " y: " << itr.position.y << std::endl;
+
 	}
 }
 
