@@ -19,15 +19,17 @@ public:
 	float const getHeight() const { return m_height; };
 	float const getMass()   const { return m_mass; };
 	glm::vec2 const getPosition()		const { return m_position; };
-	glm::vec2 const getLinearVelocity() const { return m_position; };
+	glm::vec2 const getLinearVelocity() const { return m_velocity; };
 	float const getOrientation() const { return m_orientation; };
 	
 	// setters
-	void setWidth(const float other) { m_width = other; };
+	void setWidth(const float other)				{ m_width = other; };
 	void setHeight(const float other)				{ m_height = other; };
 	void setMass(const float other)					{ m_mass = other; };
 	void setPosition(const glm::vec2 &other)		{ m_position = other; };
-	void setLinearVelocity(const glm::vec2 &other)	{ m_position = other; };
+	void setX(const float other)					{ setPosition(glm::vec2(other, 0.0f)); };
+	void setY(const float other)					{ setPosition(glm::vec2(0.0f, other)); };
+	void setLinearVelocity(const glm::vec2 &other)	{ m_velocity = other; };
 	void setOrientation	  (const float other)		{ m_orientation = other; };
 
 private:
@@ -44,6 +46,7 @@ private:
 
 class Particle2D
 {
+public:
 	/// Default constructor
 	Particle2D() {}
 	/// Parameter constructors

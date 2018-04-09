@@ -135,10 +135,10 @@ void GameplayScreen::draw() {
 		#ifdef RIGID_BOXES_ON
 		for (auto itr : m_rigidBodies) {
 			glm::vec4 destRect;
-			destRect.x = itr.position.x;
-			destRect.y = itr.position.y;
-			destRect.z = itr.width;
-			destRect.w = itr.height;
+			destRect.x = itr.getPosition().x;
+			destRect.y = itr.getPosition().y;
+			destRect.z = itr.getWidth();
+			destRect.w = itr.getHeight();
 			m_debugRenderer.drawBox(destRect, Gutengine::ColorRGBA8(255, 255, 255, 255), 0.0f);
 		}
 		#endif // RIGID_BOXES_ON
@@ -209,19 +209,24 @@ void GameplayScreen::updateParticles()
 
 void GameplayScreen::updateRigidbodies()
 {
-	for (auto&& itr : m_rigidBodies) {
+	for (auto &&itr : m_rigidBodies) {
 		glm::vec2 gravity = { 0.0f, -0.05f };
-		std::cout << "xV: " << itr.velocity.x << " yV: " << itr.velocity.y << std::endl;
-		itr.velocity += gravity;
+		//std::cout << "xV: " << itr.getLinearVelocity().x << " yV: " << itr.getLinearVelocity().y << std::endl;
+
+		
+		itr.setLinearVelocity((itr.getLinearVelocity() + gravity)) ;
 
 		// move particles per position
-		itr.position = itr.position + itr.velocity;
+		
+		itr.setPosition(itr.getPosition() + itr.getLinearVelocity());
 
-		if (itr.position.y < -200.0f) {
-			itr.position.y = -200.0f;
-			itr.velocity = { 0.0f, 0.0f };
+
+		if (itr.getPosition().y < -200.0f) {
+			itr.setY(-200.0f);
+			itr.setLinearVelocity(glm::vec2(0.0f, 0.0f));
 		}
-		std::cout << "x: " << itr.position.x << " y: " << itr.position.y << std::endl;
+		
+		std::cout << "x: " << itr.getPosition().x << " y: " << itr.getPosition().y << std::endl;
 
 	}
 }
