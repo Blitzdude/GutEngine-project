@@ -70,10 +70,17 @@ void GameplayScreen::onEntry() {
 	// Init rigidBodies
 #if RIGID_BOXES_ON
 	m_rigidBodies.push_back(Gutengine::RigidBody2D
-	(glm::vec2(0.0f, 100.0f), // position
+	(m_camera.convertScreenToWorld(glm::vec2(0.0f, 150.0f)), // position
 	glm::vec2(0.0f, 0.0f),  // velocity 
+		50.0f,				// width	
+		50.0f ));			// height
+
+	m_rigidBodies.push_back(Gutengine::RigidBody2D
+	(m_camera.convertScreenToWorld(glm::vec2(0.0f, 0.0f)), // position
+		glm::vec2(0.0f, 0.0f),  // velocity 
 		100.0f,				// width	
-		100.0f ));			// height
+		100.0f));			// height
+
 #endif // RIGID_BOXES_ON
     initUI();
 }
@@ -202,13 +209,24 @@ void GameplayScreen::updateParticles()
 		itr.position = itr.position + itr.velocity;
 
 		if (itr.position.y < 0.0f ) {
-			itr.position = m_camera.convertScreenToWorld(glm::vec2(1.0f, 200.0f));
+			itr.position = m_camera.convertScreenToWorld(glm::vec2(0.0f, 0.0f));
 		}
 	}
 }
 
 void GameplayScreen::updateRigidbodies()
 {
+	// check collisions 
+	
+	for (auto itr = m_rigidBodies.begin(); itr != m_rigidBodies.end() - 1; ++itr )
+		for (auto itr_n = std::next(itr); itr_n != m_rigidBodies.end(); ++itr_n )
+		{
+			if (Gutengine::GutPhysics2D::checkAABB(*itr, *itr_n)) {
+				itr->setLinearVelocity(itr->getLinearVelocity() + glm::vec2(1.0f, 0.0f));
+				
+			}
+		}
+
 	for (auto &&itr : m_rigidBodies) {
 		glm::vec2 gravity = { 0.0f, -0.05f };
 		//std::cout << "xV: " << itr.getLinearVelocity().x << " yV: " << itr.getLinearVelocity().y << std::endl;
@@ -226,7 +244,7 @@ void GameplayScreen::updateRigidbodies()
 			itr.setLinearVelocity(glm::vec2(0.0f, 0.0f));
 		}
 		
-		std::cout << "x: " << itr.getPosition().x << " y: " << itr.getPosition().y << std::endl;
+		//std::cout << "x: " << itr.getPosition().x << " y: " << itr.getPosition().y << "\n";
 
 	}
 }

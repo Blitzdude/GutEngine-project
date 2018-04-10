@@ -27,8 +27,8 @@ public:
 	void setHeight(const float other)				{ m_height = other; };
 	void setMass(const float other)					{ m_mass = other; };
 	void setPosition(const glm::vec2 &other)		{ m_position = other; };
-	void setX(const float other)					{ setPosition(glm::vec2(other, 0.0f)); };
-	void setY(const float other)					{ setPosition(glm::vec2(0.0f, other)); };
+	void setX(const float other)					{ m_position.x = other; };
+	void setY(const float other)					{ m_position.y = other; };
 	void setLinearVelocity(const glm::vec2 &other)	{ m_velocity = other; };
 	void setOrientation	  (const float other)		{ m_orientation = other; };
 
@@ -75,6 +75,8 @@ class GutPhysics2D
 public:
 	GutPhysics2D();
 	~GutPhysics2D();
+
+	static bool checkAABB(RigidBody2D &lhs, RigidBody2D &rhs);
 };
 
 }
