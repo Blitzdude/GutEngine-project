@@ -151,6 +151,7 @@
     <ClInclude Include="GameplayScreen.h" />
     <ClInclude Include="Grid.h" />
     <ClInclude Include="MainMenuScreen.h" />
+    <ClInclude Include="Object.h" />
     <ClInclude Include="ScreenIndices.h" />
   </ItemGroup>
   <ItemGroup>
@@ -159,6 +160,7 @@
     <ClCompile Include="Grid.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainMenuScreen.cpp" />
+    <ClCompile Include="Object.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

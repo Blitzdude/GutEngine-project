@@ -51,13 +51,6 @@ void Grid::update(Gutengine::InputManager &inputManager, Gutengine::Camera2D &ca
 	if (inputManager.isKeyDown(SDL_BUTTON_LEFT)) {
 		// get the cell pointed to by mouse
 		Cell* cell = getCell(camera.convertScreenToWorld(inputManager.getMouseCoords()));
-		// change the cells color. 
-		/*
-		cell->color.r = cell->color.r + 10;
-		cell->color.g = cell->color.g + 20;
-		cell->color.b = cell->color.b + 30;
-		cell->color.a = 255;
-		*/
 
 	}
 }
