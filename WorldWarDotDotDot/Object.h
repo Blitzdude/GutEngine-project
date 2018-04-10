@@ -3,6 +3,7 @@
 #include <Box2D/Box2D.h>
 #include <Gutengine/GLTexture.h>
 #include <Gutengine/SpriteBatch.h>
+#include "Grid.h"
 
 class Object
 {
@@ -13,6 +14,7 @@ public:
 	void init(glm::vec2 pos, float or, float r, b2World &world );
 	void destroy(b2World &world);
 	void draw(Gutengine::SpriteBatch &spriteBatch);
+	void update(Grid &grid);
 
 private:
 	// box2D

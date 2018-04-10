@@ -10,7 +10,7 @@
 //#include "Light.h"
 
 // GLOBALS
-const int CELL_SIZE = 24;
+const int CELL_SIZE = 24.0f;
 const float FORCE_MAX = 24.0f;
 
 GameplayScreen::GameplayScreen(Gutengine::Window* window) : m_window(window){
@@ -82,6 +82,15 @@ GameplayScreen::onEntry() {
 			m_grid->getCell(i, j)->color = Gutengine::ColorRGBA8(i % 256, j % 256, (i*j) % 256, 255);
 	*/
 
+	// init objects
+	const int NUMBER_OF_OBJECTS = 1;
+
+	for (int i = 0; i < NUMBER_OF_OBJECTS; i++) {
+		Object obj;
+		obj.init(glm::vec2(100.0f, 100.0f), 0.0f, 42.0f, *m_world);
+		m_objects.push_back(obj);
+	}
+
     initUI();
 }
 
@@ -97,9 +106,11 @@ GameplayScreen::update() {
     m_camera.update();
 	m_grid->update(m_game->inputManager, m_camera);
     checkInput();
-
-    // Update the physics simulation DELETE
-    //m_world->Step(1.0f / 60.0f, 6, 2);
+	for (auto itr : m_objects) {
+		itr.update(*m_grid);
+	}
+    // Update the physics simulation
+    m_world->Step(1.0f / 60.0f, 6, 2);
 }
 
 void 
@@ -138,9 +149,15 @@ GameplayScreen::draw() {
 				curCell->color);
 		}
 	}
-	
-	m_spriteBatch.end();
+
 	// add grid rendering here
+	for (auto itr : m_objects) {
+		itr.draw(m_spriteBatch);
+	}
+
+	m_spriteBatch.end();
+
+
     m_spriteBatch.renderBatch();
     m_textureProgram.unuse();
 
@@ -243,7 +260,6 @@ GameplayScreen::draw() {
 						cell->force.y,
 						cell->force.x,
 						255);
-					
 				}
 			}
 			// clear the vector
@@ -300,6 +316,14 @@ GameplayScreen::checkInput() {
 	else if (m_game->inputManager.isKeyDown(SDLK_RIGHT))
 		m_camera.offsetPosition(glm::vec2(1.0f, 0.0f));
 
+	if (m_game->inputManager.isKeyDown(SDLK_w)) {
+		m_camera.setScale(m_camera.getScale() + 0.1f);
+	}
+
+	if (m_game->inputManager.isKeyDown(SDLK_e)) {
+		m_camera.setScale(m_camera.getScale() - 0.1f);
+	}
+	
 	if (m_game->inputManager.isKeyDown(SDLK_ESCAPE))
 		GameplayScreen::onExitClicked(CEGUI::EventArgs());
 

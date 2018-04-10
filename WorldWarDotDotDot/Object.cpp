@@ -32,10 +32,10 @@ void Object::init(glm::vec2 pos, float or, float r, b2World &world)
 
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &circleShape;
-	fixtureDef.density = 1.0f;	// density
+	fixtureDef.density = 0.20f;	// density
 	fixtureDef.friction = 0.1f; // friction
 
-	m_texture = Gutengine::ResourceManager::getTexture("Assets/blank.png");
+	m_texture = Gutengine::ResourceManager::getTexture("Assets/human.png");
 }
 
 void Object::destroy(b2World &world)
@@ -46,5 +46,22 @@ void Object::destroy(b2World &world)
 
 void Object::draw(Gutengine::SpriteBatch & spriteBatch)
 {
+	glm::vec4 destRect;
+	destRect.x = m_body->GetPosition().x - m_radius / 2.0f;
+	destRect.y = m_body->GetPosition().y - m_radius / 2.0f;
+	destRect.z = m_radius;
+	destRect.w = m_radius;
+	spriteBatch.draw(destRect,
+		glm::vec4(0.0f, 0.0f, 1.0f, 1.0f), // x,y,w,h
+		m_texture.id,
+		0.0f,
+		Gutengine::ColorRGBA8(255, 255, 255, 255),
+		m_body->GetAngle());
+}
 
+void Object::update(Grid &grid)
+{
+	glm::vec2 pos = { m_body->GetPosition().x, m_body->GetPosition().y };
+	Cell* cell = grid.getCell(pos);
+	m_body->ApplyForceToCenter(b2Vec2(cell->force.x, cell->force.y), true);
 }

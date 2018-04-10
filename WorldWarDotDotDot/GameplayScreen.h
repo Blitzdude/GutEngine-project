@@ -9,8 +9,10 @@
 #include <Gutengine/GLTexture.h>
 #include <Gutengine/Window.h>
 #include <Gutengine/DebugRenderer.h>
-#include "Grid.h"
 #include <Gutengine/GUI.h>
+
+#include "Grid.h"
+#include "Object.h"
 
 // Our custom gameplay screen that inherits from the IGameScreen
 class GameplayScreen : public Gutengine::IGameScreen {
@@ -45,7 +47,7 @@ private:
 	// attributes
     Gutengine::SpriteBatch		m_spriteBatch;
     Gutengine::GLSLProgram		m_textureProgram;
-   // Gutengine::GLSLProgram	m_lightProgram;
+    // Gutengine::GLSLProgram	m_lightProgram;
     Gutengine::Camera2D			m_camera;
     Gutengine::GLTexture		m_texture;
     Gutengine::Window*			m_window;
@@ -57,6 +59,7 @@ private:
 	bool m_isForceDirty = false;
 
 	std::vector<glm::vec2> m_mouseCoordVector;
+	std::vector<Object> m_objects;
 
 	std::unique_ptr<Grid> m_grid;
     std::unique_ptr<b2World> m_world;
