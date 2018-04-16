@@ -50,8 +50,8 @@ private:
     Gutengine::Window*					m_window;
     Gutengine::DebugRenderer			m_debugRenderer;
     Gutengine::GUI						m_gui;
-	std::vector<Gutengine::Particle2D>  m_particles;
-	std::vector<Gutengine::RigidBody2D> m_rigidBodies;
+
+	Gutengine::GutPhysics2D				m_physicsSystem;
 
     bool m_renderDebug = true;
 	

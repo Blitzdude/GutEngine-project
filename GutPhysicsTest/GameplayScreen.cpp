@@ -60,6 +60,9 @@ void GameplayScreen::onEntry() {
     m_camera.init(m_window->getScreenWidth(), m_window->getScreenHeight());
     m_camera.setScale(2.0f);
 
+	// Init GutPhysics gravity
+	m_physicsSystem.setGravity({ 0.0f, -0.60f });
+
 #if PARTICLES_ON
 
 	// init particles
@@ -69,15 +72,15 @@ void GameplayScreen::onEntry() {
 
 	// Init rigidBodies
 #if RIGID_BOXES_ON
-	m_rigidBodies.push_back(Gutengine::RigidBody2D
+	m_physicsSystem.addRigidBody2d(Gutengine::RigidBody2D
 	(m_camera.convertScreenToWorld(glm::vec2(0.0f, 150.0f)), // position
 	glm::vec2(0.0f, 0.0f),  // velocity 
 		50.0f,				// width	
 		50.0f ));			// height
 
-	m_rigidBodies.push_back(Gutengine::RigidBody2D
-	(m_camera.convertScreenToWorld(glm::vec2(0.0f, 0.0f)), // position
-		glm::vec2(0.0f, 0.0f),  // velocity 
+	m_physicsSystem.addRigidBody2d(Gutengine::RigidBody2D
+	(m_camera.convertScreenToWorld(glm::vec2(600.0f, 0.0f)), // position
+		glm::vec2(-0.50f, 0.0f),  // velocity 
 		100.0f,				// width	
 		100.0f));			// height
 
@@ -90,11 +93,8 @@ void GameplayScreen::onExit() {
 }
 
 void GameplayScreen::update() {
-
-	if (PARTICLES_ON)
-		updateParticles();
-	if (RIGID_BOXES_ON)
-		updateRigidbodies();
+	std::cout << m_game->getFps() << std::endl;
+	m_physicsSystem.updatePhysics();
 
     m_camera.update();
     checkInput();
@@ -121,10 +121,7 @@ void GameplayScreen::draw() {
 	// Draw code goes here
 	glm::vec4 destRect;
 	glm::vec4 uvRect = { 0.0f, 1.0f, 0.0f, 1.0f };
-	for (auto itr : m_rigidBodies) {
-		m_spriteBatch.draw(destRect, uvRect, Gutengine::ResourceManager::getTexture("assets/blank.png").id, 1.0f, 
-			Gutengine::ColorRGBA8(255, 0, 126, 255));
-	}
+
     m_spriteBatch.end();
 
     m_spriteBatch.renderBatch();
@@ -140,12 +137,12 @@ void GameplayScreen::draw() {
 		#endif // PARTICLES_ON
 
 		#ifdef RIGID_BOXES_ON
-		for (auto itr : m_rigidBodies) {
+		for (auto itr : m_physicsSystem.getRigidbodyList()) {
 			glm::vec4 destRect;
-			destRect.x = itr.getPosition().x;
-			destRect.y = itr.getPosition().y;
-			destRect.z = itr.getWidth();
-			destRect.w = itr.getHeight();
+			destRect.x = itr->getPosition().x;
+			destRect.y = itr->getPosition().y;
+			destRect.z = itr->getWidth();
+			destRect.w = itr->getHeight();
 			m_debugRenderer.drawBox(destRect, Gutengine::ColorRGBA8(255, 255, 255, 255), 0.0f);
 		}
 		#endif // RIGID_BOXES_ON
@@ -163,8 +160,12 @@ void GameplayScreen::initUI() {
     m_gui.init("GUI");
     m_gui.loadScheme("TaharezLook.scheme");
     m_gui.setFont("DejaVuSans-10");
+	// Init button object
     CEGUI::PushButton* testButton = static_cast<CEGUI::PushButton*>(m_gui.createWidget("TaharezLook/Button", glm::vec4(0.01f, 0.01f, 0.1f, 0.05f), glm::vec4(0.0f), "TestButton"));
     testButton->setText("Exit Game!");
+
+	// init fps counter TODO: Not used
+	CEGUI::Window* fpsText = static_cast<CEGUI::Window*>(m_gui.createWidget("TaharezLook/Label", glm::vec4(0.1f, 0.01f, 0.1f, 0.05f), glm::vec4(0.0f), "fpsText"));
 
     // Set the event to be called when we click
     testButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameplayScreen::onExitClicked, this));
@@ -173,6 +174,7 @@ void GameplayScreen::initUI() {
     m_gui.showMouseCursor();
     SDL_ShowCursor(1);
 }
+
 
 void GameplayScreen::checkInput() {
     SDL_Event evnt;
@@ -187,67 +189,6 @@ void GameplayScreen::checkInput() {
     }
 }
 
-
-void GameplayScreen::updateParticles()
-{
-	for (auto&& itr : m_particles) {
-		static const float GUTPHYS_MAX_VELOCITY = 5.0f;
-		glm::vec2 gravity = { 0.0f, -0.3f }; // set gravity
-		itr.velocity += gravity; // add gravity to particle
-
-		// clamp velocity to max velocity
-		if (itr.velocity.y > GUTPHYS_MAX_VELOCITY) {
-			itr.velocity.y = GUTPHYS_MAX_VELOCITY;
-		}
-		else if (itr.velocity.y < (-GUTPHYS_MAX_VELOCITY)) {
-			itr.velocity.y = -GUTPHYS_MAX_VELOCITY;
-		}
-
-		std::cout << "xV: " << itr.velocity.x << " yV: " << itr.velocity.y << std::endl;
-
-		// move particle position
-		itr.position = itr.position + itr.velocity;
-
-		if (itr.position.y < 0.0f ) {
-			itr.position = m_camera.convertScreenToWorld(glm::vec2(0.0f, 0.0f));
-		}
-	}
-}
-
-void GameplayScreen::updateRigidbodies()
-{
-	// check collisions 
-	
-	for (auto itr = m_rigidBodies.begin(); itr != m_rigidBodies.end() - 1; ++itr )
-		for (auto itr_n = std::next(itr); itr_n != m_rigidBodies.end(); ++itr_n )
-		{
-			if (Gutengine::GutPhysics2D::checkAABB(*itr, *itr_n)) {
-				itr->setLinearVelocity(itr->getLinearVelocity() + glm::vec2(1.0f, 0.0f));
-				
-			}
-		}
-
-	for (auto &&itr : m_rigidBodies) {
-		glm::vec2 gravity = { 0.0f, -0.05f };
-		//std::cout << "xV: " << itr.getLinearVelocity().x << " yV: " << itr.getLinearVelocity().y << std::endl;
-
-		
-		itr.setLinearVelocity((itr.getLinearVelocity() + gravity)) ;
-
-		// move particles per position
-		
-		itr.setPosition(itr.getPosition() + itr.getLinearVelocity());
-
-
-		if (itr.getPosition().y < -200.0f) {
-			itr.setY(-200.0f);
-			itr.setLinearVelocity(glm::vec2(0.0f, 0.0f));
-		}
-		
-		//std::cout << "x: " << itr.getPosition().x << " y: " << itr.getPosition().y << "\n";
-
-	}
-}
 
 bool GameplayScreen::onExitClicked(const CEGUI::EventArgs& e) {
     m_currentState = Gutengine::ScreenState::EXIT_APPLICATION;

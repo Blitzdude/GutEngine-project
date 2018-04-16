@@ -1,6 +1,8 @@
 #pragma once
 
 #include <glm/glm.hpp>
+//
+#include <vector>
 namespace Gutengine
 {
 class RigidBody2D
@@ -14,13 +16,16 @@ public:
 		m_position = _p;
 		m_velocity = _v;
 	}
+	// destructor
+	~RigidBody2D() {};
+
 	// getters
-	float const getWidth()  const { return m_width; };
-	float const getHeight() const { return m_height; };
-	float const getMass()   const { return m_mass; };
+	float const getWidth()				const { return m_width; };
+	float const getHeight()				const { return m_height; };
+	float const getMass()				const { return m_mass; };
 	glm::vec2 const getPosition()		const { return m_position; };
 	glm::vec2 const getLinearVelocity() const { return m_velocity; };
-	float const getOrientation() const { return m_orientation; };
+	float const getOrientation()		const { return m_orientation; };
 	
 	// setters
 	void setWidth(const float other)				{ m_width = other; };
@@ -63,6 +68,9 @@ public:
 		position = _p; 
 		velocity = _v; 
 	}
+
+	// destructor
+	~Particle2D() {};
 	
 	/// attributes
 	glm::vec2 position;
@@ -76,7 +84,27 @@ public:
 	GutPhysics2D();
 	~GutPhysics2D();
 
-	static bool checkAABB(RigidBody2D &lhs, RigidBody2D &rhs);
+	void updatePhysics();
+
+	void addRigidBody2d(RigidBody2D &obj);
+	void addParticle();
+
+	void destroy();
+	// collision detection methods
+	static bool checkAABBvsAABB(const RigidBody2D *lhs, const RigidBody2D *rhs);
+	static bool checkRvsR(glm::vec2 &lhs, glm::vec2 &rhs);
+	static bool checkAABBvsR(RigidBody2D &lhs, glm::vec2 &rhs);
+
+	// setters
+	void setGravity(const glm::vec2 &value) { m_gravity = value; };
+	// getter
+	const glm::vec2& getGravity() const { return m_gravity; }; 
+	const std::vector<Gutengine::RigidBody2D*>& getRigidbodyList() const { return m_rigidBodies; };
+private:
+
+	glm::vec2 m_gravity;
+	std::vector<Gutengine::Particle2D*>  m_particles;
+	std::vector<Gutengine::RigidBody2D*> m_rigidBodies;
 };
 
 }
