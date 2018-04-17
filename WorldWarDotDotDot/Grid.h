@@ -37,9 +37,17 @@ public:
 	// get cell based on window coordinates
 	Cell* getCell(const glm::vec2& pos);
 
+	//
+	std::vector<glm::vec2> getCellNeighbors8Directions(glm::vec2 pos);
+	std::vector<glm::vec2> getCellNeighbors4Directions(glm::vec2 pos);
+	glm::vec2 sumForces(std::vector<glm::vec2> neighbors);
+
+	void createDirectionField(std::vector<glm::vec2> list, int n);
+	
+	// Getters
 	glm::vec2 getCellPos(int x, int y) { return glm::vec2(x * m_cellSize, y * m_cellSize);  };
 	glm::vec2 getCellPos(const glm::vec2& pos) { return glm::vec2(pos.x * m_cellSize, pos.y * m_cellSize); };
-
+	
 	int getNumXCells() const { return m_numXCells; };
 	int getNumYCells() const { return m_numYCells; };
 	
@@ -48,7 +56,10 @@ public:
 	void update(Gutengine::InputManager &inputManager, Gutengine::Camera2D &camera);
 
 private:
+	
 	std::vector<Cell> m_cells;
+	// list of cells not to be checked by cell automation 
+	std::vector<Cell*> m_forcedCells;
 	int m_cellSize;
 	int m_width;
 	int m_height;

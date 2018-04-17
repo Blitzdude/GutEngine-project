@@ -11,7 +11,6 @@
 
 // GLOBALS
 const int CELL_SIZE = 24.0f;
-const float FORCE_MAX = 24.0f;
 
 GameplayScreen::GameplayScreen(Gutengine::Window* window) : m_window(window){
     m_screenIndex = SCREEN_INDEX_GAMEPLAY;
@@ -75,13 +74,6 @@ GameplayScreen::onEntry() {
 	// Init cell texture
 	m_grid->m_cellTexture = Gutengine::ResourceManager::getTexture("Assets/blank.png");
 
-	// initialize cell colors FOR FUN
-	/*
-	for (int j = 0; j < m_grid->getNumYCells(); j++)
-		for (int i = 0; i < m_grid->getNumXCells(); i++)
-			m_grid->getCell(i, j)->color = Gutengine::ColorRGBA8(i % 256, j % 256, (i*j) % 256, 255);
-	*/
-
 	// init objects
 	const int NUMBER_OF_OBJECTS = 1;
 
@@ -106,6 +98,8 @@ GameplayScreen::update() {
     m_camera.update();
 	m_grid->update(m_game->inputManager, m_camera);
     checkInput();
+	updateMouse();
+	// update objects
 	for (auto itr : m_objects) {
 		itr.update(*m_grid);
 	}
@@ -188,84 +182,21 @@ GameplayScreen::draw() {
 
 		// draw a line if mouse1 is down
 		if (m_mouse1) {
-			
-			// make sure the vectors size is greater then one
-			if (m_mouseCoordVector.size() > 1) {
 
-				for (auto itr = m_mouseCoordVector.begin();
-					itr != m_mouseCoordVector.end() - 1;	// last element
-					++itr) 
-				{
-					m_debugRenderer.drawLine(*itr, *std::next(itr), 
-						Gutengine::ColorRGBA8(0, 255, 0, 255));
-				}
-			}
-			else if (m_mouseCoordVector.empty()) {
-				// if the mouseCoordsVector is empty, push coords to it
-				m_mouseCoordVector.push_back(
-					m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()));
-			}
-
-			// if mouse is adjequet distance away from last saved point, push it to the vector
-			if (glm::distance(m_mouseCoordVector.back(), m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords())) > CELL_SIZE)
-			{
-				glm::vec2 back = m_mouseCoordVector.back();
-				glm::vec2 temp =  m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()) - back;
-				
-				m_mouseCoordVector.push_back(m_mouseCoordVector.back() + glm::normalize(temp) * 24.0f);
-			}
-
-			// FUN: Remove front elements until size ok
-			while (m_mouseCoordVector.size() >= 10 )
-			{
-				m_mouseCoordVector.erase(m_mouseCoordVector.begin());
+			for (auto itr = m_mouseCoordVector.begin(); std::next(itr) != m_mouseCoordVector.end(); ++itr) {
+				m_debugRenderer.drawLine(
+					*itr,
+					*std::next(itr), // next element
+					Gutengine::ColorRGBA8(0, 255, 0, 255));
 			}
 
 			// draw the mouseline green
+			/*
 			m_debugRenderer.drawLine(
 				m_mouseCoordVector.back(),
 				m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()),
 				Gutengine::ColorRGBA8(0, 255, 0, 255));
-			// draw the dots for vector elements
-			for (auto itr : m_mouseCoordVector) {
-				m_debugRenderer.drawCircle(
-					itr, Gutengine::ColorRGBA8(255, 125, 125, 255),
-					20.0f, 40 // FUN: size is big
-				);
-			}
-		}
-		else {
-			if (!m_mouseCoordVector.empty()) {
-				m_isForceDirty = true;
-			}
-		}
-
-		if (m_isForceDirty) { // if force cells need to be updated
-			// DEBUG : print the vector
-			for (auto itr = m_mouseCoordVector.begin(); std::next(itr) != m_mouseCoordVector.end(); ++itr) {
-				std::cout << "current: " << itr->x << " " << itr->y
-					<< " next: " << std::next(itr)->x << " " << std::next(itr)->y << std::endl;
-			}
-			std::cout << std::endl;
-			for (auto itr = m_mouseCoordVector.begin(); std::next(itr) != m_mouseCoordVector.end(); ++itr) {
-				
-				// if the cells force is zero
-				if (m_grid->getCell(*itr)->force == glm::vec2(0.0f, 0.0f)) {
-					Cell* cell = m_grid->getCell(*itr);
-
-					glm::vec2 temp = glm::normalize(m_grid->getCellPos(*std::next(itr) - *itr));
-					cell->setForce(temp * FORCE_MAX);
-					cell->color = Gutengine::ColorRGBA8(
-						atan2f(cell->force.y, cell->force.x) * 255,
-						cell->force.y,
-						cell->force.x,
-						255);
-				}
-			}
-			// clear the vector
-			m_mouseCoordVector.clear();
-			// set the flag to not dirty
-			m_isForceDirty = false;
+			*/
 		}
 
 		m_debugRenderer.end();
@@ -335,6 +266,37 @@ GameplayScreen::checkInput() {
 	}
 
 	
+}
+
+void 
+GameplayScreen::updateMouse() {
+	if (m_mouse1) {
+
+		// make sure the vectors size is greater then one
+
+		if (m_mouseCoordVector.empty()) {
+			// if the mouseCoordsVector is empty, push mouses current coords to it
+			m_mouseCoordVector.push_back(
+				m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()));
+		}
+
+		// if mouse is adjequet distance away from last saved point, push it to the vector
+		if (glm::distance(m_mouseCoordVector.back(), m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords())) > CELL_SIZE)
+		{
+			glm::vec2 back = m_mouseCoordVector.back();
+			glm::vec2 temp = m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()) - back;
+
+			m_mouseCoordVector.push_back(m_mouseCoordVector.back() + glm::normalize(temp) * (float)CELL_SIZE);
+		}
+	}
+	else {
+		if (!m_mouseCoordVector.empty()) {
+			//m_grid->createDirectionField(m_mouseCoordVector, 3);
+			m_isForceDirty = true;
+			m_mouseCoordVector.clear();
+			
+		}
+	}
 }
 
 bool

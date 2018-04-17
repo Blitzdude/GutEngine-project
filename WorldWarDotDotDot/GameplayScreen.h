@@ -40,6 +40,7 @@ private:
 	// methods
     void initUI();
     void checkInput();
+	void updateMouse();
 
 	// CEGUI methods
     bool onExitClicked(const CEGUI::EventArgs& e);
