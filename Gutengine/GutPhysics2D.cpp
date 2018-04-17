@@ -8,7 +8,6 @@ GutPhysics2D::GutPhysics2D()
 {
 }
 
-
 GutPhysics2D::~GutPhysics2D()
 {
 }
@@ -16,37 +15,31 @@ GutPhysics2D::~GutPhysics2D()
 void GutPhysics2D::updatePhysics()
 {
 	//check collision 
-	//if colliding add forces
-	// move bodies
-	// check collisions 
 
-	for (auto&& itr = m_rigidBodies.begin(); itr != m_rigidBodies.end() - 1; ++itr)
+	for (auto&& itr = m_rigidBodies.begin(); itr != m_rigidBodies.end() - 1; ++itr) 
+	{
 		for (auto&& itr_n = std::next(itr); itr_n != m_rigidBodies.end(); ++itr_n)
 		{
-			if (GutPhysics2D::checkAABBvsAABB( *itr, *itr_n) ) {
-				(*itr)->setLinearVelocity((*itr_n)->getLinearVelocity() * (-1.0f));
-				(*itr_n)->setLinearVelocity((*itr)->getLinearVelocity() * (-1.0f));
-
+			if (GutPhysics2D::checkAABBvsAABB( *itr, *itr_n) ) 
+			{
+				(*itr)->setLinearVelocity((*itr)->getLinearVelocity() * (-1.0f));
+				(*itr_n)->setLinearVelocity((*itr_n)->getLinearVelocity() * (-1.0f));
 			}
 		}
+	}
+	//if colliding resolve collisions
 
-
+	// move bodies
 	for (auto itr : m_rigidBodies) {
-		//std::cout << "xV: " << itr.getLinearVelocity().x << " yV: " << itr.getLinearVelocity().y << std::endl;
-
-
+		
 		(*itr).setLinearVelocity(((*itr).getLinearVelocity() + m_gravity));
-
-		// move particles per position
 
 		(*itr).setPosition((*itr).getPosition() + (*itr).getLinearVelocity());
 
-
+		// ground
 		if ((*itr).getPosition().y < -200.0f) {
 			(*itr).setY(-200.0f);
 		}
-
-		//std::cout << "x: " << (*itr).getPosition().x << " y: " << (*itr).getPosition().y << "\n";
 
 	}
 }
@@ -82,7 +75,7 @@ bool GutPhysics2D::checkAABBvsAABB(const RigidBody2D *lhs, const RigidBody2D *rh
 		r1Y + r1Height > r2Y) 
 	{
 		// collision detected
-		std::cout << "Collsion detected!" << std::endl;
+		std::cout << "AABBCollsion detected!" << std::endl;
 
 		return true;
 	}
@@ -93,5 +86,35 @@ bool GutPhysics2D::checkAABBvsAABB(const RigidBody2D *lhs, const RigidBody2D *rh
 	}
 }
 
+bool GutPhysics2D::checkSameSide(glm::vec2 point1, glm::vec2 point2, glm::vec2 a, glm::vec2 b)
+{
+	// homogenize the points
+	glm::vec3 hpoint1 = { point1.x, point1.y, 0.0f };
+	glm::vec3 hpoint2 = { point2.x, point2.y, 0.0f };
+	glm::vec3 ha =		{ a.x, a.y, 0.0f };
+	glm::vec3 hb =		{ b.x, b.y, 0.0f };
+
+	// cross products
+	glm::vec3 cp1 = glm::cross(hb - ha, hpoint1 - ha);
+	glm::vec3 cp2 = glm::cross(hb - ha, hpoint2 - ha);
+
+	return (glm::dot(cp1, cp2) >= 0.0f);
+}
+
+bool GutPhysics2D::checkPointInTringle(glm::vec2 point, glm::vec2 a, glm::vec2 b, glm::vec2 c)
+{
+	if (checkSameSide(point, a, b, c) &&
+		checkSameSide(point, b, a, c) &&
+		checkSameSide(point, c, a, b))
+	{
+		return true;
+	};
+	return false;
+}
+
+bool GutPhysics2D::checkPointInRigidBody(glm::vec2 point, RigidBody2D & rect)
+{
+	return true;
+}
 
 } // namespace end

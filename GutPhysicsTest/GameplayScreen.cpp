@@ -4,11 +4,13 @@
 #include <Gutengine/IMainGame.h>
 #include <Gutengine/ResourceManager.h>
 #include <random>
-
+#include <time.h>
 #include "ScreenIndices.h"
 
-#define PARTICLES_ON 0
+
 #define RIGID_BOXES_ON 1
+
+const int NUM_RIGID_BOXES = 3;
 
 GameplayScreen::GameplayScreen(Gutengine::Window* window) : m_window(window){
     m_screenIndex = SCREEN_INDEX_GAMEPLAY;
@@ -61,28 +63,25 @@ void GameplayScreen::onEntry() {
     m_camera.setScale(2.0f);
 
 	// Init GutPhysics gravity
-	m_physicsSystem.setGravity({ 0.0f, -0.60f });
+	m_physicsSystem.setGravity({ 0.0f, -0.20f });
 
-#if PARTICLES_ON
-
-	// init particles
-	glm::vec2 temp = (glm::vec2(100.0f, 100.0f));
-	m_particles.push_back(Gutengine::Particle2D(temp, glm::vec2(-1.0f, 20.0f)));
-#endif // PARTICLES_ON
+	// Init random generator
+	std::mt19937 randGenerator;
+	randGenerator.seed(time(NULL));
+	std::uniform_real<float> xPos(-10.0, 800.0f);
+	std::uniform_real<float> yPos(-10.0, 500.0f);
 
 	// Init rigidBodies
 #if RIGID_BOXES_ON
-	m_physicsSystem.addRigidBody2d(Gutengine::RigidBody2D
-	(m_camera.convertScreenToWorld(glm::vec2(0.0f, 150.0f)), // position
-	glm::vec2(0.0f, 0.0f),  // velocity 
-		50.0f,				// width	
-		50.0f ));			// height
+	for (int i = 0; i < NUM_RIGID_BOXES; ++i) {
+		m_physicsSystem.addRigidBody2d(Gutengine::RigidBody2D
+		(m_camera.convertScreenToWorld(
+			glm::vec2(xPos(randGenerator), yPos(randGenerator))), // position
+			glm::vec2(0.0f, 0.0f),  // velocity 
+			50.0f,				// width	
+			50.0f ));			// height
 
-	m_physicsSystem.addRigidBody2d(Gutengine::RigidBody2D
-	(m_camera.convertScreenToWorld(glm::vec2(600.0f, 0.0f)), // position
-		glm::vec2(-0.50f, 0.0f),  // velocity 
-		100.0f,				// width	
-		100.0f));			// height
+	}
 
 #endif // RIGID_BOXES_ON
     initUI();
@@ -144,6 +143,28 @@ void GameplayScreen::draw() {
 			destRect.z = itr->getWidth();
 			destRect.w = itr->getHeight();
 			m_debugRenderer.drawBox(destRect, Gutengine::ColorRGBA8(255, 255, 255, 255), 0.0f);
+			
+			m_debugRenderer.drawCircle(itr->getPosition(), Gutengine::ColorRGBA8(255, 0, 0, 255), 2.0f);
+			//TL
+			if (m_physicsSystem.checkPointInRigidBody(itr->getTLCorner(), *(std::next(itr)))) {
+				m_debugRenderer.drawCircle(itr->getTLCorner(), Gutengine::ColorRGBA8(255, 0, 255, 255), 1.0f);
+			}
+			
+			//TR
+			if (m_physicsSystem.checkPointInRigidBody(itr->getTRCorner(), *(std::next(itr)))) {
+				m_debugRenderer.drawCircle(itr->getTRCorner(), Gutengine::ColorRGBA8(255, 255, 0, 255), 1.0f);
+			}
+			//BR
+			if (m_physicsSystem.checkPointInRigidBody(itr->getBRCorner(), *(std::next(itr)))) {
+				m_debugRenderer.drawCircle(itr->getBRCorner(), Gutengine::ColorRGBA8(255, 0, 0, 255), 1.0f);
+			}
+
+			//BL
+			if (m_physicsSystem.checkPointInRigidBody(itr->getBLCorner(), *(std::next(itr)))) {
+				m_debugRenderer.drawCircle(itr->getBLCorner(), Gutengine::ColorRGBA8(255, 255, 255, 255), 1.0f);
+			}
+			
+
 		}
 		#endif // RIGID_BOXES_ON
         

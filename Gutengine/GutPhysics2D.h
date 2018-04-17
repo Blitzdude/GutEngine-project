@@ -13,8 +13,10 @@ public:
 	RigidBody2D(glm::vec2 _p, glm::vec2 _v, float _w = 1.0f, float _h = 1.0f, float _m = 1.0f, float _or = 0.0f )
 	: m_width(_w), m_height(_h), m_mass(_m), m_orientation(_or)
 	{
-		m_position = _p;
+		m_position.x = _p.x + (m_width / 2.0f);
+		m_position.y = _p.y + (m_height / 2.0f);
 		m_velocity = _v;
+
 	}
 	// destructor
 	~RigidBody2D() {};
@@ -26,6 +28,27 @@ public:
 	glm::vec2 const getPosition()		const { return m_position; };
 	glm::vec2 const getLinearVelocity() const { return m_velocity; };
 	float const getOrientation()		const { return m_orientation; };
+	// corners
+	glm::vec2 const getTLCorner() const 
+	{
+		return {m_position.x + (m_width / 2.0f), m_position.y - (m_height / 2.0f)};
+	};
+
+	glm::vec2 const getTRCorner() const 
+	{ 
+		return{ m_position.x - (m_width / 2.0f), m_position.y - (m_height / 2.0f) };
+	};
+
+	glm::vec2 const getBRCorner() const 
+	{
+		return{ m_position.x - (m_width / 2.0f), m_position.y + (m_height / 2.0f) };
+	};
+
+	glm::vec2 const getBLCorner() const 
+	{
+		return{ m_position.x + (m_width / 2.0f), m_position.y + (m_height / 2.0f) };
+	};
+
 	
 	// setters
 	void setWidth(const float other)				{ m_width = other; };
@@ -42,7 +65,10 @@ private:
 	float m_width;
 	float m_height;
 	float m_mass;
+	//
 	glm::vec2 m_position;
+	// corners
+	//
 	glm::vec2 m_velocity;
 	// orientation in rads
 	float m_orientation;
@@ -94,6 +120,11 @@ public:
 	static bool checkAABBvsAABB(const RigidBody2D *lhs, const RigidBody2D *rhs);
 	static bool checkRvsR(glm::vec2 &lhs, glm::vec2 &rhs);
 	static bool checkAABBvsR(RigidBody2D &lhs, glm::vec2 &rhs);
+	//
+	static bool checkSameSide(glm::vec2 point1, glm::vec2 point2, glm::vec2 a, glm::vec2 b);
+	static bool checkPointInTringle(glm::vec2 point, glm::vec2 a, glm::vec2 b, glm::vec2 c);
+	static bool checkPointInRigidBody(glm::vec2 point, RigidBody2D &rect);
+
 
 	// setters
 	void setGravity(const glm::vec2 &value) { m_gravity = value; };
