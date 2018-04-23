@@ -28,25 +28,26 @@ public:
 	glm::vec2 const getPosition()		const { return m_position; };
 	glm::vec2 const getLinearVelocity() const { return m_velocity; };
 	float const getOrientation()		const { return m_orientation; };
+
 	// corners
 	glm::vec2 const getTLCorner() const 
 	{
-		return {m_position.x + (m_width / 2.0f), m_position.y - (m_height / 2.0f)};
+		return {m_position.x, m_position.y + m_height};
 	};
 
 	glm::vec2 const getTRCorner() const 
 	{ 
-		return{ m_position.x - (m_width / 2.0f), m_position.y - (m_height / 2.0f) };
+		return{ m_position.x + m_width, m_position.y + m_height };
 	};
 
 	glm::vec2 const getBRCorner() const 
 	{
-		return{ m_position.x - (m_width / 2.0f), m_position.y + (m_height / 2.0f) };
+		return{ m_position.x + m_width, m_position.y };
 	};
 
 	glm::vec2 const getBLCorner() const 
 	{
-		return{ m_position.x + (m_width / 2.0f), m_position.y + (m_height / 2.0f) };
+		return{ m_position.x, m_position.y};
 	};
 
 	

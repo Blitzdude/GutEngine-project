@@ -22,8 +22,10 @@ void GutPhysics2D::updatePhysics()
 		{
 			if (GutPhysics2D::checkAABBvsAABB( *itr, *itr_n) ) 
 			{
+				/*
 				(*itr)->setLinearVelocity((*itr)->getLinearVelocity() * (-1.0f));
 				(*itr_n)->setLinearVelocity((*itr_n)->getLinearVelocity() * (-1.0f));
+				*/
 			}
 		}
 	}
@@ -75,8 +77,6 @@ bool GutPhysics2D::checkAABBvsAABB(const RigidBody2D *lhs, const RigidBody2D *rh
 		r1Y + r1Height > r2Y) 
 	{
 		// collision detected
-		std::cout << "AABBCollsion detected!" << std::endl;
-
 		return true;
 	}
 
@@ -108,13 +108,18 @@ bool GutPhysics2D::checkPointInTringle(glm::vec2 point, glm::vec2 a, glm::vec2 b
 		checkSameSide(point, c, a, b))
 	{
 		return true;
-	};
+	}
 	return false;
 }
 
 bool GutPhysics2D::checkPointInRigidBody(glm::vec2 point, RigidBody2D & rect)
 {
-	return true;
+	if (checkPointInTringle(point, rect.getBLCorner(), rect.getTRCorner(), rect.getTLCorner()) &&
+		checkPointInTringle(point, rect.getBLCorner(), rect.getBRCorner(), rect.getTRCorner()))
+	{
+		return true;
+	}
+	return false;
 }
 
 } // namespace end
