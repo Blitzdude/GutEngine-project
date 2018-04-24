@@ -1,4 +1,6 @@
 #include "Grid.h"
+#include <vector>
+#include <algorithm>
 #include <SDL/SDL.h>
 
 const float FORCE_MAX = 24.0f;
@@ -44,25 +46,6 @@ Cell* Grid::getCell(const glm::vec2 & pos)
 	return getCell(cellX, cellY);
 }
 
-std::vector<glm::vec2> Grid::getCellNeighbors8Directions(glm::vec2 pos)
-{
-	std::vector<glm::vec2> result;
-	// center cell
-
-	// 8-directional
-	for (int j = -1; j < 2; ++j) {
-		for (int i = -1; i < 2; ++i) {
-			glm::vec2 neighbor = getCellPos((int)pos.x + i, (int)pos.y + j);
-			// check that neighbor is not the same as the evaluated cell.
-			if (neighbor != pos && getCell(neighbor)->force != glm::vec2(0.0f, 0.0f)) {
-				result.push_back(neighbor);
-			}
-		}
-	}
-	
-	return result;
-}
-
 std::vector<glm::vec2> Grid::getCellNeighbors4Directions(glm::vec2 pos)
 {
 	
@@ -72,6 +55,22 @@ std::vector<glm::vec2> Grid::getCellNeighbors4Directions(glm::vec2 pos)
 
 	// 4-directional
 	// Top
+	result.push_back(glm::vec2(pos.x, pos.y + 1));
+
+	// Right
+	result.push_back(glm::vec2(pos.x + 1, pos.y));
+	
+
+	// Down
+	result.push_back(glm::vec2(pos.x, pos.y - 1));
+	
+	// Left
+	result.push_back(glm::vec2(pos.x - 1, pos.y));
+
+
+	// 4-directional
+	// Top
+	/*
 	if (glm::vec2(pos.x, pos.y + 1) != pos &&
 		getCell(glm::vec2(pos.x, pos.y + 1))->force != glm::vec2(0.0f, 0.0f)) 
 	{
@@ -96,44 +95,77 @@ std::vector<glm::vec2> Grid::getCellNeighbors4Directions(glm::vec2 pos)
 	{
 		result.push_back(glm::vec2(pos.x - 1, pos.y));
 	}
+	*/
 
 	return result;
 }
 
-glm::vec2 Grid::sumForces(std::vector<glm::vec2> neighbors)
+
+void Grid::createFlowField(std::vector<glm::vec2> input, int n)
 {
-	glm::vec2 sumForce;
-	// sum all of neighbors force elements. 
-	for (auto& itr : neighbors)
-		sumForce += getCell(itr)->force;
-	// divide the sum by the number of elements. 
-	sumForce = sumForce / (float)neighbors.size();
-	return sumForce;
+	std::vector<glm::vec2> openList; // nodes to be evaluated
+
+	for (auto itr : input) // push each element from the input list to openList
+	{ 
+		// check that same cell is not inserted twice
+		getCell(itr)->color = Gutengine::ColorRGBA8(0, 0, 255, 255);
+		openList.push_back(itr);
+	}
+
+	for (auto itr = openList.begin(); std::next(itr) != openList.end(); ++itr) // for all elements in openList get its cell and add a force 
+ 
+	{
+		// force = normalized(next - current) * 40
+		getCell(*itr)->setForce(glm::normalize(*(std::next(itr)) - *itr) * 40.0f);
+	}
+
+	
+	std::vector<glm::vec2> nextList;
+	while (n > 0) 
+	{
+		// add neighbors to a new list to be iterated through
+		for (auto itr : openList) 
+		{
+			auto neighbors = getCellNeighbors4Directions(itr);
+			for (auto n_itr : neighbors) // neighbors
+			{
+				// check neighbor is not already in next list or previous list
+				if (std::find(nextList.begin(), nextList.end(), n_itr) == nextList.end() &&
+					std::find(openList.begin(), openList.end(), n_itr) == openList.end())
+				{
+					getCell(n_itr)->color = Gutengine::ColorRGBA8(255, 0, 0, 255);
+					nextList.push_back(n_itr);
+				}
+				
+			}
+		}
+		// for each element in the new list, sum the surrounding forces and set the cells force to that
+		for (auto itr : nextList)
+		{
+			glm::vec2 sum = sumForceAverage(getCellNeighbors4Directions(itr));
+			getCell(itr)->setForce(sum);
+		}
+		// add next lists elements to openList
+		for (auto itr : nextList)
+		{
+			openList.push_back(itr);
+		}
+		// clear the nextList
+		nextList.clear();
+		n--; // repeat until n is 0
+	}
+	m_isDirty = true;
 }
 
-void Grid::createDirectionField(std::vector<glm::vec2> list, int n)
+glm::vec2 Grid::sumForceAverage(std::vector<glm::vec2> list)
 {
-	//m_forcedCells.clear();
-	//std::vector<glm::vec2> neighbors;
+	glm::vec2 sum = { 0.0f, 0.0f };
+	for (auto itr : list)
+		sum += itr;
 
-	for (auto& itr : list) {
-		//m_forcedCells.push_back(getCell(itr));
-
-		auto first = itr;
-		auto second = std::next(&itr);
-		getCell(itr)->setForce(glm::normalize(*second - first) * FORCE_MAX);
-	
-		/*
-		auto evaluate = getCellNeighbors4Directions(itr);
-		// calculate force for each cell
-		for (auto& e_itr : evaluate)
-		{
-			auto forceVec = getCellNeighbors8Directions(e_itr);
-			getCell(e_itr)->setForce(sumForces(neighbors));
-			neighbors.push_back(e_itr);
-		}
-		*/
-	}
+	// divide by size of list
+	sum / (float)list.size();
+	return sum;
 }
 
 void Grid::update(Gutengine::InputManager &inputManager, Gutengine::Camera2D &camera)
@@ -145,5 +177,16 @@ void Grid::update(Gutengine::InputManager &inputManager, Gutengine::Camera2D &ca
 		// get the cell pointed to by mouse
 		Cell* cell = getCell(camera.convertScreenToWorld(inputManager.getMouseCoords()));
 
+	}
+	if (m_isDirty)
+	{
+		for (int y = 0; y < getNumYCells(); y++)
+		{
+			for (int x = 0; x < getNumXCells(); x++)
+			{
+				//Cell *current = getCell(x, y);
+				//current->color = Gutengine::ColorRGBA8(current->force.x, 0, current->force.y, 255);
+			}
+		}
 	}
 }

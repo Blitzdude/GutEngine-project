@@ -10,7 +10,7 @@
 //#include "Light.h"
 
 // GLOBALS
-const int CELL_SIZE = 24.0f;
+const float CELL_SIZE = 24.0f;
 
 GameplayScreen::GameplayScreen(Gutengine::Window* window) : m_window(window){
     m_screenIndex = SCREEN_INDEX_GAMEPLAY;
@@ -191,12 +191,12 @@ GameplayScreen::draw() {
 			}
 
 			// draw the mouseline green
-			/*
+			
 			m_debugRenderer.drawLine(
 				m_mouseCoordVector.back(),
 				m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()),
 				Gutengine::ColorRGBA8(0, 255, 0, 255));
-			*/
+			
 		}
 
 		m_debugRenderer.end();
@@ -289,10 +289,9 @@ GameplayScreen::updateMouse() {
 			m_mouseCoordVector.push_back(m_mouseCoordVector.back() + glm::normalize(temp) * (float)CELL_SIZE);
 		}
 	}
-	else {
+	else { // if mouse not down
 		if (!m_mouseCoordVector.empty()) {
-			//m_grid->createDirectionField(m_mouseCoordVector, 3);
-			m_isForceDirty = true;
+			m_grid->createFlowField(m_mouseCoordVector, 3);
 			m_mouseCoordVector.clear();
 			
 		}

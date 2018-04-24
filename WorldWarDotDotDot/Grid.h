@@ -38,11 +38,10 @@ public:
 	Cell* getCell(const glm::vec2& pos);
 
 	//
-	std::vector<glm::vec2> getCellNeighbors8Directions(glm::vec2 pos);
 	std::vector<glm::vec2> getCellNeighbors4Directions(glm::vec2 pos);
-	glm::vec2 sumForces(std::vector<glm::vec2> neighbors);
-
-	void createDirectionField(std::vector<glm::vec2> list, int n);
+	
+	void createFlowField(std::vector<glm::vec2> list, int n);
+	glm::vec2 sumForceAverage(std::vector<glm::vec2> list);
 	
 	// Getters
 	glm::vec2 getCellPos(int x, int y) { return glm::vec2(x * m_cellSize, y * m_cellSize);  };
@@ -59,7 +58,6 @@ private:
 	
 	std::vector<Cell> m_cells;
 	// list of cells not to be checked by cell automation 
-	std::vector<Cell*> m_forcedCells;
 	int m_cellSize;
 	int m_width;
 	int m_height;
