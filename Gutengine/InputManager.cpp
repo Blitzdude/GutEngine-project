@@ -73,6 +73,16 @@ InputManager::isKeyPressed(unsigned int keyID)
 	return false;
 }
 
+bool InputManager::isKeyReleased(unsigned int keyID)
+{
+	// Check if it is released this frame, and wasn't released last frame
+	if (isKeyDown(keyID) == false && wasKeyDown(keyID) == true)
+	{
+		return true;
+	}
+	return false;
+}
+
 bool 
 InputManager::wasKeyDown(unsigned int keyID) 
 {

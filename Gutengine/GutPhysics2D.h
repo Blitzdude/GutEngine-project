@@ -11,23 +11,25 @@ public:
 	// default constructor
 	RigidBody2D() {}
 	RigidBody2D(glm::vec2 _p, glm::vec2 _v, float _w = 1.0f, float _h = 1.0f, float _m = 1.0f, float _or = 0.0f )
-	: m_width(_w), m_height(_h), m_mass(_m), m_orientation(_or)
+	: m_width(_w), m_height(_h), m_orientation(_or)
 	{
 		m_position.x = _p.x + (m_width / 2.0f);
 		m_position.y = _p.y + (m_height / 2.0f);
 		m_velocity = _v;
 
+		m_mass = m_width * m_height * 0.5f;
 	}
 	// destructor
 	~RigidBody2D() {};
 
 	// getters
-	float const getWidth()				const { return m_width; };
-	float const getHeight()				const { return m_height; };
-	float const getMass()				const { return m_mass; };
-	glm::vec2 const getPosition()		const { return m_position; };
-	glm::vec2 const getLinearVelocity() const { return m_velocity; };
-	float const getOrientation()		const { return m_orientation; };
+	float const getWidth()				    const { return m_width; };
+	float const getHeight()				    const { return m_height; };
+	float const getMass()				    const { return m_mass; };
+	glm::vec2 const getPosition()		    const { return m_position; };
+	glm::vec2 const getLinearVelocity()     const { return m_velocity; };
+	glm::vec2 const getLinearAcceleration() const { return m_acceleration; };
+	float const getOrientation()			const { return m_orientation; };
 
 	// corners
 	glm::vec2 const getTLCorner() const 
@@ -52,14 +54,15 @@ public:
 
 	
 	// setters
-	void setWidth(const float other)				{ m_width = other; };
-	void setHeight(const float other)				{ m_height = other; };
-	void setMass(const float other)					{ m_mass = other; };
-	void setPosition(const glm::vec2 &other)		{ m_position = other; };
-	void setX(const float other)					{ m_position.x = other; };
-	void setY(const float other)					{ m_position.y = other; };
-	void setLinearVelocity(const glm::vec2 &other)	{ m_velocity = other; };
-	void setOrientation	  (const float other)		{ m_orientation = other; };
+	void setWidth(const float other)					{ m_width = other; };
+	void setHeight(const float other)					{ m_height = other; };
+	void setMass(const float other)						{ m_mass = other; };
+	void setPosition(const glm::vec2 &other)			{ m_position = other; };
+	void setX(const float other)						{ m_position.x = other; };
+	void setY(const float other)						{ m_position.y = other; };
+	void setLinearVelocity(const glm::vec2 &other)		{ m_velocity = other; };
+	void setLinearAcceleration(const glm::vec2 &other)  { m_acceleration = other; };
+	void setOrientation	  (const float other)		    { m_orientation = other; };
 
 private:
 	// attributes
@@ -68,9 +71,9 @@ private:
 	float m_mass;
 	//
 	glm::vec2 m_position;
-	// corners
-	//
+	
 	glm::vec2 m_velocity;
+	glm::vec2 m_acceleration;
 	// orientation in rads
 	float m_orientation;
 
@@ -102,6 +105,7 @@ public:
 	/// attributes
 	glm::vec2 position;
 	glm::vec2 velocity;
+	glm::vec2 acceleration;
 	float mass;
 };
 
@@ -131,7 +135,7 @@ public:
 	void setGravity(const glm::vec2 &value) { m_gravity = value; };
 	// getter
 	const glm::vec2& getGravity() const { return m_gravity; }; 
-	const std::vector<Gutengine::RigidBody2D*>& getRigidbodyList() const { return m_rigidBodies; };
+	std::vector<Gutengine::RigidBody2D*>& getRigidbodyList() { return m_rigidBodies; };
 private:
 
 	glm::vec2 m_gravity;

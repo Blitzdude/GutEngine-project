@@ -42,16 +42,18 @@ private:
 
     bool onExitClicked(const CEGUI::EventArgs& e);
 
-    Gutengine::SpriteBatch				m_spriteBatch;
-    Gutengine::GLSLProgram				m_textureProgram;
-    Gutengine::GLSLProgram				m_lightProgram;
-    Gutengine::Camera2D					m_camera;
-    Gutengine::GLTexture				m_texture;
-    Gutengine::Window*					m_window;
-    Gutengine::DebugRenderer			m_debugRenderer;
-    Gutengine::GUI						m_gui;
-
-	Gutengine::GutPhysics2D				m_physicsSystem;
+    Gutengine::SpriteBatch	 m_spriteBatch;
+    Gutengine::GLSLProgram	 m_textureProgram;
+    Gutengine::GLSLProgram	 m_lightProgram;
+    Gutengine::Camera2D		 m_camera;
+    Gutengine::GLTexture	 m_texture;
+    Gutengine::Window*		 m_window;
+    Gutengine::DebugRenderer m_debugRenderer;
+    Gutengine::GUI			 m_gui;
+							 
+	Gutengine::GutPhysics2D	 m_physicsSystem;
+							 
+	Gutengine::RigidBody2D*	 m_selectedBody;
 
     bool m_renderDebug = true;
 	

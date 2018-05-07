@@ -14,36 +14,91 @@ GutPhysics2D::~GutPhysics2D()
 
 void GutPhysics2D::updatePhysics()
 {
-	//check collision 
+	// container holding colliding pairs
+	std::vector<std::pair<RigidBody2D*, RigidBody2D*>> collidingPairs;
 
-	for (auto&& itr = m_rigidBodies.begin(); itr != m_rigidBodies.end() - 1; ++itr) 
+	// update attributes
+	for (auto& body : m_rigidBodies)
 	{
-		for (auto&& itr_n = std::next(itr); itr_n != m_rigidBodies.end(); ++itr_n)
+		// update acceleration
+		// add gravity 
+		body->setLinearAcceleration(body->getLinearAcceleration() + getGravity());
+		// update velocity
+		body->setLinearVelocity(body->getLinearVelocity() + body->getLinearAcceleration());
+		// update position
+		body->setPosition(body->getPosition() + body->getLinearVelocity());
+
+		// clamp items to ground for now
+		if (body->getPosition().y < 0.0f)
+			body->setPosition({ body->getPosition().x, 0.0f });
+	}
+
+
+
+
+	// Clamp velocity near zero
+
+	// Check overlap and resolve static collisions
+
+	for (auto &body : m_rigidBodies)
+	{
+		auto target = std::next(body); // next body in list
+
+		if (checkAABBvsAABB(body, target))
 		{
-			if (GutPhysics2D::checkAABBvsAABB( *itr, *itr_n) ) 
+			collidingPairs.push_back(std::make_pair(body, target));
+
+			// calculate overlap in x and y directions
+			float xOverlap = fabsf(body->getPosition().x - target->getPosition().x);
+			float yOverlap = fabsf(body->getPosition().y - target->getPosition().y);
+			// distance needed to displace the bodies
+			float distX = 0.5f * xOverlap;
+			float distY = 0.5f * yOverlap;
+
+			// if body is higher than target
+			if (body->getPosition().y >= target->getPosition().y)
 			{
-				/*
-				(*itr)->setLinearVelocity((*itr)->getLinearVelocity() * (-1.0f));
-				(*itr_n)->setLinearVelocity((*itr_n)->getLinearVelocity() * (-1.0f));
-				*/
+				body->setPosition({ body->getPosition().x, body->getPosition().y + distY });
+				target->setPosition({ body->getPosition().x, target->getPosition().y - distY });
+			}
+			else // reverse the displacement directions
+			{
+				body->setPosition({ body->getPosition().x, body->getPosition().y - distY });
+				target->setPosition({ body->getPosition().x, target->getPosition().y + distY });
+			}
+
+			// if body is left of target
+			if (body->getPosition().x >= target->getPosition().x)
+			{
+				body->setPosition({ body->getPosition().x + distX, body->getPosition().y });
+				target->setPosition({ target->getPosition().x - distX, target->getPosition().y });
+			}
+			else // reverse the displacement directions
+			{
+				body->setPosition({ body->getPosition().x - distX, body->getPosition().y });
+				target->setPosition({ target->getPosition().x + distX, target->getPosition().y });
 			}
 		}
 	}
-	//if colliding resolve collisions
 
-	// move bodies
-	for (auto itr : m_rigidBodies) {
-		
-		(*itr).setLinearVelocity(((*itr).getLinearVelocity() + m_gravity));
+	// resolve dynamic collisions for colliding objects
+	/*
+	for (auto c : collidingPairs)
+	{
+		RigidBody2D* b1 = c.first;
+		RigidBody2D* b2 = c.second;
 
-		(*itr).setPosition((*itr).getPosition() + (*itr).getLinearVelocity());
+		// resolution from wikipedia 
 
-		// ground
-		if ((*itr).getPosition().y < -200.0f) {
-			(*itr).setY(-200.0f);
-		}
+		// normal
+		float n = ()
+		glm::vec2 k = b1->getLinearVelocity() - b2->getLinearVelocity(); // k
+
 
 	}
+	*/
+
+
 }
 
 void GutPhysics2D::addRigidBody2d(RigidBody2D &obj)

@@ -28,6 +28,9 @@ public:
     /// Returns true if the key was just pressed
     bool isKeyPressed(unsigned int keyID);
 
+	/// Return tre if the key was just released
+	bool isKeyReleased(unsigned int keyID);
+
     //getters
     glm::vec2 getMouseCoords() const { return m_mouseCoords; }
 private:
