@@ -40,7 +40,7 @@ public:
 	//
 	std::vector<glm::vec2> getCellNeighbors4Directions(glm::vec2 pos);
 	
-	void createFlowField(std::vector<glm::vec2> list, int n);
+	void createFlowField(std::vector<glm::vec2> list, int n = 3);
 	glm::vec2 sumForceAverage(std::vector<glm::vec2> list);
 	
 	// Getters
@@ -57,7 +57,6 @@ public:
 private:
 	
 	std::vector<Cell> m_cells;
-	// list of cells not to be checked by cell automation 
 	int m_cellSize;
 	int m_width;
 	int m_height;

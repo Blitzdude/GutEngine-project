@@ -50,93 +50,65 @@ std::vector<glm::vec2> Grid::getCellNeighbors4Directions(glm::vec2 pos)
 {
 	
 	std::vector<glm::vec2> result;
-	// center cell
 	// get cells around the center cell
 
 	// 4-directional
 	// Top
-	result.push_back(glm::vec2(pos.x, pos.y + 1));
-
-	// Right
-	result.push_back(glm::vec2(pos.x + 1, pos.y));
-	
+	result.push_back(getCellPos({pos.x, pos.y + m_cellSize}));
 
 	// Down
-	result.push_back(glm::vec2(pos.x, pos.y - 1));
+	result.push_back(getCellPos({ pos.x, pos.y -  m_cellSize }));
 	
-	// Left
-	result.push_back(glm::vec2(pos.x - 1, pos.y));
-
-
-	// 4-directional
-	// Top
-	/*
-	if (glm::vec2(pos.x, pos.y + 1) != pos &&
-		getCell(glm::vec2(pos.x, pos.y + 1))->force != glm::vec2(0.0f, 0.0f)) 
-	{
-		result.push_back(glm::vec2(pos.x, pos.y + 1));
-	}
 	// Right
-	if (glm::vec2(pos.x + 1, pos.y) != pos &&
-		getCell(glm::vec2(pos.x + 1, pos.y))->force != glm::vec2(0.0f, 0.0f))
-	{
-		result.push_back(glm::vec2(pos.x + 1, pos.y));
-	}
+	result.push_back(getCellPos({pos.x +  m_cellSize, pos.y}));
 	
-	// Down
-	if (glm::vec2(pos.x, pos.y - 1) != pos &&
-		getCell(glm::vec2(pos.x, pos.y - 1))->force != glm::vec2(0.0f, 0.0f))
-	{
-		result.push_back(glm::vec2(pos.x, pos.y - 1));
-	}
 	// Left
-	if (glm::vec2(pos.x - 1, pos.y) != pos &&
-		getCell(glm::vec2(pos.x - 1, pos.y))->force != glm::vec2(0.0f, 0.0f))
-	{
-		result.push_back(glm::vec2(pos.x - 1, pos.y));
-	}
-	*/
+	result.push_back(getCellPos({pos.x - m_cellSize, pos.y}));
+
 
 	return result;
 }
 
-
-void Grid::createFlowField(std::vector<glm::vec2> input, int n)
+// Input is mouseCoordVector
+void Grid::createFlowField(std::vector<glm::vec2> input, int n /* = 3*/)
 {
-	std::vector<glm::vec2> openList; // nodes to be evaluated
-
-	for (auto itr : input) // push each element from the input list to openList
-	{ 
-		// check that same cell is not inserted twice
-		getCell(itr)->color = Gutengine::ColorRGBA8(0, 0, 255, 255);
-		openList.push_back(itr);
-	}
-
-	for (auto itr = openList.begin(); std::next(itr) != openList.end(); ++itr) // for all elements in openList get its cell and add a force 
- 
-	{
-		// force = normalized(next - current) * 40
-		getCell(*itr)->setForce(glm::normalize(*(std::next(itr)) - *itr) * 40.0f);
-	}
-
-	
+	std::vector<glm::vec2> initialList; // nodes to be evaluated
 	std::vector<glm::vec2> nextList;
+
+	// add forces to initial cells
+	for (auto coord = input.begin(); std::next(coord) != input.end(); coord++)
+	{
+		auto next = std::next(coord);
+		auto cell = getCell(*coord);
+		cell->setForce(glm::normalize(*next - *coord) * 400.0f);
+		cell->color = Gutengine::ColorRGBA8(cell->force.x, 0, cell->force.y, 255);
+		initialList.push_back(getCellPos(*coord));
+	}
+	// add cells with forces to open list
+	// Get neigbors of cells 
+
+	for (auto i : initialList)
+	{
+		auto neighbors = getCellNeighbors4Directions(i);
+		for (auto n : neighbors)
+		{
+			getCell(n)->color = Gutengine::ColorRGBA8(255, 0, 0, 255);
+		}
+	}
+
+	/*
 	while (n > 0) 
 	{
 		// add neighbors to a new list to be iterated through
-		for (auto itr : openList) 
+		for (auto &itr : initialList)
 		{
-			auto neighbors = getCellNeighbors4Directions(itr);
+			auto neighbors = getCellNeighbors4Directions(getCellPos(itr));
 			for (auto n_itr : neighbors) // neighbors
 			{
 				// check neighbor is not already in next list or previous list
-				if (std::find(nextList.begin(), nextList.end(), n_itr) == nextList.end() &&
-					std::find(openList.begin(), openList.end(), n_itr) == openList.end())
-				{
-					getCell(n_itr)->color = Gutengine::ColorRGBA8(255, 0, 0, 255);
-					nextList.push_back(n_itr);
-				}
-				
+				getCell(n_itr)->color = Gutengine::ColorRGBA8(255, 0, 0, 255);
+				nextList.push_back(n_itr);
+			
 			}
 		}
 		// for each element in the new list, sum the surrounding forces and set the cells force to that
@@ -148,12 +120,13 @@ void Grid::createFlowField(std::vector<glm::vec2> input, int n)
 		// add next lists elements to openList
 		for (auto itr : nextList)
 		{
-			openList.push_back(itr);
+			initialList.push_back(itr);
 		}
 		// clear the nextList
 		nextList.clear();
 		n--; // repeat until n is 0
 	}
+	*/
 	m_isDirty = true;
 }
 

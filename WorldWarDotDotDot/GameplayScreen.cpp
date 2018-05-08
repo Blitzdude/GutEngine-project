@@ -79,7 +79,7 @@ GameplayScreen::onEntry() {
 
 	for (int i = 0; i < NUMBER_OF_OBJECTS; i++) {
 		Object obj;
-		obj.init(glm::vec2(100.0f, 100.0f), 0.0f, 42.0f, *m_world);
+		obj.init(glm::vec2(300.0f, 300.0f), 0.0f, 42.0f, *m_world);
 		m_objects.push_back(obj);
 	}
 
@@ -161,8 +161,8 @@ GameplayScreen::draw() {
 		////////////////////////////////
 		// Draws a gray grid for cells
 		for (int y = 0; y <= m_grid->getNumYCells(); y++) { // y direction
-			glm::vec2 start = glm::vec2(0.0f, (float)y*CELL_SIZE);
-			glm::vec2 end = glm::vec2(m_grid->getNumXCells()*CELL_SIZE, (float)y*CELL_SIZE);
+			glm::vec2 start = glm::vec2(0.0f, (float)y * CELL_SIZE);
+			glm::vec2 end = glm::vec2(m_grid->getNumXCells()*CELL_SIZE, (float)y * CELL_SIZE);
 			if (y % 10 == 0)
 				m_debugRenderer.drawLine(start, end, Gutengine::ColorRGBA8(255, 255, 255, 100));
 			else
@@ -180,8 +180,18 @@ GameplayScreen::draw() {
 		/*****************************/
 		//////////////////////////////
 
+
 		// draw a line if mouse1 is down
 		if (m_mouse1) {
+
+			auto cell_pos = m_grid->getCellPos(m_camera.convertScreenToWorld({ m_game->inputManager.getMouseCoords().x, m_game->inputManager.getMouseCoords().y }));
+			
+			m_grid->getCell(cell_pos)->color = Gutengine::ColorRGBA8(0, 255, 0, 255);
+
+			for (auto itr : m_grid->getCellNeighbors4Directions(m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords() )))
+			{
+				m_grid->getCell(itr)->color = Gutengine::ColorRGBA8(126, 255, 126, 140);
+			}
 
 			for (auto itr = m_mouseCoordVector.begin(); std::next(itr) != m_mouseCoordVector.end(); ++itr) {
 				m_debugRenderer.drawLine(
