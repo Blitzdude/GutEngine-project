@@ -63,5 +63,5 @@ void Object::update(Grid &grid)
 {
 	glm::vec2 pos = { m_body->GetPosition().x, m_body->GetPosition().y };
 	Cell* cell = grid.getCell(pos);
-	m_body->ApplyForceToCenter(b2Vec2(cell->force.x, cell->force.y), true);
+	m_body->SetLinearVelocity(b2Vec2(cell->force.x * m_speed, cell->force.y * m_speed));
 }

@@ -22,6 +22,7 @@ struct  Cell
 	{
 		force.x = vec.x;
 		force.y = vec.y;
+		color = Gutengine::ColorRGBA8(force.x * 255, force.y * 255, 0, 255);
 	}
 };
 
@@ -39,13 +40,15 @@ public:
 
 	//
 	std::vector<glm::vec2> getCellNeighbors4Directions(glm::vec2 pos);
+	std::vector<glm::vec2> getCellNeighbors8Directions(glm::vec2 pos);
 	
 	void createFlowField(std::vector<glm::vec2> list, int n = 3);
 	glm::vec2 sumForceAverage(std::vector<glm::vec2> list);
+
 	
 	// Getters
 	glm::vec2 getCellPos(int x, int y) { return glm::vec2(x * m_cellSize, y * m_cellSize);  };
-	glm::vec2 getCellPos(const glm::vec2& pos) { return glm::vec2(pos.x * m_cellSize, pos.y * m_cellSize); };
+	glm::vec2 getCellPos(const glm::vec2& pos) { return glm::vec2(int(pos.x) * m_cellSize, int(pos.y) * m_cellSize); };
 	
 	int getNumXCells() const { return m_numXCells; };
 	int getNumYCells() const { return m_numYCells; };

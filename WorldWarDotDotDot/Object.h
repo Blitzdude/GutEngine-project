@@ -24,6 +24,7 @@ private:
 	glm::vec2 m_position;
 	float m_orientation;
 	float m_radius;
+	float m_speed = 500.0f;
 
 	Gutengine::GLTexture m_texture;
 

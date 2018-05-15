@@ -48,7 +48,6 @@ private:
 	// attributes
     Gutengine::SpriteBatch		m_spriteBatch;
     Gutengine::GLSLProgram		m_textureProgram;
-    // Gutengine::GLSLProgram	m_lightProgram;
     Gutengine::Camera2D			m_camera;
     Gutengine::GLTexture		m_texture;
     Gutengine::Window*			m_window;

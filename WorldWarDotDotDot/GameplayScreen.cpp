@@ -10,7 +10,7 @@
 //#include "Light.h"
 
 // GLOBALS
-const float CELL_SIZE = 24.0f;
+const float CELL_SIZE = 64.0f;
 
 GameplayScreen::GameplayScreen(Gutengine::Window* window) : m_window(window){
     m_screenIndex = SCREEN_INDEX_GAMEPLAY;
@@ -66,20 +66,20 @@ GameplayScreen::onEntry() {
     m_textureProgram.linkShaders();
 
     // Init camera
-
     m_camera.init(m_window->getScreenWidth(), m_window->getScreenHeight());
 	// move the camera, so the world origin is in the bottom-left corner
 	m_camera.setPosition(glm::vec2(m_window->getScreenWidth() / 2.0f, m_window->getScreenHeight() / 2.0f));
-
+	// Set camera scale 
+	m_camera.setScale(1.0f);
 	// Init cell texture
 	m_grid->m_cellTexture = Gutengine::ResourceManager::getTexture("Assets/blank.png");
 
 	// init objects
-	const int NUMBER_OF_OBJECTS = 1;
+	const int NUMBER_OF_OBJECTS = 4;
 
 	for (int i = 0; i < NUMBER_OF_OBJECTS; i++) {
 		Object obj;
-		obj.init(glm::vec2(300.0f, 300.0f), 0.0f, 42.0f, *m_world);
+		obj.init(glm::vec2(300.0f + i * 40.f, 300.0f), 0.0f, 42.0f, *m_world);
 		m_objects.push_back(obj);
 	}
 
@@ -180,18 +180,9 @@ GameplayScreen::draw() {
 		/*****************************/
 		//////////////////////////////
 
-
 		// draw a line if mouse1 is down
 		if (m_mouse1) {
 
-			auto cell_pos = m_grid->getCellPos(m_camera.convertScreenToWorld({ m_game->inputManager.getMouseCoords().x, m_game->inputManager.getMouseCoords().y }));
-			
-			m_grid->getCell(cell_pos)->color = Gutengine::ColorRGBA8(0, 255, 0, 255);
-
-			for (auto itr : m_grid->getCellNeighbors4Directions(m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords() )))
-			{
-				m_grid->getCell(itr)->color = Gutengine::ColorRGBA8(126, 255, 126, 140);
-			}
 
 			for (auto itr = m_mouseCoordVector.begin(); std::next(itr) != m_mouseCoordVector.end(); ++itr) {
 				m_debugRenderer.drawLine(
@@ -206,7 +197,6 @@ GameplayScreen::draw() {
 				m_mouseCoordVector.back(),
 				m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()),
 				Gutengine::ColorRGBA8(0, 255, 0, 255));
-			
 		}
 
 		m_debugRenderer.end();
@@ -274,8 +264,6 @@ GameplayScreen::checkInput() {
 	else {
 		m_mouse1 = false;
 	}
-
-	
 }
 
 void 
@@ -299,11 +287,27 @@ GameplayScreen::updateMouse() {
 			m_mouseCoordVector.push_back(m_mouseCoordVector.back() + glm::normalize(temp) * (float)CELL_SIZE);
 		}
 	}
-	else { // if mouse not down
-		if (!m_mouseCoordVector.empty()) {
+	else 
+	{ // if mouse not down
+		if (!m_mouseCoordVector.empty()) 
+		{
 			m_grid->createFlowField(m_mouseCoordVector, 3);
-			m_mouseCoordVector.clear();
 			
+			/*
+			for (auto itr = m_mouseCoordVector.begin(); std::next(itr) != m_mouseCoordVector.end(); itr++)
+			{
+				glm::vec2 f = glm::normalize(*std::next(itr) - *itr);
+				m_grid->getCell(*itr)->setForce(f);
+
+				auto neighbors = m_grid->getCellNeighbors8Directions(*itr);
+				for (auto itr_n : neighbors)
+				{
+					m_grid->getCell(itr_n)->setForce(f);
+				}
+			}
+			*/
+			
+			m_mouseCoordVector.clear();
 		}
 	}
 }
