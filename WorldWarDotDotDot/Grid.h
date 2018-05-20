@@ -13,17 +13,36 @@
 #include <vector>
 
 // Cell contains force vector?
-struct  Cell
+class Cell
 {
-	Gutengine::ColorRGBA8 color;// = Gutengine::ColorRGBA8(255, 255, 255, 255);
-	glm::vec2 force {0.0f, 0.0f};
-
+public:
+    
 	void setForce(const glm::vec2& vec)
 	{
 		force.x = vec.x;
 		force.y = vec.y;
-		color = Gutengine::ColorRGBA8(force.x * 255, force.y * 255, 0, 255);
 	}
+
+    glm::vec2 getForce() const { return force; };
+
+    void setColor(const Gutengine::ColorRGBA8 c) { color = c; };
+    void setColor(int r, int g, int b, int a) { setColor(Gutengine::ColorRGBA8(r, g, b, a)); };
+
+    Gutengine::ColorRGBA8& const getColor() { return color; };
+
+    void setGridPos(int x, int y) 
+    {
+        gridPosX = x;
+        gridPosY = y;
+    }
+
+    glm::vec2 getGridPos() { return glm::vec2(gridPosX, gridPosY); };
+    bool isSet = false;
+private:
+	Gutengine::ColorRGBA8 color;
+    glm::vec2 force = { 0.0f, 0.0f };
+    int gridPosX;
+    int gridPosY;
 };
 
 class Grid
@@ -56,7 +75,8 @@ public:
 	Gutengine::GLTexture m_cellTexture;
 
 	void update(Gutengine::InputManager &inputManager, Gutengine::Camera2D &camera);
-
+    void resetForces();
+   
 private:
 	
 	std::vector<Cell> m_cells;
@@ -65,6 +85,5 @@ private:
 	int m_height;
 	int m_numXCells;
 	int m_numYCells;
-	bool m_isDirty;
 };
 

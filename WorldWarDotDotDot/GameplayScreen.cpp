@@ -4,13 +4,18 @@
 #include <Gutengine/IMainGame.h>
 #include <Gutengine/ResourceManager.h>
 #include <random>
+#include <list>
 
 #include "ScreenIndices.h"
 
 //#include "Light.h"
 
 // GLOBALS
-const float CELL_SIZE = 64.0f;
+const int CELL_SIZE = 32;
+const int CELL_SIZE_HALF = CELL_SIZE / 2;
+
+
+
 
 GameplayScreen::GameplayScreen(Gutengine::Window* window) : m_window(window){
     m_screenIndex = SCREEN_INDEX_GAMEPLAY;
@@ -49,6 +54,8 @@ GameplayScreen::onEntry() {
 	
 	// Initialize grid
 	m_grid = std::make_unique<Grid>(m_window->getScreenWidth(), m_window->getScreenHeight(), CELL_SIZE);
+    //DEBUG: grid coordinates
+   
 
 	// Initialize debug renderer
     m_debugRenderer.init();
@@ -140,7 +147,7 @@ GameplayScreen::draw() {
 				glm::vec4(currentPos.x, currentPos.y, CELL_SIZE, CELL_SIZE),
 				glm::vec4(0.0f, 1.0f, 0.0f, 1.0f),
 				m_grid->m_cellTexture.id, 0.0f,
-				curCell->color);
+				curCell->getColor());
 		}
 	}
 
@@ -156,48 +163,62 @@ GameplayScreen::draw() {
     m_textureProgram.unuse();
 
     // Debug rendering
-    if (m_renderDebug) {
+    if (m_renderDebug)
+    {
         glm::vec4 destRect;
-		////////////////////////////////
-		// Draws a gray grid for cells
-		for (int y = 0; y <= m_grid->getNumYCells(); y++) { // y direction
-			glm::vec2 start = glm::vec2(0.0f, (float)y * CELL_SIZE);
-			glm::vec2 end = glm::vec2(m_grid->getNumXCells()*CELL_SIZE, (float)y * CELL_SIZE);
-			if (y % 10 == 0)
-				m_debugRenderer.drawLine(start, end, Gutengine::ColorRGBA8(255, 255, 255, 100));
-			else
-				m_debugRenderer.drawLine(start, end, Gutengine::ColorRGBA8(255, 255, 255, 40));
+        ////////////////////////////////
+        // Draws a gray grid for cells
+        for (int y = 0; y <= m_grid->getNumYCells(); y++) { // y direction
+            glm::vec2 start = glm::vec2(0.0f, (float)y * CELL_SIZE);
+            glm::vec2 end = glm::vec2(m_grid->getNumXCells()*CELL_SIZE, (float)y * CELL_SIZE);
+            if (y % 10 == 0)
+                m_debugRenderer.drawLine(start, end, Gutengine::ColorRGBA8(255, 255, 255, 100));
+            else
+                m_debugRenderer.drawLine(start, end, Gutengine::ColorRGBA8(255, 255, 255, 40));
 
-		}
-		for (int x = 0; x <= m_grid->getNumXCells(); x++) { // x direction
-			glm::vec2 start = glm::vec2((float)x*CELL_SIZE, 0.0f);
-			glm::vec2 end = glm::vec2((float)x*CELL_SIZE, m_grid->getNumYCells()*CELL_SIZE);
-			if (x % 10 == 0)
-				m_debugRenderer.drawLine(start, end, Gutengine::ColorRGBA8(255, 255, 255, 100));
-			else
-				m_debugRenderer.drawLine(start, end, Gutengine::ColorRGBA8(255, 255, 255, 40));
-		}
-		/*****************************/
-		//////////////////////////////
+        }
+        for (int x = 0; x <= m_grid->getNumXCells(); x++) { // x direction
+            glm::vec2 start = glm::vec2((float)x*CELL_SIZE, 0.0f);
+            glm::vec2 end = glm::vec2((float)x*CELL_SIZE, m_grid->getNumYCells()*CELL_SIZE);
+            if (x % 10 == 0)
+                m_debugRenderer.drawLine(start, end, Gutengine::ColorRGBA8(255, 255, 255, 100));
+            else
+                m_debugRenderer.drawLine(start, end, Gutengine::ColorRGBA8(255, 255, 255, 40));
+        }
+        /*****************************/
+        //////////////////////////////
 
-		// draw a line if mouse1 is down
-		if (m_mouse1) {
+        // draw a line if mouse1 is down
+        if (m_mouse1)
+        {
+            for (auto itr = m_mouseCoordVector.begin(); std::next(itr) != m_mouseCoordVector.end(); ++itr) {
+                m_debugRenderer.drawLine(
+                    *itr,
+                    *std::next(itr), // next element
+                    Gutengine::ColorRGBA8(0, 255, 0, 255));
+            }
 
+            // draw the mouseline green
 
-			for (auto itr = m_mouseCoordVector.begin(); std::next(itr) != m_mouseCoordVector.end(); ++itr) {
-				m_debugRenderer.drawLine(
-					*itr,
-					*std::next(itr), // next element
-					Gutengine::ColorRGBA8(0, 255, 0, 255));
-			}
-
-			// draw the mouseline green
-			
-			m_debugRenderer.drawLine(
-				m_mouseCoordVector.back(),
-				m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()),
-				Gutengine::ColorRGBA8(0, 255, 0, 255));
-		}
+            m_debugRenderer.drawLine(
+                m_mouseCoordVector.back(),
+                m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()),
+                Gutengine::ColorRGBA8(0, 255, 0, 255));
+        }
+        
+        
+            
+        
+        for (int j = 0; j < m_grid->getNumYCells(); ++j)
+        {
+            for (int i = 0; i < m_grid->getNumXCells(); ++i)
+            {
+                if (m_grid->getCell(i, j)->getForce() != glm::vec2(0.0f))
+                    visualizeForce(m_grid->getCellPos(i, j));
+            }
+        }
+        
+        
 
 		m_debugRenderer.end();
         m_debugRenderer.render(projectionMatrix, 2.0f);
@@ -235,26 +256,30 @@ GameplayScreen::checkInput() {
                 break;
 		}
     }
-	if (m_game->inputManager.isKeyDown(SDLK_UP))
+	if (m_game->inputManager.isKeyDown(SDLK_w))
 		m_camera.offsetPosition(glm::vec2(0.0f, 1.0f));
 
-	else if (m_game->inputManager.isKeyDown(SDLK_DOWN))
+	else if (m_game->inputManager.isKeyDown(SDLK_s))
 		m_camera.offsetPosition(glm::vec2(0.0f, -1.0f));
 
-	if (m_game->inputManager.isKeyDown(SDLK_LEFT))
+	if (m_game->inputManager.isKeyDown(SDLK_a))
 		m_camera.offsetPosition(glm::vec2(-1.0f, 0.0f));
 
-	else if (m_game->inputManager.isKeyDown(SDLK_RIGHT))
+	else if (m_game->inputManager.isKeyDown(SDLK_d))
 		m_camera.offsetPosition(glm::vec2(1.0f, 0.0f));
 
-	if (m_game->inputManager.isKeyDown(SDLK_w)) {
+	if (m_game->inputManager.isKeyDown(SDLK_q)) {
 		m_camera.setScale(m_camera.getScale() + 0.1f);
 	}
 
 	if (m_game->inputManager.isKeyDown(SDLK_e)) {
 		m_camera.setScale(m_camera.getScale() - 0.1f);
 	}
-	
+
+    if (m_game->inputManager.isKeyDown(SDLK_r)) {
+        m_grid->resetForces();
+    }
+
 	if (m_game->inputManager.isKeyDown(SDLK_ESCAPE))
 		GameplayScreen::onExitClicked(CEGUI::EventArgs());
 
@@ -291,21 +316,8 @@ GameplayScreen::updateMouse() {
 	{ // if mouse not down
 		if (!m_mouseCoordVector.empty()) 
 		{
-			m_grid->createFlowField(m_mouseCoordVector, 3);
-			
-			/*
-			for (auto itr = m_mouseCoordVector.begin(); std::next(itr) != m_mouseCoordVector.end(); itr++)
-			{
-				glm::vec2 f = glm::normalize(*std::next(itr) - *itr);
-				m_grid->getCell(*itr)->setForce(f);
-
-				auto neighbors = m_grid->getCellNeighbors8Directions(*itr);
-				for (auto itr_n : neighbors)
-				{
-					m_grid->getCell(itr_n)->setForce(f);
-				}
-			}
-			*/
+			//m_grid->createFlowField(m_mouseCoordVector, 3);
+            debugFlowField();
 			
 			m_mouseCoordVector.clear();
 		}
@@ -316,4 +328,92 @@ bool
 GameplayScreen::onExitClicked(const CEGUI::EventArgs& e) {
     m_currentState = Gutengine::ScreenState::EXIT_APPLICATION;
     return true;
+}
+
+void GameplayScreen::debugFlowField() 
+{
+    std::vector<glm::vec2> initialL;
+    std::vector<glm::vec2> oldL;
+    std::vector<glm::vec2> newL;
+
+    // set first the the values in oldList
+    for (auto i = m_mouseCoordVector.begin(); std::next(i) != m_mouseCoordVector.end(); ++i)
+    {
+        auto c = m_grid->getCell(*i);
+        if (c->isSet == false)
+        {
+            c->setForce(glm::normalize(*std::next(i) - *i));
+            c->isSet = true;
+            initialL.push_back(*i);
+        }
+    }
+
+    oldL = initialL;
+    // repeat this n times:
+    int n = 2;
+    while ( n > 0)
+    {
+        for (auto old_itr : oldL) // for each element in old L.
+        {
+            // get neighbors.
+            std::vector<glm::vec2> neighbors = m_grid->getCellNeighbors4Directions(old_itr);
+
+            // push them to new list
+            for (auto n_itr = neighbors.begin(); n_itr != neighbors.end(); n_itr++)
+            {
+                // but only if it's not in the old list or the new list
+               
+                if (std::find(oldL.begin(), oldL.end(), *n_itr) == oldL.end())
+                {
+                    // new
+                    newL.push_back(*n_itr);
+                }
+                
+            }
+        }
+        glm::vec2 sum;
+        glm::vec2 bias;
+        // now for each neighbor 
+        for (auto m_itr : newL) 
+        {
+           
+            //get its surrounding cells
+            auto surCells = m_grid->getCellNeighbors8Directions(m_itr);
+            int numNeighbors = surCells.size();
+            for (auto s_itr = surCells.begin(); s_itr != surCells.end(); s_itr++)
+            {
+                // sum the force values
+                sum += m_grid->getCell(*s_itr)->getForce();
+            }
+            // divide by number of neighbors as per flocking.
+            sum /= numNeighbors;
+            // set the neighbors force accordingly
+            auto cell = m_grid->getCell(m_itr);
+            if (cell->isSet == false)
+            {
+                cell->setForce(glm::normalize(sum));
+                cell->isSet = true;
+            }
+        }
+        // now add the elements in new list to old list
+        for (auto itr : newL)
+            oldL.push_back(itr);
+
+        for (auto itr : oldL)
+            m_grid->getCell(itr)->isSet = false;
+        // then clear the new list to be reused. 
+        newL.clear();
+        n--;
+    }
+}
+
+void GameplayScreen::visualizeForce(glm::vec2 cellPos)
+{
+    auto cell = m_grid->getCell(cellPos);
+    glm::vec2 cellCenter(cellPos.x + CELL_SIZE_HALF, cellPos.y + CELL_SIZE_HALF);
+    m_debugRenderer.drawCircle(cellCenter + cell->getForce() * (float)CELL_SIZE_HALF, Gutengine::ColorRGBA8(255, 255, 255, 255), 4.0f, 4 );
+
+    m_debugRenderer.drawLine(cellCenter - cell->getForce() * (float)CELL_SIZE_HALF,
+                             cellCenter + cell->getForce() * (float)CELL_SIZE_HALF,
+                             Gutengine::ColorRGBA8(255, 255, 255, 255));
 }

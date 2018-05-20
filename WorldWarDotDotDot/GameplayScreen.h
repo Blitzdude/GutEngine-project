@@ -41,6 +41,9 @@ private:
     void initUI();
     void checkInput();
 	void updateMouse();
+    void debugFlowField();
+    void visualizeForce(glm::vec2 cellPos);
+       
 
 	// CEGUI methods
     bool onExitClicked(const CEGUI::EventArgs& e);

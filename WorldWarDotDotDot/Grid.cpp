@@ -1,9 +1,9 @@
 #include "Grid.h"
 #include <vector>
 #include <algorithm>
+#include <iostream>
 #include <SDL/SDL.h>
 
-const float FORCE_MAX = 24.0f;
 
 Grid::Grid(int width, int height, int cellSize) : 
 	m_width(width),
@@ -14,6 +14,17 @@ Grid::Grid(int width, int height, int cellSize) :
 	m_numYCells = (int)ceil((float)m_height / m_cellSize);
 
 	m_cells.resize(m_numYCells * m_numXCells);
+    std::cout << "loading cells" << std::endl;
+
+    for (int j = 0; j < m_numYCells; j++)
+    {
+        for (int i = 0; i < m_numXCells; i++)
+        {
+            auto c = getCell(glm::vec2(i, j));
+            assert(c != nullptr);
+            c->setGridPos(i, j);
+        }
+    }
 }
 
 Grid::~Grid()
@@ -76,23 +87,33 @@ std::vector<glm::vec2> Grid::getCellNeighbors8Directions(glm::vec2 pos)
 	int CenterX = (int)(pos.x / m_cellSize);
 	int CenterY = (int)(pos.y / m_cellSize);
 
+    auto forceNotZero = [&](int x, int y) {return getCell(x, y)->getForce() != glm::vec2(0.0f, 0.0f); };
+
 	// 8-directional
 	// Top-Left
-	result.push_back(getCellPos(CenterX - 1, CenterY + 1));
+    if (forceNotZero(CenterX - 1, CenterY + 1))
+	    result.push_back(getCellPos(CenterX - 1, CenterY + 1));
 	// Top
-	result.push_back(getCellPos(CenterX, CenterY + 1));
+    if (forceNotZero(CenterX, CenterY + 1))
+	    result.push_back(getCellPos(CenterX, CenterY + 1));
 	// Top-Right
-	result.push_back(getCellPos(CenterX + 1, CenterY + 1));
+    if (forceNotZero(CenterX + 1, CenterY + 1))
+	    result.push_back(getCellPos(CenterX + 1, CenterY + 1));
 	// Right
-	result.push_back(getCellPos(CenterX + 1, CenterY));
+    if (forceNotZero(CenterX + 1, CenterY ))
+	    result.push_back(getCellPos(CenterX + 1, CenterY));
 	// Down-Right
-	result.push_back(getCellPos(CenterX + 1, CenterY - 1));
+    if (forceNotZero(CenterX + 1, CenterY - 1))
+	    result.push_back(getCellPos(CenterX + 1, CenterY - 1));
 	// Down
-	result.push_back(getCellPos(CenterX, CenterY - 1));
+    if (forceNotZero(CenterX, CenterY - 1))
+	    result.push_back(getCellPos(CenterX, CenterY - 1));
 	// Down-Left
-	result.push_back(getCellPos(CenterX - 1, CenterY - 1));
+    if (forceNotZero(CenterX - 1, CenterY - 1))
+	    result.push_back(getCellPos(CenterX - 1, CenterY - 1));
 	// Left
-	result.push_back(getCellPos(CenterX - 1, CenterY));
+    if (forceNotZero(CenterX - 1, CenterY))
+	    result.push_back(getCellPos(CenterX - 1, CenterY));
 	
 	return result;
 }
@@ -112,12 +133,10 @@ void Grid::createFlowField(std::vector<glm::vec2> input, int n /* = 3*/)
 	6. clear nextlist
 				  
 	*/
-
-
-
 	std::list<glm::vec2> initialList;
 	std::list<glm::vec2> nextList;
 
+    // 1. 
 	for (auto itr = input.begin(); std::next(itr) != input.end(); itr++)
 	{
 		if (std::find(initialList.begin(), initialList.end(), getCellPos(*itr)) == initialList.end()) // check that same cell is not inserted twice
@@ -128,38 +147,65 @@ void Grid::createFlowField(std::vector<glm::vec2> input, int n /* = 3*/)
 			initialList.push_back(cPos);
 		}
 	}
+
+    
 	// we now have InitialList with cells containing forces. 
+    for (auto itr = initialList.begin(); itr != initialList.end(); ++itr)
+    {
+        // 2.
+        std::vector<glm::vec2> neighbors = getCellNeighbors4Directions(*itr);
+        for (auto n_itr = neighbors.begin(); n_itr != neighbors.end(); ++n_itr)
+        {
+            // 3. check neighbor is not in initialList and not in the nextList
+            if (std::find(initialList.begin(), initialList.end(), getCellPos(*n_itr)) == initialList.end() &&
+                std::find(nextList.begin(), nextList.end(), getCellPos(*n_itr)) == nextList.end())
+            {
+                getCell(*itr)->setColor( Gutengine::ColorRGBA8(255, 0, 0, 255));
+                nextList.push_back(*n_itr);
+            }
+        }
+    }
 
-	for (auto itr = initialList.begin(); itr != initialList.end(); ++itr)
-	{
-		std::vector<glm::vec2> neighbors = getCellNeighbors4Directions(*itr);
-		for (auto n_itr = neighbors.begin(); n_itr != neighbors.end(); ++n_itr)
-		{
-			// check neighbor is not in initialList and not in the nextList
-			if (std::find(initialList.begin(), initialList.end(), getCellPos(*n_itr)) == initialList.end() &&
-				std::find(nextList.begin(), nextList.end(), getCellPos(*n_itr)) == nextList.end())
-			{
-			
-				nextList.push_back(*n_itr);
-			}
-		}
-	}
+    nextList.clear();
+    while (0)
+    {
+        for (auto itr = initialList.begin(); itr != initialList.end(); ++itr)
+        {
+            // 2.
+            std::vector<glm::vec2> neighbors = getCellNeighbors4Directions(*itr);
+            for (auto n_itr = neighbors.begin(); n_itr != neighbors.end(); ++n_itr)
+            {
+                // 3. check neighbor is not in initialList and not in the nextList
+                if (std::find(initialList.begin(), initialList.end(), getCellPos(*n_itr)) == initialList.end() &&
+                    std::find(nextList.begin(), nextList.end(), getCellPos(*n_itr)) == nextList.end())
+                {
 
-	// now go through the next list and average sum vectors around it. 
-	for (auto itr : nextList)
-	{
-		glm::vec2 sum = { 0.0f, 0.0f };
-		for (auto itr_n : getCellNeighbors8Directions(itr))
-		{
-			sum += itr_n;
-		}
+                    nextList.push_back(*n_itr);
+                }
+            }
+        }
 
-		getCell(itr)->setForce(glm::normalize(sum));
-	}
-	
+        //4. now go through the next list and average sum vectors around it. 
+        for (auto itr : nextList)
+        {
+            glm::vec2 sum = { 0.0f, 0.0f };
+            for (auto itr_n : getCellNeighbors8Directions(itr))
+            {
+                sum += itr_n;
+            }
 
-	
+            getCell(itr)->setForce(glm::normalize(sum));
+        }
 
+        // 5. push next list to initial iist
+        for (auto itr : nextList)
+        {
+            initialList.push_back(itr);
+        }
+        // 6. clear next list
+        nextList.clear();
+        n--;
+    }
 
 }
 
@@ -186,5 +232,14 @@ void Grid::update(Gutengine::InputManager &inputManager, Gutengine::Camera2D &ca
 		Cell* cell = getCell(camera.convertScreenToWorld(inputManager.getMouseCoords()));
 
 	}
-	
+}
+
+void Grid::resetForces()
+{
+    for (int j = 0; j < m_numYCells; ++j)
+        for (int i = 0; i < m_numXCells; ++i) {
+            auto c = getCell(i, j);
+            c->setForce({ 0.0f, 0.0f });
+            c->isSet = false;
+        }
 }
