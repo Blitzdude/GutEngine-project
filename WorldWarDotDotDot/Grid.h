@@ -16,27 +16,24 @@
 class Cell
 {
 public:
-    
+    // setters
 	void setForce(const glm::vec2& vec)
 	{
 		force.x = vec.x;
 		force.y = vec.y;
 	}
-
-    glm::vec2 getForce() const { return force; };
-
     void setColor(const Gutengine::ColorRGBA8 c) { color = c; };
     void setColor(int r, int g, int b, int a) { setColor(Gutengine::ColorRGBA8(r, g, b, a)); };
-
-    Gutengine::ColorRGBA8& const getColor() { return color; };
-
     void setGridPos(int x, int y) 
     {
         gridPosX = x;
         gridPosY = y;
     }
-
+    // getters
+    glm::vec2 getForce() const { return force; };
+    Gutengine::ColorRGBA8& const getColor() { return color; };
     glm::vec2 getGridPos() { return glm::vec2(gridPosX, gridPosY); };
+
     bool isSet = false;
 private:
 	Gutengine::ColorRGBA8 color;
@@ -62,6 +59,7 @@ public:
 	std::vector<glm::vec2> getCellNeighbors8Directions(glm::vec2 pos);
 	
 	void createFlowField(std::vector<glm::vec2> list, int n = 3);
+    glm::vec2 findPointWithLowestDistance(std::vector<glm::vec2> list, glm::vec2 pos);
 	glm::vec2 sumForceAverage(std::vector<glm::vec2> list);
 
 	

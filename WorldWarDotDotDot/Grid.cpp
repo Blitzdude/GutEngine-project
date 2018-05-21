@@ -133,80 +133,93 @@ void Grid::createFlowField(std::vector<glm::vec2> input, int n /* = 3*/)
 	6. clear nextlist
 				  
 	*/
-	std::list<glm::vec2> initialList;
-	std::list<glm::vec2> nextList;
+    std::vector<glm::vec2> initialL;
+    std::vector<glm::vec2> oldL;
+    std::vector<glm::vec2> newL;
 
-    // 1. 
-	for (auto itr = input.begin(); std::next(itr) != input.end(); itr++)
-	{
-		if (std::find(initialList.begin(), initialList.end(), getCellPos(*itr)) == initialList.end()) // check that same cell is not inserted twice
-		{
-			auto cell = getCell(*itr);
-			cell->setForce(glm::normalize(*std::next(itr) - *itr));
-			glm::vec2 cPos = getCellPos(*itr);
-			initialList.push_back(cPos);
-		}
-	}
-
-    
-	// we now have InitialList with cells containing forces. 
-    for (auto itr = initialList.begin(); itr != initialList.end(); ++itr)
+    // set first the the values in oldList
+    for (auto i = input.begin(); std::next(i) != input.end(); ++i)
     {
-        // 2.
-        std::vector<glm::vec2> neighbors = getCellNeighbors4Directions(*itr);
-        for (auto n_itr = neighbors.begin(); n_itr != neighbors.end(); ++n_itr)
+        auto c = getCell(*i);
+        if (c->isSet == false)
         {
-            // 3. check neighbor is not in initialList and not in the nextList
-            if (std::find(initialList.begin(), initialList.end(), getCellPos(*n_itr)) == initialList.end() &&
-                std::find(nextList.begin(), nextList.end(), getCellPos(*n_itr)) == nextList.end())
-            {
-                getCell(*itr)->setColor( Gutengine::ColorRGBA8(255, 0, 0, 255));
-                nextList.push_back(*n_itr);
-            }
+            c->setForce(glm::normalize(*std::next(i) - *i));
+            c->isSet = true;
+            initialL.push_back(*i);
         }
     }
 
-    nextList.clear();
-    while (0)
+    oldL = initialL;
+    // repeat this n times:
+    while (n > 0)
     {
-        for (auto itr = initialList.begin(); itr != initialList.end(); ++itr)
+        for (auto old_itr : oldL) // for each element in old L.
         {
-            // 2.
-            std::vector<glm::vec2> neighbors = getCellNeighbors4Directions(*itr);
-            for (auto n_itr = neighbors.begin(); n_itr != neighbors.end(); ++n_itr)
+            // get neighbors.
+            std::vector<glm::vec2> neighbors = getCellNeighbors4Directions(old_itr);
+
+            // push them to new list
+            for (auto n_itr = neighbors.begin(); n_itr != neighbors.end(); n_itr++)
             {
-                // 3. check neighbor is not in initialList and not in the nextList
-                if (std::find(initialList.begin(), initialList.end(), getCellPos(*n_itr)) == initialList.end() &&
-                    std::find(nextList.begin(), nextList.end(), getCellPos(*n_itr)) == nextList.end())
+                // but only if it's not in the old list or the new list
+
+                if (std::find(oldL.begin(), oldL.end(), *n_itr) == oldL.end())
                 {
-
-                    nextList.push_back(*n_itr);
+                    // new
+                    newL.push_back(*n_itr);
                 }
+
             }
         }
-
-        //4. now go through the next list and average sum vectors around it. 
-        for (auto itr : nextList)
+        glm::vec2 sum(0.0f);
+        // now for each neighbor 
+        for (auto m_itr : newL)
         {
-            glm::vec2 sum = { 0.0f, 0.0f };
-            for (auto itr_n : getCellNeighbors8Directions(itr))
+
+            //get its surrounding cells
+            auto surCells = getCellNeighbors8Directions(m_itr);
+            int numNeighbors = surCells.size();
+            for (auto s_itr = surCells.begin(); s_itr != surCells.end(); s_itr++)
             {
-                sum += itr_n;
+                // sum the force values
+                sum += getCell(*s_itr)->getForce();
             }
+            // add bias = normalized vector from neighbor to closest point in the sketched list
+            sum += glm::normalize(findPointWithLowestDistance(initialL, m_itr) - m_itr) * 2.0f;
+            // divide by number of neighbors as per flocking.
+            sum /= numNeighbors;
 
-            getCell(itr)->setForce(glm::normalize(sum));
-        }
+            auto cell = getCell(m_itr);
+            if (!cell->isSet )
+                cell->setForce(glm::normalize(sum));
 
-        // 5. push next list to initial iist
-        for (auto itr : nextList)
-        {
-            initialList.push_back(itr);
         }
-        // 6. clear next list
-        nextList.clear();
+        // now add the elements in new list to old list
+        for (auto itr : newL)
+            oldL.push_back(itr);
+
+        for (auto itr : oldL)
+            getCell(itr)->isSet = false;
+        // then clear the new list to be reused. 
+        newL.clear();
         n--;
     }
 
+}
+
+glm::vec2 Grid::findPointWithLowestDistance(std::vector<glm::vec2> list, glm::vec2 pos)
+{
+
+    glm::vec2 lowest = list.back();
+    for (auto itr : list)
+    {
+        float d = glm::dot(itr - pos, itr - pos);
+        float l = glm::dot(lowest - pos, lowest - pos);
+
+        if (d < l)
+            lowest = itr;
+    }
+    return lowest;
 }
 
 glm::vec2 Grid::sumForceAverage(std::vector<glm::vec2> list)
@@ -219,8 +232,6 @@ glm::vec2 Grid::sumForceAverage(std::vector<glm::vec2> list)
 	sum / (float)list.size();
 	return sum;
 }
-
-
 
 void Grid::update(Gutengine::InputManager &inputManager, Gutengine::Camera2D &camera)
 {

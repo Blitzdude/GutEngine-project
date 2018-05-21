@@ -13,9 +13,9 @@
 // GLOBALS
 const int CELL_SIZE = 32;
 const int CELL_SIZE_HALF = CELL_SIZE / 2;
-
-
-
+const int MAP_HEIGHT = 2048;
+const int MAP_WIDTH = 1656;
+const float OBJECT_SIZE = 24.0f;
 
 GameplayScreen::GameplayScreen(Gutengine::Window* window) : m_window(window){
     m_screenIndex = SCREEN_INDEX_GAMEPLAY;
@@ -51,19 +51,22 @@ GameplayScreen::onEntry() {
 	// create box2D world
     b2Vec2 gravity(0.0f, 0.0f);
     m_world = std::make_unique<b2World>(gravity);
+    // create world boundary
+    createBoundary();
 	
 	// Initialize grid
-	m_grid = std::make_unique<Grid>(m_window->getScreenWidth(), m_window->getScreenHeight(), CELL_SIZE);
-    //DEBUG: grid coordinates
+	m_grid = std::make_unique<Grid>(MAP_WIDTH, MAP_HEIGHT, CELL_SIZE);
+    
    
 
 	// Initialize debug renderer
     m_debugRenderer.init();
 
-    // Initialize spritebatch
+    // Initialize spritebatches
     m_spriteBatch.init();
-
+    m_spriteFont.init("Fonts/chintzy.ttf", 24);
 	// Initialize inputmanager
+
     // Shader init
     // Compile our texture program
     m_textureProgram.compileShaders("Shaders/textureShading.vert", "Shaders/textureShading.frag");
@@ -72,23 +75,34 @@ GameplayScreen::onEntry() {
     m_textureProgram.addAttribute("vertexUV");
     m_textureProgram.linkShaders();
 
-    // Init camera
+    // Init cameras
     m_camera.init(m_window->getScreenWidth(), m_window->getScreenHeight());
+
 	// move the camera, so the world origin is in the bottom-left corner
 	m_camera.setPosition(glm::vec2(m_window->getScreenWidth() / 2.0f, m_window->getScreenHeight() / 2.0f));
 	// Set camera scale 
 	m_camera.setScale(1.0f);
-	// Init cell texture
-	m_grid->m_cellTexture = Gutengine::ResourceManager::getTexture("Assets/blank.png");
+    // Ui Camera
+    m_uiCamera.init(m_window->getScreenWidth(), m_window->getScreenHeight());
+    m_uiCamera.setScale(1.0f);
+    
+    // Init backgroud texture
+    m_background = Gutengine::ResourceManager::getTexture("Assets/map_paper_small.png");
+
 
 	// init objects
 	const int NUMBER_OF_OBJECTS = 4;
 
 	for (int i = 0; i < NUMBER_OF_OBJECTS; i++) {
-		Object obj;
-		obj.init(glm::vec2(300.0f + i * 40.f, 300.0f), 0.0f, 42.0f, *m_world);
+		Circle obj;
+        obj.init(m_world.get(), glm::vec2(300.0f + i * 40.f, 300.0f), OBJECT_SIZE, OBJECT_SIZE, Gutengine::ResourceManager::getTexture("Assets/circleBordered.png"),
+            Gutengine::ColorRGBA8(0, 0, 255, 255), true, b2_dynamicBody);
+        obj.setTeam(m_currentTeam);
+        
 		m_objects.push_back(obj);
 	}
+    for (auto itr : m_objects)
+        
 
     initUI();
 }
@@ -96,6 +110,7 @@ GameplayScreen::onEntry() {
 void
 GameplayScreen::onExit() {
 	m_textureProgram.dispose();
+    m_spriteFont.dispose();
     m_debugRenderer.dispose();
     m_world.reset();
 }
@@ -103,6 +118,7 @@ GameplayScreen::onExit() {
 void
 GameplayScreen::update() {
     m_camera.update();
+    m_uiCamera.update();
 	m_grid->update(m_game->inputManager, m_camera);
     checkInput();
 	updateMouse();
@@ -116,56 +132,105 @@ GameplayScreen::update() {
 
 void 
 GameplayScreen::draw() {
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     m_textureProgram.use();
+
+    // Camera matrix
+    glm::mat4 projectionMatrix = m_camera.getCameraMatrix();
 
     // Upload texture uniform
     GLint textureUniform = m_textureProgram.getUniformLocation("mySampler");
     glUniform1i(textureUniform, 0);
     glActiveTexture(GL_TEXTURE0);
 
-    // Camera matrix
-    glm::mat4 projectionMatrix = m_camera.getCameraMatrix();
     GLint pUniform = m_textureProgram.getUniformLocation("P");
     glUniformMatrix4fv(pUniform, 1, GL_FALSE, &projectionMatrix[0][0]);
 
-	// begin spritebatch drawing
     m_spriteBatch.begin();
-	
-	glm::vec4 destRect;
 
-	// draw the grid squares by color
-	for (int j = 0; j < m_grid->getNumYCells(); j++) {
-		for (int i = 0; i < m_grid->getNumXCells(); i++) {
-			auto curCell = m_grid->getCell(i, j);
-			glm::vec2 currentPos  = m_grid->getCellPos(i, j);
-
-
-			m_spriteBatch.draw(
-				glm::vec4(currentPos.x, currentPos.y, CELL_SIZE, CELL_SIZE),
-				glm::vec4(0.0f, 1.0f, 0.0f, 1.0f),
-				m_grid->m_cellTexture.id, 0.0f,
-				curCell->getColor());
-		}
-	}
-
-	// add grid rendering here
+    //Draw background
+    
+    m_spriteBatch.draw(glm::vec4(0.0f, 0.0f, m_background.width, m_background.height),
+        glm::vec4(0.0f, 0.0f, 1.0f, 1.0f),
+        m_background.id,
+        0.0f,
+        Gutengine::ColorRGBA8(255, 255, 255, 255));
+    
+    
+    // Draw objects
 	for (auto itr : m_objects) {
 		itr.draw(m_spriteBatch);
 	}
 
 	m_spriteBatch.end();
-
-
     m_spriteBatch.renderBatch();
+
     m_textureProgram.unuse();
+
+    drawDebug(projectionMatrix);
+
+    drawUI();
+
+    m_gui.draw();
+}
+
+void
+GameplayScreen::initUI() {
+    // Init the UI
+    m_gui.init("GUI");
+    m_gui.loadScheme("TaharezLook.scheme");
+    m_gui.setFont("DejaVuSans-10");
+
+	// Exit button
+    CEGUI::PushButton* exitButton = static_cast<CEGUI::PushButton*>(m_gui.createWidget("TaharezLook/Button", glm::vec4(0.01f, 0.01f, 0.1f, 0.05f), glm::vec4(0.0f), "exitButton"));
+    exitButton->setText("Exit Game!");
+	
+    // Team Toggle button
+    CEGUI::PushButton* teamToggleButton = static_cast<CEGUI::PushButton*>(m_gui.createWidget("TaharezLook/Button", glm::vec4(0.12f, 0.01f, 0.1f, 0.05f), glm::vec4(0.0f), "teamToggleButton"));
+    teamToggleButton->setText("Toggle Team!");
+
+
+
+    // Set the event to be called when we click
+    exitButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameplayScreen::onExitClicked, this));
+    teamToggleButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameplayScreen::onTeamToggleClicked, this));
+
+
+    SDL_ShowCursor(1);
+}
+
+void GameplayScreen::createBoundary()
+{
+    makeEdge( MAP_WIDTH / 2.0f, MAP_HEIGHT, MAP_WIDTH, 10.0f); // top edge
+    makeEdge( MAP_WIDTH / 2.0f, 0.0f, MAP_WIDTH, 10.0f); // bottom edge
+    makeEdge( 0.0f,       MAP_HEIGHT / 2.0f, 10.0f, MAP_HEIGHT); // left edge
+    makeEdge( MAP_WIDTH,  MAP_HEIGHT / 2.0f, 10.0f, MAP_HEIGHT); // right edge
+
+}
+
+void GameplayScreen::makeEdge(float x, float y, float w, float h) {
+    // make the level edges
+    b2BodyDef BarrierDef;
+    BarrierDef.position.Set(x, y);
+
+    //allocates barrier in memory
+    b2Body* Barrier = m_world->CreateBody(&BarrierDef);
+    // make the ground fixture - bind the shape of the body.
+    b2PolygonShape box;
+    box.SetAsBox(w, h);
+    Barrier->CreateFixture(&box, 0.0f); // density is 0.0f so they can't be moved
+    //make level edges - end
+}
+
+void GameplayScreen::drawDebug(glm::mat4 projMat)
+{
 
     // Debug rendering
     if (m_renderDebug)
     {
-        glm::vec4 destRect;
         ////////////////////////////////
         // Draws a gray grid for cells
         for (int y = 0; y <= m_grid->getNumYCells(); y++) { // y direction
@@ -205,10 +270,7 @@ GameplayScreen::draw() {
                 m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()),
                 Gutengine::ColorRGBA8(0, 255, 0, 255));
         }
-        
-        
-            
-        
+
         for (int j = 0; j < m_grid->getNumYCells(); ++j)
         {
             for (int i = 0; i < m_grid->getNumXCells(); ++i)
@@ -217,30 +279,48 @@ GameplayScreen::draw() {
                     visualizeForce(m_grid->getCellPos(i, j));
             }
         }
-        
-        
 
-		m_debugRenderer.end();
-        m_debugRenderer.render(projectionMatrix, 2.0f);
+        // Draw edges
+        // Top
+        m_debugRenderer.drawLine({ 0.0f, MAP_HEIGHT }, { MAP_WIDTH, MAP_HEIGHT }, Gutengine::ColorRGBA8(255, 0, 255, 140));
+        // bottom
+        m_debugRenderer.drawLine({ 0.0f, 0.0f }, { MAP_WIDTH, 0.0f }, Gutengine::ColorRGBA8(255, 0, 255, 140));
+        // left
+        m_debugRenderer.drawLine({ 0.0f, 0.0f }, { 0.0f, MAP_HEIGHT }, Gutengine::ColorRGBA8(255, 0, 255, 140));
+        // right
+        m_debugRenderer.drawLine({ MAP_WIDTH, 0.0f }, { MAP_WIDTH, MAP_HEIGHT }, Gutengine::ColorRGBA8(255, 0, 255, 140));
+
+        m_debugRenderer.end();
+        m_debugRenderer.render(projMat, 2.0f);
     }
-   
-    m_gui.draw();
+
 }
 
-void
-GameplayScreen::initUI() {
-    // Init the UI
-    m_gui.init("GUI");
-    m_gui.loadScheme("TaharezLook.scheme");
-    m_gui.setFont("DejaVuSans-10");
-	// Exit button
-    CEGUI::PushButton* testButton = static_cast<CEGUI::PushButton*>(m_gui.createWidget("TaharezLook/Button", glm::vec4(0.01f, 0.01f, 0.1f, 0.05f), glm::vec4(0.0f), "TestButton"));
-    testButton->setText("Exit Game!");
-	
-    // Set the event to be called when we click
-    testButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameplayScreen::onExitClicked, this));
+void GameplayScreen::drawUI()
+{
 
-    SDL_ShowCursor(1);
+    m_textureProgram.use();
+    
+
+    // Upload texture uniform
+    GLint textureUniform = m_textureProgram.getUniformLocation("mySampler");
+    glUniform1i(textureUniform, 0);
+    glActiveTexture(GL_TEXTURE0);
+
+    glm::mat4 projectionMatrix = m_uiCamera.getCameraMatrix();
+    GLint pUniform = m_textureProgram.getUniformLocation("P");
+    glUniformMatrix4fv(pUniform, 1, GL_FALSE, &projectionMatrix[0][0]);
+
+    m_spriteBatch.begin();
+    // draw sprite font
+    glm::vec2 textPos = m_uiCamera.convertScreenToWorld({ 10.0f, m_window->getScreenHeight() - 10.0f });
+    std::string text = "Num Objects: " + std::to_string((int)m_objects.size());
+    m_spriteFont.draw(m_spriteBatch, text.c_str(), textPos, glm::vec2(0.7f), 0.0f, Gutengine::ColorRGBA8(255, 255, 255, 255));
+    
+    m_spriteBatch.end();
+    m_spriteBatch.renderBatch();
+
+    m_textureProgram.unuse();
 }
 
 void
@@ -256,24 +336,34 @@ GameplayScreen::checkInput() {
                 break;
 		}
     }
+    const float MAX_SCALE = 2.0f;
+    const float MIN_SCALE = 0.3f;
+
 	if (m_game->inputManager.isKeyDown(SDLK_w))
-		m_camera.offsetPosition(glm::vec2(0.0f, 1.0f));
+		m_camera.offsetPosition(glm::vec2(0.0f, 5.0f));
 
 	else if (m_game->inputManager.isKeyDown(SDLK_s))
-		m_camera.offsetPosition(glm::vec2(0.0f, -1.0f));
+		m_camera.offsetPosition(glm::vec2(0.0f, -5.0f));
 
 	if (m_game->inputManager.isKeyDown(SDLK_a))
-		m_camera.offsetPosition(glm::vec2(-1.0f, 0.0f));
+		m_camera.offsetPosition(glm::vec2(-5.0f, 0.0f));
 
 	else if (m_game->inputManager.isKeyDown(SDLK_d))
-		m_camera.offsetPosition(glm::vec2(1.0f, 0.0f));
+		m_camera.offsetPosition(glm::vec2(5.0f, 0.0f));
 
 	if (m_game->inputManager.isKeyDown(SDLK_q)) {
-		m_camera.setScale(m_camera.getScale() + 0.1f);
+
+        // scale up till Max
+        float s = m_camera.getScale();
+        m_camera.setScale((s >= MAX_SCALE) ? s : s + 0.1f);
+        std::cout << "Scale: " << m_camera.getScale() << std::endl;
 	}
 
 	if (m_game->inputManager.isKeyDown(SDLK_e)) {
-		m_camera.setScale(m_camera.getScale() - 0.1f);
+        // scale down till min
+        float s = m_camera.getScale();
+        m_camera.setScale((s < MIN_SCALE) ? s : s - 0.1f);
+        std::cout << "Scale: " << m_camera.getScale() << std::endl;
 	}
 
     if (m_game->inputManager.isKeyDown(SDLK_r)) {
@@ -289,6 +379,14 @@ GameplayScreen::checkInput() {
 	else {
 		m_mouse1 = false;
 	}
+
+    if (m_game->inputManager.isKeyDown(SDL_BUTTON_RIGHT)) {
+        m_mouse2 = true;
+    }
+    else {
+        m_mouse2 = false;
+    }
+
 }
 
 void 
@@ -316,12 +414,25 @@ GameplayScreen::updateMouse() {
 	{ // if mouse not down
 		if (!m_mouseCoordVector.empty()) 
 		{
-			//m_grid->createFlowField(m_mouseCoordVector, 3);
-            debugFlowField();
-			
+			m_grid->createFlowField(m_mouseCoordVector,  (1 / ((int)m_camera.getScale() + 1)) + 1 );
+            
 			m_mouseCoordVector.clear();
 		}
 	}
+    // add objects with second button
+    if (m_mouse2)
+    {
+        glm::vec2 mouseCoords = m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords());
+        Circle obj;
+        obj.init(m_world.get(), glm::vec2(mouseCoords.x, mouseCoords.y), OBJECT_SIZE, OBJECT_SIZE, Gutengine::ResourceManager::getTexture("Assets/circleBordered.png"),
+            Gutengine::ColorRGBA8(0, 0, 255, 255), true, b2_dynamicBody);
+        if (m_currentTeam == Team::BLUE)
+            obj.setColor(Gutengine::ColorRGBA8(0, 0, 255, 255));
+        else if (m_currentTeam == Team::RED)
+            obj.setColor(Gutengine::ColorRGBA8(255, 0, 0, 255));
+
+        m_objects.push_back(obj);
+    }
 }
 
 bool
@@ -330,90 +441,22 @@ GameplayScreen::onExitClicked(const CEGUI::EventArgs& e) {
     return true;
 }
 
-void GameplayScreen::debugFlowField() 
+bool GameplayScreen::onTeamToggleClicked(const CEGUI::EventArgs & e)
 {
-    std::vector<glm::vec2> initialL;
-    std::vector<glm::vec2> oldL;
-    std::vector<glm::vec2> newL;
-
-    // set first the the values in oldList
-    for (auto i = m_mouseCoordVector.begin(); std::next(i) != m_mouseCoordVector.end(); ++i)
-    {
-        auto c = m_grid->getCell(*i);
-        if (c->isSet == false)
-        {
-            c->setForce(glm::normalize(*std::next(i) - *i));
-            c->isSet = true;
-            initialL.push_back(*i);
-        }
-    }
-
-    oldL = initialL;
-    // repeat this n times:
-    int n = 2;
-    while ( n > 0)
-    {
-        for (auto old_itr : oldL) // for each element in old L.
-        {
-            // get neighbors.
-            std::vector<glm::vec2> neighbors = m_grid->getCellNeighbors4Directions(old_itr);
-
-            // push them to new list
-            for (auto n_itr = neighbors.begin(); n_itr != neighbors.end(); n_itr++)
-            {
-                // but only if it's not in the old list or the new list
-               
-                if (std::find(oldL.begin(), oldL.end(), *n_itr) == oldL.end())
-                {
-                    // new
-                    newL.push_back(*n_itr);
-                }
-                
-            }
-        }
-        glm::vec2 sum;
-        glm::vec2 bias;
-        // now for each neighbor 
-        for (auto m_itr : newL) 
-        {
-           
-            //get its surrounding cells
-            auto surCells = m_grid->getCellNeighbors8Directions(m_itr);
-            int numNeighbors = surCells.size();
-            for (auto s_itr = surCells.begin(); s_itr != surCells.end(); s_itr++)
-            {
-                // sum the force values
-                sum += m_grid->getCell(*s_itr)->getForce();
-            }
-            // divide by number of neighbors as per flocking.
-            sum /= numNeighbors;
-            // set the neighbors force accordingly
-            auto cell = m_grid->getCell(m_itr);
-            if (cell->isSet == false)
-            {
-                cell->setForce(glm::normalize(sum));
-                cell->isSet = true;
-            }
-        }
-        // now add the elements in new list to old list
-        for (auto itr : newL)
-            oldL.push_back(itr);
-
-        for (auto itr : oldL)
-            m_grid->getCell(itr)->isSet = false;
-        // then clear the new list to be reused. 
-        newL.clear();
-        n--;
-    }
+    m_grid->resetForces();
+    m_currentTeam = (m_currentTeam == Team::BLUE) ? Team::RED : Team::BLUE;
+    return true;
 }
+
+
 
 void GameplayScreen::visualizeForce(glm::vec2 cellPos)
 {
     auto cell = m_grid->getCell(cellPos);
     glm::vec2 cellCenter(cellPos.x + CELL_SIZE_HALF, cellPos.y + CELL_SIZE_HALF);
-    m_debugRenderer.drawCircle(cellCenter + cell->getForce() * (float)CELL_SIZE_HALF, Gutengine::ColorRGBA8(255, 255, 255, 255), 4.0f, 4 );
+    m_debugRenderer.drawCircle(cellCenter + cell->getForce() * (float)CELL_SIZE_HALF / 2.0f, Gutengine::ColorRGBA8(255, 255, 255, 140), 4.0f, 3 );
 
-    m_debugRenderer.drawLine(cellCenter - cell->getForce() * (float)CELL_SIZE_HALF,
-                             cellCenter + cell->getForce() * (float)CELL_SIZE_HALF,
-                             Gutengine::ColorRGBA8(255, 255, 255, 255));
+    m_debugRenderer.drawLine(cellCenter - cell->getForce() * ((float)CELL_SIZE_HALF / 2.0f),
+                             cellCenter + cell->getForce() * ((float)CELL_SIZE_HALF / 2.0f),
+                             Gutengine::ColorRGBA8(255, 255, 255, 140));
 }
