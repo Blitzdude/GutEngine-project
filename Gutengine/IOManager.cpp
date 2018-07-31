@@ -3,7 +3,9 @@
 #include <filesystem>
 #include <fstream>
 
+
 // Namespace alias
+
 namespace fs = std::tr2::sys;
 
 namespace Gutengine 

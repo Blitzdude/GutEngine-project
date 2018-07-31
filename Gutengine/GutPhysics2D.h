@@ -1,14 +1,50 @@
 #pragma once
-
+#include "DebugRenderer.h"
 #include <glm/glm.hpp>
 //
 #include <vector>
 namespace Gutengine
 {
+	struct AABB
+	{
+		glm::vec2 pos;
+		glm::vec2 dim;
+	};
+
+	class RigidBody
+	{
+	public:
+		static unsigned int objectCount;
+
+		glm::vec2 position;
+		glm::vec2 velocity;
+		glm::vec2 acceleration;
+		float	  mass;
+		int id;
+
+		float orientation;
+		float velocityAng;
+		float accelerationAng;
+		// SHAPE TYPE
+		bool isStatic;
+
+	public:
+		virtual void Update(float deltaTime) = 0;
+		virtual void DebugDraw(DebugRenderer & renderer) = 0;
+		virtual bool PointInShape(glm::vec2 point) { return false };
+		virtual void ApplyLinearImpulse(glm::vec2 force) {};
+		virtual void ApplyTorque(glm::vec2 force) {};
+
+		// Getters
+		virtual AABB GetAABB() = 0;
+	};
+
+
 class RigidBody2D
 {
 public:
 	// default constructor
+	
 	RigidBody2D() {}
 	RigidBody2D(glm::vec2 _p, glm::vec2 _v, float _w = 1.0f, float _h = 1.0f, float _m = 1.0f, float _or = 0.0f )
 	: m_width(_w), m_height(_h), m_orientation(_or)
@@ -139,6 +175,7 @@ public:
 private:
 
 	glm::vec2 m_gravity;
+	
 	std::vector<Gutengine::Particle2D*>  m_particles;
 	std::vector<Gutengine::RigidBody2D*> m_rigidBodies;
 };
