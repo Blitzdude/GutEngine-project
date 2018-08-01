@@ -130,39 +130,11 @@ void GameplayScreen::draw() {
 
     // Debug rendering
     if (m_renderDebug) {
-       
-		for (auto& itr : m_physicsSystem.getRigidbodyList()) {
-			glm::vec4 destRect;
-			destRect.x = itr->getPosition().x;
-			destRect.y = itr->getPosition().y;
-			destRect.z = itr->getWidth();
-			destRect.w = itr->getHeight();
-
+		m_debugRenderer.begin();
+		for (auto& itr : m_rects) {
+			itr.DebugDraw(m_debugRenderer);
 			m_debugRenderer.drawBox(destRect, Gutengine::ColorRGBA8(255, 255, 255, 255), 0.0f);
-
-			m_debugRenderer.drawCircle(itr->getBLCorner(), Gutengine::ColorRGBA8(255, 0, 0, 255), 2.0f);
-			m_debugRenderer.drawCircle(itr->getBRCorner(), Gutengine::ColorRGBA8(0, 255, 0, 255), 2.0f);
-			m_debugRenderer.drawCircle(itr->getTLCorner(), Gutengine::ColorRGBA8(0, 0, 255, 255), 2.0f);
-			m_debugRenderer.drawCircle(itr->getTRCorner(), Gutengine::ColorRGBA8(255, 0, 255, 255), 2.0f);
-
-
-
 		}
-
-		for (auto & itr : m_physicsSystem.getRigidbodyList()) {
-			glm::vec2 mouseCoords = m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords());
-
-			if (itr->getTLCorner().x <= mouseCoords.x && itr->getBRCorner().x >= mouseCoords.x &&
-				itr->getTLCorner().y >= mouseCoords.y && itr->getBRCorner().y <= mouseCoords.y)
-			{
-				m_debugRenderer.drawCircle(mouseCoords, Gutengine::ColorRGBA8(255, 0, 0, 255), 2.0f);
-			}
-			else
-			{
-				m_debugRenderer.drawCircle(mouseCoords, Gutengine::ColorRGBA8(255, 255, 255, 255), 2.0f);
-			}
-		}
-        
 		// Render
         m_debugRenderer.end();
         m_debugRenderer.render(projectionMatrix, 2.0f);
@@ -203,31 +175,26 @@ void GameplayScreen::checkInput() {
                 break;
         }
     }
-	// select ball in circle
+	// LMB down
 	if (m_game->inputManager.isKeyPressed(SDL_BUTTON_LEFT))
 	{
 		m_selectedBody = nullptr;
 		for (auto &body : m_physicsSystem.getRigidbodyList())
 		{
-			if (m_physicsSystem.checkPointInRigidBody(m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()), *body))
-			{
-				m_selectedBody = body;
-				break;
-			}
-
+			
 		}
 	}
 
-	// if mouse down, move rigid body
+	// LMB hold
 	if (m_game->inputManager.isKeyDown(SDL_BUTTON_LEFT))
 	{
 		if (m_selectedBody != nullptr)
 		{
-			m_selectedBody->setPosition(m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()));
+			
 		}
 	}
 
-	// if mouse released, unselect the body
+	// LMB UP
 	if (m_game->inputManager.isKeyReleased(SDL_BUTTON_LEFT))
 	{
 		m_selectedBody = nullptr;

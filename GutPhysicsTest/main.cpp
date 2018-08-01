@@ -6,6 +6,12 @@
 	-Created RigidBody base class (different from Rigidbody2D for now)
 	-NEXT: finish changing Rectangle, and Particle to inherit from RigidBody Base class;
 */
+ 
+
+/*
+	rectangles: xy - bottomLeft
+	width, height: - full
+*/
 #include "App.h"
 
 int main(int argc, char** argv) {

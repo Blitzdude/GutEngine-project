@@ -51,9 +51,7 @@ private:
     Gutengine::DebugRenderer m_debugRenderer;
     Gutengine::GUI			 m_gui;
 							 
-	Gutengine::GutPhysics2D	 m_physicsSystem;
-							 
-	Gutengine::RigidBody2D*	 m_selectedBody;
+	std::vector<Gutengine::Rectangle> m_rects;
 
     bool m_renderDebug = true;
 	

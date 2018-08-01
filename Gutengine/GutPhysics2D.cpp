@@ -3,20 +3,18 @@
 
 namespace Gutengine
 {
-
-GutPhysics2D::GutPhysics2D()
-{
-}
-
-GutPhysics2D::~GutPhysics2D()
-{
-}
-
+	Rectangle::Rectangle(glm::vec2 pos, float w, float h)
+	{
+		position.x = pos.x;
+		position.y = pos.y;
+		width = w;
+		height = h;
+	}
+	/*
 void GutPhysics2D::updatePhysics()
 {
 	// container holding colliding pairs
-	std::vector<std::pair<RigidBody2D*, RigidBody2D*>> collidingPairs;
-
+	//std::vector<std::pair<RigidBody2D*, RigidBody2D*>> collidingPairs;
 	// update attributes
 	for (auto& body : m_rigidBodies)
 	{
@@ -46,7 +44,7 @@ void GutPhysics2D::updatePhysics()
 
 		if (checkAABBvsAABB(body, target))
 		{
-			collidingPairs.push_back(std::make_pair(body, target));
+			//collidingPairs.push_back(std::make_pair(body, target));
 
 			// calculate overlap in x and y directions
 			float xOverlap = fabsf(body->getPosition().x - target->getPosition().x);
@@ -97,21 +95,38 @@ void GutPhysics2D::updatePhysics()
 
 	}
 	*/
+	void Rectangle::Update(float deltaTime)
+	{
 
+	}
+
+	void Rectangle::DebugDraw(DebugRenderer & renderer)
+	{
+		// TODO: add orientation;
+		glm::vec4 rect;
+		rect.x = position.x;
+		rect.y = position.y;
+		rect.w = width;
+		rect.z = height;
+		renderer.drawBox(rect, Gutengine::ColorRGBA8(255, 0, 255, 255), 0.0f);
+	}
+
+	bool Rectangle::PointInShape(glm::vec2 point)
+	{
+		return false;
+	}
+
+	void Rectangle::ApplyLinearImpulse(glm::vec2 force)
+	{
+	}
+
+	void Rectangle::ApplyTorque(glm::vec2 force)
+	{
+	}
 
 }
 
-void GutPhysics2D::addRigidBody2d(RigidBody2D &obj)
-{
-	m_rigidBodies.push_back(new RigidBody2D(obj));
-}
-
-void GutPhysics2D::destroy()
-{
-	m_rigidBodies.clear();
-	m_particles.clear();
-}
-
+/*
 bool GutPhysics2D::checkAABBvsAABB(const RigidBody2D *lhs, const RigidBody2D *rhs)
 {
 	// lhs values
@@ -140,7 +155,8 @@ bool GutPhysics2D::checkAABBvsAABB(const RigidBody2D *lhs, const RigidBody2D *rh
 		return false;
 	}
 }
-
+*/
+/*
 bool GutPhysics2D::checkSameSide(glm::vec2 point1, glm::vec2 point2, glm::vec2 a, glm::vec2 b)
 {
 	// homogenize the points
@@ -178,3 +194,4 @@ bool GutPhysics2D::checkPointInRigidBody(glm::vec2 point, RigidBody2D & rect)
 }
 
 } // namespace end
+*/

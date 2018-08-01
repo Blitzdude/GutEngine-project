@@ -7,6 +7,7 @@ namespace Gutengine
 {
 	struct AABB
 	{
+		// x,y - bottom left
 		glm::vec2 pos;
 		glm::vec2 dim;
 	};
@@ -31,7 +32,7 @@ namespace Gutengine
 	public:
 		virtual void Update(float deltaTime) = 0;
 		virtual void DebugDraw(DebugRenderer & renderer) = 0;
-		virtual bool PointInShape(glm::vec2 point) { return false };
+		virtual bool PointInShape(glm::vec2 point) { return false; };
 		virtual void ApplyLinearImpulse(glm::vec2 force) {};
 		virtual void ApplyTorque(glm::vec2 force) {};
 
@@ -40,80 +41,42 @@ namespace Gutengine
 	};
 
 
-class RigidBody2D
-{
-public:
-	// default constructor
-	
-	RigidBody2D() {}
-	RigidBody2D(glm::vec2 _p, glm::vec2 _v, float _w = 1.0f, float _h = 1.0f, float _m = 1.0f, float _or = 0.0f )
-	: m_width(_w), m_height(_h), m_orientation(_or)
+	class Rectangle : public RigidBody
 	{
-		m_position.x = _p.x + (m_width / 2.0f);
-		m_position.y = _p.y + (m_height / 2.0f);
-		m_velocity = _v;
+	public:
+		Rectangle(glm::vec2 pos, float w, float h);
 
-		m_mass = m_width * m_height * 0.5f;
-	}
-	// destructor
-	~RigidBody2D() {};
+		void Update(float deltaTime) override;
+		void DebugDraw(DebugRenderer & renderer) override;
+		bool PointInShape(glm::vec2 point) override;
+		void ApplyLinearImpulse(glm::vec2 force) override;
+		void ApplyTorque(glm::vec2 force) override;
 
-	// getters
-	float const getWidth()				    const { return m_width; };
-	float const getHeight()				    const { return m_height; };
-	float const getMass()				    const { return m_mass; };
-	glm::vec2 const getPosition()		    const { return m_position; };
-	glm::vec2 const getLinearVelocity()     const { return m_velocity; };
-	glm::vec2 const getLinearAcceleration() const { return m_acceleration; };
-	float const getOrientation()			const { return m_orientation; };
+		float width;
+		float height;
+		// corners
+		glm::vec2 const getTLCorner() const
+		{
+			return { position.x, position.y + height };
+		};
 
-	// corners
-	glm::vec2 const getTLCorner() const 
-	{
-		return {m_position.x, m_position.y + m_height};
+		glm::vec2 const getTRCorner() const
+		{
+			return{ position.x + width, position.y + height };
+		};
+
+		glm::vec2 const getBRCorner() const
+		{
+			return{ position.x + width, position.y };
+		};
+
+		glm::vec2 const getBLCorner() const
+		{
+			return{ position.x, position.y };
+		};
+
 	};
 
-	glm::vec2 const getTRCorner() const 
-	{ 
-		return{ m_position.x + m_width, m_position.y + m_height };
-	};
-
-	glm::vec2 const getBRCorner() const 
-	{
-		return{ m_position.x + m_width, m_position.y };
-	};
-
-	glm::vec2 const getBLCorner() const 
-	{
-		return{ m_position.x, m_position.y};
-	};
-
-	
-	// setters
-	void setWidth(const float other)					{ m_width = other; };
-	void setHeight(const float other)					{ m_height = other; };
-	void setMass(const float other)						{ m_mass = other; };
-	void setPosition(const glm::vec2 &other)			{ m_position = other; };
-	void setX(const float other)						{ m_position.x = other; };
-	void setY(const float other)						{ m_position.y = other; };
-	void setLinearVelocity(const glm::vec2 &other)		{ m_velocity = other; };
-	void setLinearAcceleration(const glm::vec2 &other)  { m_acceleration = other; };
-	void setOrientation	  (const float other)		    { m_orientation = other; };
-
-private:
-	// attributes
-	float m_width;
-	float m_height;
-	float m_mass;
-	//
-	glm::vec2 m_position;
-	
-	glm::vec2 m_velocity;
-	glm::vec2 m_acceleration;
-	// orientation in rads
-	float m_orientation;
-
-};
 
 class Particle2D
 {
@@ -144,7 +107,7 @@ public:
 	glm::vec2 acceleration;
 	float mass;
 };
-
+/*
 class GutPhysics2D
 {
 public:
@@ -180,4 +143,5 @@ private:
 	std::vector<Gutengine::RigidBody2D*> m_rigidBodies;
 };
 
-}
+*/
+} // namespace end
