@@ -124,6 +124,11 @@ void GutPhysics2D::updatePhysics()
 	{
 	}
 
+	AABB Rectangle::GetAABB()
+	{
+		return AABB();
+	}
+
 }
 
 /*

@@ -3,6 +3,8 @@
 #include <glm/glm.hpp>
 //
 #include <vector>
+
+// TODO: Change all function names to camelBack
 namespace Gutengine
 {
 	struct AABB
@@ -30,7 +32,7 @@ namespace Gutengine
 		bool isStatic;
 
 	public:
-		virtual void Update(float deltaTime) = 0;
+		virtual void Update(float deltaTime) = 0; 
 		virtual void DebugDraw(DebugRenderer & renderer) = 0;
 		virtual bool PointInShape(glm::vec2 point) { return false; };
 		virtual void ApplyLinearImpulse(glm::vec2 force) {};
@@ -51,6 +53,7 @@ namespace Gutengine
 		bool PointInShape(glm::vec2 point) override;
 		void ApplyLinearImpulse(glm::vec2 force) override;
 		void ApplyTorque(glm::vec2 force) override;
+		AABB GetAABB() override;
 
 		float width;
 		float height;

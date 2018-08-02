@@ -61,7 +61,7 @@ void GameplayScreen::onEntry() {
     m_camera.setScale(2.0f);
 
 	// Init GutPhysics gravity
-	m_physicsSystem.setGravity({ 0.0f, -0.02f });
+	//m_physicsSystem.setGravity({ 0.0f, -0.02f });
 
 	// Init random generator
 	std::mt19937 randGenerator;
@@ -76,7 +76,9 @@ void GameplayScreen::onEntry() {
 	for (int i = 0; i < NUM_RIGID_BOXES; ++i) 
 	{
 		glm::vec2 pos(_xPos(randGenerator), _yPos(randGenerator));
-
+		m_rects.push_back(Gutengine::Rectangle(glm::vec2(100, 100), 100, 50));
+		/*
+		
 		m_physicsSystem.getRigidbodyList().push_back( new Gutengine::RigidBody2D(
 				m_camera.convertScreenToWorld(pos),
 				glm::vec2(0.0f, 0.0f),
@@ -84,6 +86,7 @@ void GameplayScreen::onEntry() {
 				_h(randGenerator)
 			)
 		);
+		*/
 	}
 
     initUI();
@@ -95,7 +98,7 @@ void GameplayScreen::onExit() {
 
 void GameplayScreen::update() {
 	std::cout << m_game->getFps() << std::endl;
-	m_physicsSystem.updatePhysics();
+	//m_physicsSystem.updatePhysics();
 
     m_camera.update();
     checkInput();
@@ -130,10 +133,9 @@ void GameplayScreen::draw() {
 
     // Debug rendering
     if (m_renderDebug) {
-		m_debugRenderer.begin();
 		for (auto& itr : m_rects) {
 			itr.DebugDraw(m_debugRenderer);
-			m_debugRenderer.drawBox(destRect, Gutengine::ColorRGBA8(255, 255, 255, 255), 0.0f);
+			//m_debugRenderer.drawBox(destRect, Gutengine::ColorRGBA8(255, 255, 255, 255), 0.0f);
 		}
 		// Render
         m_debugRenderer.end();
@@ -178,26 +180,18 @@ void GameplayScreen::checkInput() {
 	// LMB down
 	if (m_game->inputManager.isKeyPressed(SDL_BUTTON_LEFT))
 	{
-		m_selectedBody = nullptr;
-		for (auto &body : m_physicsSystem.getRigidbodyList())
-		{
-			
-		}
+		
 	}
 
 	// LMB hold
 	if (m_game->inputManager.isKeyDown(SDL_BUTTON_LEFT))
 	{
-		if (m_selectedBody != nullptr)
-		{
-			
-		}
 	}
 
 	// LMB UP
 	if (m_game->inputManager.isKeyReleased(SDL_BUTTON_LEFT))
 	{
-		m_selectedBody = nullptr;
+		
 	}
 }
 
