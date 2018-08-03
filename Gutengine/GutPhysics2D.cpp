@@ -1,14 +1,20 @@
 #include "GutPhysics2D.h"
 #include <iostream>
+#include <algorithm>
 
 namespace Gutengine
 {
-	Rectangle::Rectangle(glm::vec2 pos, float w, float h)
+	Rectangle::Rectangle(glm::vec2 pos, float w, float h, float or/* = 0.0f */)
 	{
 		position.x = pos.x;
 		position.y = pos.y;
 		width = w;
 		height = h;
+		orientation = or;
+	}
+	Rectangle::Rectangle()
+	{
+		std::cout << "rect destroyed!" << std::endl;
 	}
 	/*
 void GutPhysics2D::updatePhysics()
@@ -97,8 +103,14 @@ void GutPhysics2D::updatePhysics()
 	*/
 	void Rectangle::Update(float deltaTime)
 	{
-
+		// linear
+		velocity += acceleration * deltaTime;
+		position += velocity * deltaTime;
+		// angular
+		velocityAng += accelerationAng * deltaTime;
+		orientation += velocityAng * deltaTime;
 	}
+
 
 	void Rectangle::DebugDraw(DebugRenderer & renderer)
 	{
@@ -106,9 +118,9 @@ void GutPhysics2D::updatePhysics()
 		glm::vec4 rect;
 		rect.x = position.x;
 		rect.y = position.y;
-		rect.w = width;
-		rect.z = height;
-		renderer.drawBox(rect, Gutengine::ColorRGBA8(255, 0, 255, 255), 0.0f);
+		rect.w = height;
+		rect.z = width;
+		renderer.drawBox(rect, Gutengine::ColorRGBA8(255, 0, 255, 255), orientation);
 	}
 
 	bool Rectangle::PointInShape(glm::vec2 point)
@@ -126,9 +138,79 @@ void GutPhysics2D::updatePhysics()
 
 	AABB Rectangle::GetAABB()
 	{
-		return AABB();
+		AABB ab;
+		if (orientation == 0.0f) // TODO: % 180.0f ?
+		{
+			ab.pos.x = position.x;
+			ab.pos.y = position.y;
+			ab.w = width;
+			ab.h = height;
+		}
+		else 
+		{
+			// TODO: Figuire this out
+			/*
+			ab.pos.x = position.x;
+			ab.pos.y = position.y;
+			glm::vec2 half_dims = { width / 2.0f, height / 2.0f };
+
+			glm::vec2 topR = { half_dims.x, half_dims.y };
+			glm::vec2 bottomR = {half_dims.x, half_dims.y };
+
+			float sin_o = sinf(orientation);
+			float cos_o = cosf(orientation);
+
+			glm::vec2 topRX = { topR.x * cos_o - topR.y * sin_o, topR.x * sin_o + topR.y * cos_o };
+			glm::vec2 bottomRX = { bottomR.x * cos_o - bottomR.y * sin_o, bottomR.x * sin_o + bottomR.y * cos_o };
+			
+			glm::vec2 extents = { std::max(fabs(topRX.x), fabs(bottomRX.x)), std::max(fabs(topRX.y), fabs(bottomRX.y)) };
+
+			ab.w = extents.x * 2.0f;
+			ab.h = extents.y * 2.0f;
+			*/
+
+			/*
+			ab.pos.x = position.x;
+			ab.pos.y = position.y;
+			ab.w = fabs(height * sinf(orientation) + width * cosf(orientation));
+			ab.h = fabs(width * sinf(orientation) + height * cosf(orientation));
+			*/
+			
+		}
+		return ab;
 	}
 
+	/*
+	x,y+h ---- x+w,y+h
+	|tl		   tr|
+	|            |
+	|bl		   br|
+	x,y ------ x+w,y
+	*/
+
+	glm::vec2 const Rectangle::getTLCorner() const
+	{
+		if (orientation == 0.0f) // TODO: % 180.0f ?
+			return{ position.x, position.y + height };
+	}
+
+	glm::vec2 const Rectangle::getTRCorner() const
+	{
+		if (orientation == 0.0f) // TODO: % 180.0f ?
+			return{ position.x + width, position.y + height };
+	};
+
+	glm::vec2 const Rectangle::getBRCorner() const
+	{
+		if (orientation == 0.0f) // TODO: % 180.0f ?
+			return{ position.x + width, position.y };
+	};
+
+	glm::vec2 const Rectangle::getBLCorner() const
+	{
+		if (orientation == 0.0f) // TODO: % 180.0f ?
+			return{ position.x, position.y };
+	};
 }
 
 /*

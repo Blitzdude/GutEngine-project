@@ -139,7 +139,7 @@ Gutengine::DebugRenderer::drawBox(const glm::vec4& destRect, const ColorRGBA8& c
     
     glm::vec2 halfDims(destRect.z / 2.0f, destRect.w / 2.0f);
 
-    // Get points centered at origin
+    // Get points centered at origin (0,0 coordinates)
     glm::vec2 tl(-halfDims.x, halfDims.y);
     glm::vec2 bl(-halfDims.x, -halfDims.y);
     glm::vec2 br(halfDims.x, -halfDims.y);

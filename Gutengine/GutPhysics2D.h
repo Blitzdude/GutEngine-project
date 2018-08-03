@@ -10,8 +10,16 @@ namespace Gutengine
 	struct AABB
 	{
 		// x,y - bottom left
+		// w,h - full
 		glm::vec2 pos;
-		glm::vec2 dim;
+		float w;
+		float h;
+
+		bool isPointIn(glm::vec2 point)
+		{
+			return (point.x >= pos.x && point.x <= pos.x + w &&
+				point.y >= pos.y && point.y <= pos.y + h);
+		}
 	};
 
 	class RigidBody
@@ -22,12 +30,12 @@ namespace Gutengine
 		glm::vec2 position;
 		glm::vec2 velocity;
 		glm::vec2 acceleration;
-		float	  mass;
-		int id;
+		float	  mass = 1.0f;
+		int		  id;
 
-		float orientation;
-		float velocityAng;
-		float accelerationAng;
+		float orientation = 0.0f;
+		float velocityAng = 0.0f;
+		float accelerationAng = 0.0f;
 		// SHAPE TYPE
 		bool isStatic;
 
@@ -46,7 +54,8 @@ namespace Gutengine
 	class Rectangle : public RigidBody
 	{
 	public:
-		Rectangle(glm::vec2 pos, float w, float h);
+		Rectangle(glm::vec2 pos, float w, float h, float or = 0.0f);
+		Rectangle();
 
 		void Update(float deltaTime) override;
 		void DebugDraw(DebugRenderer & renderer) override;
@@ -54,32 +63,22 @@ namespace Gutengine
 		void ApplyLinearImpulse(glm::vec2 force) override;
 		void ApplyTorque(glm::vec2 force) override;
 		AABB GetAABB() override;
-
+		
 		float width;
 		float height;
 		// corners
-		glm::vec2 const getTLCorner() const
-		{
-			return { position.x, position.y + height };
-		};
-
-		glm::vec2 const getTRCorner() const
-		{
-			return{ position.x + width, position.y + height };
-		};
-
-		glm::vec2 const getBRCorner() const
-		{
-			return{ position.x + width, position.y };
-		};
-
-		glm::vec2 const getBLCorner() const
-		{
-			return{ position.x, position.y };
-		};
-
+		/*
+			x,y+h ---- x+w,y+h
+			|tl		   tr|
+			|            |
+			|bl		   br|
+			x,y ------ x+w,y
+		*/
+		glm::vec2 const getTLCorner() const;
+		glm::vec2 const getTRCorner() const;
+		glm::vec2 const getBRCorner() const;
+		glm::vec2 const getBLCorner() const;
 	};
-
 
 class Particle2D
 {

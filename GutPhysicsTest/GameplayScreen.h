@@ -52,6 +52,7 @@ private:
     Gutengine::GUI			 m_gui;
 							 
 	std::vector<Gutengine::Rectangle> m_rects;
+	Gutengine::Rectangle *m_selectedShape = nullptr;
 
     bool m_renderDebug = true;
 	

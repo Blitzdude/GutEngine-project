@@ -7,8 +7,8 @@
 #include <time.h>
 #include "ScreenIndices.h"
 
-
-const int NUM_RIGID_BOXES = 3;
+const float DELTA_TIME = 1.0f / 60.0f; // TODO: There is no deltatiming in gutengine. Fix?
+const int NUM_RIGID_BOXES = 1;
 
 GameplayScreen::GameplayScreen(Gutengine::Window* window) : m_window(window){
     m_screenIndex = SCREEN_INDEX_GAMEPLAY;
@@ -58,7 +58,7 @@ void GameplayScreen::onEntry() {
 
     // Init camera
     m_camera.init(m_window->getScreenWidth(), m_window->getScreenHeight());
-    m_camera.setScale(2.0f);
+    m_camera.setScale(1.0f);
 
 	// Init GutPhysics gravity
 	//m_physicsSystem.setGravity({ 0.0f, -0.02f });
@@ -76,7 +76,7 @@ void GameplayScreen::onEntry() {
 	for (int i = 0; i < NUM_RIGID_BOXES; ++i) 
 	{
 		glm::vec2 pos(_xPos(randGenerator), _yPos(randGenerator));
-		m_rects.push_back(Gutengine::Rectangle(glm::vec2(100, 100), 100, 50));
+		m_rects.push_back(Gutengine::Rectangle(glm::vec2(100, 100), 200, 100));
 		/*
 		
 		m_physicsSystem.getRigidbodyList().push_back( new Gutengine::RigidBody2D(
@@ -97,12 +97,16 @@ void GameplayScreen::onExit() {
 }
 
 void GameplayScreen::update() {
-	std::cout << m_game->getFps() << std::endl;
+	//std::cout << m_game->getFps() << std::endl;
 	//m_physicsSystem.updatePhysics();
 
     m_camera.update();
     checkInput();
-
+	for (auto &r : m_rects)
+	{
+		r.accelerationAng = -r.velocityAng * 0.4f;
+		r.Update(DELTA_TIME);
+	}
 }
 
 void GameplayScreen::draw() {
@@ -135,7 +139,12 @@ void GameplayScreen::draw() {
     if (m_renderDebug) {
 		for (auto& itr : m_rects) {
 			itr.DebugDraw(m_debugRenderer);
-			//m_debugRenderer.drawBox(destRect, Gutengine::ColorRGBA8(255, 255, 255, 255), 0.0f);
+			glm::vec4 ab;
+			ab.x = itr.GetAABB().pos.x;
+			ab.y = itr.GetAABB().pos.y;
+			ab.z = itr.GetAABB().w;
+			ab.w = itr.GetAABB().h;
+			m_debugRenderer.drawBox(ab, Gutengine::ColorRGBA8(255, 255, 255, 255), 0.0f);
 		}
 		// Render
         m_debugRenderer.end();
@@ -177,21 +186,45 @@ void GameplayScreen::checkInput() {
                 break;
         }
     }
-	// LMB down
-	if (m_game->inputManager.isKeyPressed(SDL_BUTTON_LEFT))
+	// LMB or RMB down
+	if (m_game->inputManager.isKeyPressed(SDL_BUTTON_LEFT) || m_game->inputManager.isKeyPressed(SDL_BUTTON_RIGHT))
 	{
-		
+		glm::vec2 mouse = m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords());
+		for (auto &s : m_rects)
+		{
+			if (s.GetAABB().isPointIn(mouse))
+			{
+				std::cout << "Shape selected!" << std::endl;
+				m_selectedShape = &s;
+			}
+		}
 	}
 
 	// LMB hold
 	if (m_game->inputManager.isKeyDown(SDL_BUTTON_LEFT))
 	{
+		if (m_selectedShape != nullptr)
+		{
+			glm::vec2 offset = glm::vec2(m_selectedShape->width / 2.0f, m_selectedShape->height / 2.0f);
+			glm::vec2 mouse = m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords() );
+			// Set new position for selected shape
+			m_selectedShape->position = mouse - offset;
+		}
 	}
 
 	// LMB UP
 	if (m_game->inputManager.isKeyReleased(SDL_BUTTON_LEFT))
 	{
-		
+		m_selectedShape = nullptr;
+	}
+	// RMB UP
+	if (m_game->inputManager.isKeyReleased(SDL_BUTTON_RIGHT))
+	{
+		if (m_selectedShape != nullptr)
+		{
+			m_selectedShape->velocityAng += 10.0f;
+			m_selectedShape = nullptr;
+		}
 	}
 }
 
