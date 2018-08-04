@@ -104,6 +104,7 @@ void GameplayScreen::update() {
     checkInput();
 	for (auto &r : m_rects)
 	{
+		r.acceleration = -r.velocity * 0.4f;
 		r.accelerationAng = -r.velocityAng * 0.4f;
 		r.Update(DELTA_TIME);
 	}
@@ -174,7 +175,6 @@ void GameplayScreen::initUI() {
     SDL_ShowCursor(1);
 }
 
-
 void GameplayScreen::checkInput() {
     SDL_Event evnt;
     while (SDL_PollEvent(&evnt)) {
@@ -221,7 +221,10 @@ void GameplayScreen::checkInput() {
 	{
 		if (m_selectedShape != nullptr)
 		{
-			m_selectedShape->velocityAng += 10.0f;
+			glm::vec2 force = m_selectedShape->position - m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords());
+			m_selectedShape->ApplyLinearImpulse(force);
+		
+			m_selectedShape->velocityAng = force.y > 0.0f ? force.length() : -force.length();
 			m_selectedShape = nullptr;
 		}
 	}

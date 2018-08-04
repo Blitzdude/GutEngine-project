@@ -37,9 +37,6 @@ void GutPhysics2D::updatePhysics()
 			body->setPosition({ body->getPosition().x, 0.0f });
 	}
 
-
-
-
 	// Clamp velocity near zero
 
 	// Check overlap and resolve static collisions
@@ -111,10 +108,8 @@ void GutPhysics2D::updatePhysics()
 		orientation += velocityAng * deltaTime;
 	}
 
-
 	void Rectangle::DebugDraw(DebugRenderer & renderer)
 	{
-		// TODO: add orientation;
 		glm::vec4 rect;
 		rect.x = position.x;
 		rect.y = position.y;
@@ -122,6 +117,11 @@ void GutPhysics2D::updatePhysics()
 		rect.z = width;
 		renderer.drawBox(rect, Gutengine::ColorRGBA8(255, 0, 255, 255), orientation);
 		renderer.drawCircle({ position.x, position.y }, Gutengine::ColorRGBA8(255, 0, 0, 255), 2.0f);
+		// Corners
+		renderer.drawCircle( getTLCorner(), Gutengine::ColorRGBA8(255, 0, 0, 255), 4.0f);
+		renderer.drawCircle( getTRCorner(), Gutengine::ColorRGBA8(0, 255, 0, 255), 4.0f);
+		renderer.drawCircle( getBRCorner(), Gutengine::ColorRGBA8(0, 0, 255, 255), 4.0f);
+		renderer.drawCircle( getBLCorner(), Gutengine::ColorRGBA8(255, 255, 0, 255), 4.0f);
 	}
 
 	bool Rectangle::PointInShape(glm::vec2 point)
@@ -131,6 +131,8 @@ void GutPhysics2D::updatePhysics()
 
 	void Rectangle::ApplyLinearImpulse(glm::vec2 force)
 	{
+		// time is very small so we remove it from equation
+		velocity += force / mass;
 	}
 
 	void Rectangle::ApplyTorque(glm::vec2 force)
@@ -147,49 +149,88 @@ void GutPhysics2D::updatePhysics()
 			ab.w = width;
 			ab.h = height;
 		}
-		else 
+		else
 		{
-			
 			ab.w = fabs(height * sinf(orientation)) + fabs(width * cosf(orientation));
-			ab.h = fabs(width * sinf(orientation))+	  fabs(height * cosf(orientation));
+			ab.h = fabs(width * sinf(orientation))  + fabs(height * cosf(orientation));
 			ab.pos.x = position.x;
 			ab.pos.y = position.y;
-			
-			
 		}
+
 		return ab;
 	}
 
-	/*
-	x,y+h ---- x+w,y+h
-	|tl		   tr|
-	|            |
-	|bl		   br|
-	x,y ------ x+w,y
+	/* wh/hh = half width/height
+	x-wh,y+hh ---- x+wh,y+hh
+	|tl					tr|
+	|					  |
+	|bl					br|
+	x-wh,y-hh ------ x+wh,y+hh
 	*/
 
 	glm::vec2 const Rectangle::getTLCorner() const
 	{
 		if (orientation == 0.0f) // TODO: % 180.0f ?
+		{
 			return{ position.x - width / 2.0f, position.y + height / 2.0f };
+		}
+		else
+		{
+			// point coords around origin
+			glm::vec2 p = {-width / 2.0f, height / 2.0f };
+			// point rotated
+			glm::vec2 pr = { p.x * cosf(orientation) - p.y * sinf(orientation), p.x * sinf(orientation) + p.y * cosf(orientation) };
+			return pr + position;
+		}
 	}
 
 	glm::vec2 const Rectangle::getTRCorner() const
 	{
 		if (orientation == 0.0f) // TODO: % 180.0f ?
+		{
 			return{ position.x + width / 2.0f, position.y + height / 2.0f };
+		}
+		else
+		{
+			// point coords around origin
+			glm::vec2 p = { width / 2.0f, height / 2.0f };
+			// point rotated
+			glm::vec2 pr = { p.x * cosf(orientation) - p.y * sinf(orientation), p.x * sinf(orientation) + p.y * cosf(orientation) };
+			return pr + position;
+		}
+		
 	};
 
 	glm::vec2 const Rectangle::getBRCorner() const
 	{
 		if (orientation == 0.0f) // TODO: % 180.0f ?
+		{
 			return{ position.x + width / 2.0f, position.y - height / 2.0f };
+		}
+		else
+		{
+			// point coords around origin
+			glm::vec2 p = { width / 2.0f, -height / 2.0f };
+			// point rotated
+			glm::vec2 pr = { p.x * cosf(orientation) - p.y * sinf(orientation), p.x * sinf(orientation) + p.y * cosf(orientation) };
+			return pr + position;
+		}
 	};
 
 	glm::vec2 const Rectangle::getBLCorner() const
 	{
 		if (orientation == 0.0f) // TODO: % 180.0f ?
+		{
 			return{ position.x - width / 2.0f, position.y - height / 2.0f };
+		}
+		else
+		{
+			// point coords around origin
+			glm::vec2 p = { -width / 2.0f, -height / 2.0f };
+			// point rotated
+			glm::vec2 pr = { p.x * cosf(orientation) - p.y * sinf(orientation), p.x * sinf(orientation) + p.y * cosf(orientation) };
+			return pr + position;
+		}
 	};
 }
 

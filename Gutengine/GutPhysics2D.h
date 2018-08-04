@@ -36,7 +36,7 @@ namespace Gutengine
 		float orientation = 0.0f;
 		float velocityAng = 0.0f;
 		float accelerationAng = 0.0f;
-		// SHAPE TYPE
+		// TODO: SHAPE TYPE enumerator variable
 		bool isStatic;
 
 	public:
