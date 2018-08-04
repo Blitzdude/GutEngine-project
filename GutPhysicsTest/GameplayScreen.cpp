@@ -205,10 +205,9 @@ void GameplayScreen::checkInput() {
 	{
 		if (m_selectedShape != nullptr)
 		{
-			glm::vec2 offset = glm::vec2(m_selectedShape->width / 2.0f, m_selectedShape->height / 2.0f);
 			glm::vec2 mouse = m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords() );
 			// Set new position for selected shape
-			m_selectedShape->position = mouse - offset;
+			m_selectedShape->position = mouse;
 		}
 	}
 

@@ -121,6 +121,7 @@ void GutPhysics2D::updatePhysics()
 		rect.w = height;
 		rect.z = width;
 		renderer.drawBox(rect, Gutengine::ColorRGBA8(255, 0, 255, 255), orientation);
+		renderer.drawCircle({ position.x, position.y }, Gutengine::ColorRGBA8(255, 0, 0, 255), 2.0f);
 	}
 
 	bool Rectangle::PointInShape(glm::vec2 point)
@@ -148,33 +149,12 @@ void GutPhysics2D::updatePhysics()
 		}
 		else 
 		{
-			// TODO: Figuire this out
-			/*
-			ab.pos.x = position.x;
-			ab.pos.y = position.y;
-			glm::vec2 half_dims = { width / 2.0f, height / 2.0f };
-
-			glm::vec2 topR = { half_dims.x, half_dims.y };
-			glm::vec2 bottomR = {half_dims.x, half_dims.y };
-
-			float sin_o = sinf(orientation);
-			float cos_o = cosf(orientation);
-
-			glm::vec2 topRX = { topR.x * cos_o - topR.y * sin_o, topR.x * sin_o + topR.y * cos_o };
-			glm::vec2 bottomRX = { bottomR.x * cos_o - bottomR.y * sin_o, bottomR.x * sin_o + bottomR.y * cos_o };
 			
-			glm::vec2 extents = { std::max(fabs(topRX.x), fabs(bottomRX.x)), std::max(fabs(topRX.y), fabs(bottomRX.y)) };
-
-			ab.w = extents.x * 2.0f;
-			ab.h = extents.y * 2.0f;
-			*/
-
-			/*
+			ab.w = fabs(height * sinf(orientation)) + fabs(width * cosf(orientation));
+			ab.h = fabs(width * sinf(orientation))+	  fabs(height * cosf(orientation));
 			ab.pos.x = position.x;
 			ab.pos.y = position.y;
-			ab.w = fabs(height * sinf(orientation) + width * cosf(orientation));
-			ab.h = fabs(width * sinf(orientation) + height * cosf(orientation));
-			*/
+			
 			
 		}
 		return ab;
@@ -191,25 +171,25 @@ void GutPhysics2D::updatePhysics()
 	glm::vec2 const Rectangle::getTLCorner() const
 	{
 		if (orientation == 0.0f) // TODO: % 180.0f ?
-			return{ position.x, position.y + height };
+			return{ position.x - width / 2.0f, position.y + height / 2.0f };
 	}
 
 	glm::vec2 const Rectangle::getTRCorner() const
 	{
 		if (orientation == 0.0f) // TODO: % 180.0f ?
-			return{ position.x + width, position.y + height };
+			return{ position.x + width / 2.0f, position.y + height / 2.0f };
 	};
 
 	glm::vec2 const Rectangle::getBRCorner() const
 	{
 		if (orientation == 0.0f) // TODO: % 180.0f ?
-			return{ position.x + width, position.y };
+			return{ position.x + width / 2.0f, position.y - height / 2.0f };
 	};
 
 	glm::vec2 const Rectangle::getBLCorner() const
 	{
 		if (orientation == 0.0f) // TODO: % 180.0f ?
-			return{ position.x, position.y };
+			return{ position.x - width / 2.0f, position.y - height / 2.0f };
 	};
 }
 

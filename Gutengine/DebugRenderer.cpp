@@ -141,17 +141,17 @@ Gutengine::DebugRenderer::drawBox(const glm::vec4& destRect, const ColorRGBA8& c
 
     // Get points centered at origin (0,0 coordinates)
     glm::vec2 tl(-halfDims.x, halfDims.y);
-    glm::vec2 bl(-halfDims.x, -halfDims.y);
-    glm::vec2 br(halfDims.x, -halfDims.y);
     glm::vec2 tr(halfDims.x, halfDims.y);
+    glm::vec2 br(halfDims.x, -halfDims.y);
+    glm::vec2 bl(-halfDims.x, -halfDims.y);
 
     glm::vec2 positionOffset(destRect.x, destRect.y);
 
     // Rotate the points
-    m_verts[i].position = rotatePoint(tl, angle) + halfDims + positionOffset;
-    m_verts[i + 1].position = rotatePoint(bl, angle) + halfDims + positionOffset;
-    m_verts[i + 2].position = rotatePoint(br, angle) + halfDims + positionOffset;
-    m_verts[i + 3].position = rotatePoint(tr, angle) + halfDims + positionOffset;
+    m_verts[i].position = rotatePoint(tl, angle)	  + positionOffset;
+    m_verts[i + 1].position = rotatePoint(tr, angle)  + positionOffset;
+    m_verts[i + 2].position = rotatePoint(br, angle)  + positionOffset;
+    m_verts[i + 3].position = rotatePoint(bl, angle)  + positionOffset;
 
     for (int j = i; j < i + 4; j++) {
         m_verts[j].color = color;

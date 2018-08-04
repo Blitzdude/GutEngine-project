@@ -9,7 +9,7 @@ namespace Gutengine
 {
 	struct AABB
 	{
-		// x,y - bottom left
+		// x,y - center
 		// w,h - full
 		glm::vec2 pos;
 		float w;
@@ -17,8 +17,8 @@ namespace Gutengine
 
 		bool isPointIn(glm::vec2 point)
 		{
-			return (point.x >= pos.x && point.x <= pos.x + w &&
-				point.y >= pos.y && point.y <= pos.y + h);
+			return (point.x >= pos.x - w / 2.0f && point.x <= pos.x + w / 2.0f &&
+				point.y >= pos.y - h / 2.0f && point.y <= pos.y + h / 2.0f);
 		}
 	};
 

@@ -2,6 +2,12 @@
 
 #include <algorithm>
 
+/*
+	TODO: change the drawing routine for rects to be 
+	- pos = center of rect
+	- w,h = full width and height
+	- order = tr, tl, bl, br
+*/
 namespace Gutengine 
 {
 
@@ -31,7 +37,7 @@ Glyph::Glyph(const glm::vec4& destRect, const glm::vec4& uvRect, GLuint Texture,
     texture(Texture),
     depth(Depth) 
 {
-
+	// TODO: Change to center based drawing.
     glm::vec2 halfDims(destRect.z / 2.0f, destRect.w / 2.0f);
 
     // Get points centered at origin
