@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 //
 #include <vector>
+#include <memory>
 
 // TODO: Change all function names to camelBack
 namespace Gutengine
@@ -45,6 +46,7 @@ namespace Gutengine
 		virtual bool PointInShape(glm::vec2 point) { return false; };
 		virtual void ApplyLinearImpulse(glm::vec2 force) {};
 		virtual void ApplyTorque(glm::vec2 force) {};
+		virtual void resetAcceleration() = 0;
 
 		// Getters
 		virtual AABB GetAABB() = 0;
@@ -62,6 +64,7 @@ namespace Gutengine
 		bool PointInShape(glm::vec2 point) override;
 		void ApplyLinearImpulse(glm::vec2 force) override;
 		void ApplyTorque(glm::vec2 force) override;
+		void resetAcceleration() override;
 		AABB GetAABB() override;
 		
 		float width;
@@ -109,41 +112,42 @@ public:
 	glm::vec2 acceleration;
 	float mass;
 };
-/*
+
 class GutPhysics2D
 {
 public:
 	GutPhysics2D();
 	~GutPhysics2D();
 
-	void updatePhysics();
+	void updatePhysics(float deltaTime);
 
-	void addRigidBody2d(RigidBody2D &obj);
-	void addParticle();
+	void addRigidBody2D(glm::vec2 pos, float w, float h, float o = 0.0f);
+	void addRigidBody2D(const Rectangle& obj);
 
-	void destroy();
+	//void addParticle();
+
+	//void destroy();
 	// collision detection methods
-	static bool checkAABBvsAABB(const RigidBody2D *lhs, const RigidBody2D *rhs);
-	static bool checkRvsR(glm::vec2 &lhs, glm::vec2 &rhs);
-	static bool checkAABBvsR(RigidBody2D &lhs, glm::vec2 &rhs);
+	//static bool checkAABBvsAABB(const RigidBody *lhs, const RigidBody *rhs);
+	//static bool checkRvsR(glm::vec2 &lhs, glm::vec2 &rhs);
+	//static bool checkAABBvsR(RigidBody &lhs, glm::vec2 &rhs);
 	//
-	static bool checkSameSide(glm::vec2 point1, glm::vec2 point2, glm::vec2 a, glm::vec2 b);
-	static bool checkPointInTringle(glm::vec2 point, glm::vec2 a, glm::vec2 b, glm::vec2 c);
-	static bool checkPointInRigidBody(glm::vec2 point, RigidBody2D &rect);
-
+	//static bool checkSameSide(glm::vec2 point1, glm::vec2 point2, glm::vec2 a, glm::vec2 b);
+	//static bool checkPointInTringle(glm::vec2 point, glm::vec2 a, glm::vec2 b, glm::vec2 c);
+	//static bool checkPointInRigidBody(glm::vec2 point, RigidBody &rect);
 
 	// setters
 	void setGravity(const glm::vec2 &value) { m_gravity = value; };
 	// getter
 	const glm::vec2& getGravity() const { return m_gravity; }; 
-	std::vector<Gutengine::RigidBody2D*>& getRigidbodyList() { return m_rigidBodies; };
+	std::vector<std::shared_ptr<Gutengine::RigidBody>>& getRigidbodyList() { return m_rigidBodies; };
 private:
 
 	glm::vec2 m_gravity;
 	
-	std::vector<Gutengine::Particle2D*>  m_particles;
-	std::vector<Gutengine::RigidBody2D*> m_rigidBodies;
+	//std::vector<std::shared_ptr<Gutengine::Particle2D>>  m_particles;
+	std::vector<std::shared_ptr<Gutengine::RigidBody>> m_rigidBodies;
 };
 
-*/
+
 } // namespace end

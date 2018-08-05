@@ -16,88 +16,50 @@ namespace Gutengine
 	{
 		std::cout << "rect destroyed!" << std::endl;
 	}
-	/*
-void GutPhysics2D::updatePhysics()
-{
-	// container holding colliding pairs
-	//std::vector<std::pair<RigidBody2D*, RigidBody2D*>> collidingPairs;
-	// update attributes
-	for (auto& body : m_rigidBodies)
+	
+	GutPhysics2D::GutPhysics2D()
 	{
-		// update acceleration
-		// add gravity 
-		body->setLinearAcceleration(body->getLinearAcceleration() + getGravity());
-		// update velocity
-		body->setLinearVelocity(body->getLinearVelocity() + body->getLinearAcceleration());
-		// update position
-		body->setPosition(body->getPosition() + body->getLinearVelocity());
-
-		// clamp items to ground for now
-		if (body->getPosition().y < 0.0f)
-			body->setPosition({ body->getPosition().x, 0.0f });
 	}
 
-	// Clamp velocity near zero
-
-	// Check overlap and resolve static collisions
-
-	for (auto &body : m_rigidBodies)
+	GutPhysics2D::~GutPhysics2D()
 	{
-		auto target = std::next(body); // next body in list
+		m_rigidBodies.clear();
+	}
 
-		if (checkAABBvsAABB(body, target))
+	void GutPhysics2D::updatePhysics(float deltaTime)
+	{
+		// container holding colliding pairs
+		//std::vector<std::pair<RigidBody*, RigidBody*>> collidingPairs;
+		// update Rigidbodies
+		for (auto &b : m_rigidBodies)
 		{
-			//collidingPairs.push_back(std::make_pair(body, target));
+			// Add drag
+			b->acceleration += -b->velocity * 0.8f;
+			b->accelerationAng += -b->velocityAng * 0.8f;
 
-			// calculate overlap in x and y directions
-			float xOverlap = fabsf(body->getPosition().x - target->getPosition().x);
-			float yOverlap = fabsf(body->getPosition().y - target->getPosition().y);
-			// distance needed to displace the bodies
-			float distX = 0.5f * xOverlap;
-			float distY = 0.5f * yOverlap;
-
-			// if body is higher than target
-			if (body->getPosition().y >= target->getPosition().y)
-			{
-				body->setPosition({ body->getPosition().x, body->getPosition().y + distY });
-				target->setPosition({ body->getPosition().x, target->getPosition().y - distY });
-			}
-			else // reverse the displacement directions
-			{
-				body->setPosition({ body->getPosition().x, body->getPosition().y - distY });
-				target->setPosition({ body->getPosition().x, target->getPosition().y + distY });
-			}
-
-			// if body is left of target
-			if (body->getPosition().x >= target->getPosition().x)
-			{
-				body->setPosition({ body->getPosition().x + distX, body->getPosition().y });
-				target->setPosition({ target->getPosition().x - distX, target->getPosition().y });
-			}
-			else // reverse the displacement directions
-			{
-				body->setPosition({ body->getPosition().x - distX, body->getPosition().y });
-				target->setPosition({ target->getPosition().x + distX, target->getPosition().y });
-			}
+			b->Update(deltaTime);
+			b->acceleration = { 0.0f, 0.0f };
+		}
+		// static collisions
+		// dynamic collisions
+			// calculate linear forces
+			// calculate angular forces
+		
+		// reset accelerations
+		for (auto &b : m_rigidBodies)
+		{
+			b->resetAcceleration();
 		}
 	}
-
-	// resolve dynamic collisions for colliding objects
-	/*
-	for (auto c : collidingPairs)
+	void GutPhysics2D::addRigidBody2D(glm::vec2 pos, float w, float h, float o)
 	{
-		RigidBody2D* b1 = c.first;
-		RigidBody2D* b2 = c.second;
-
-		// resolution from wikipedia 
-
-		// normal
-		float n = ()
-		glm::vec2 k = b1->getLinearVelocity() - b2->getLinearVelocity(); // k
-
-
+		m_rigidBodies.push_back(std::make_shared<Rectangle>(pos, w, h, o));
 	}
-	*/
+	void GutPhysics2D::addRigidBody2D(const Rectangle& obj)
+	{
+		m_rigidBodies.push_back(std::make_shared<Rectangle>(obj));
+	}
+	
 	void Rectangle::Update(float deltaTime)
 	{
 		// linear
@@ -132,11 +94,17 @@ void GutPhysics2D::updatePhysics()
 	void Rectangle::ApplyLinearImpulse(glm::vec2 force)
 	{
 		// time is very small so we remove it from equation
-		velocity += force / mass;
+		acceleration += force / mass;
 	}
 
 	void Rectangle::ApplyTorque(glm::vec2 force)
 	{
+	}
+
+	void Rectangle::resetAcceleration()
+	{
+		acceleration = { 0.0f, 0.0f };
+		accelerationAng = 0.0f;
 	}
 
 	AABB Rectangle::GetAABB()
@@ -234,36 +202,6 @@ void GutPhysics2D::updatePhysics()
 	};
 }
 
-/*
-bool GutPhysics2D::checkAABBvsAABB(const RigidBody2D *lhs, const RigidBody2D *rhs)
-{
-	// lhs values
-	float r1X = lhs->getPosition().x;
-	float r1Y = lhs->getPosition().y;
-	float r1Width = lhs->getWidth();
-	float r1Height = lhs->getHeight();
-	// rhs values
-	float r2X = rhs->getPosition().x;
-	float r2Y = rhs->getPosition().y;
-	float r2Width = rhs->getWidth();
-	float r2Height = rhs->getHeight();
-
-	
-	if (r1X < r2X + r2Width &&
-		r1X + r1Width > r2X &&
-		r1Y < r2Y + r2Height &&
-		r1Y + r1Height > r2Y) 
-	{
-		// collision detected
-		return true;
-	}
-
-	else {
-		// no collision
-		return false;
-	}
-}
-*/
 /*
 bool GutPhysics2D::checkSameSide(glm::vec2 point1, glm::vec2 point2, glm::vec2 a, glm::vec2 b)
 {

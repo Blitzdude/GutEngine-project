@@ -37,8 +37,8 @@ public:
 private:
     void initUI();
     void checkInput();
-	void updateParticles();
-	void updateRigidbodies();
+	//void updateParticles();
+	//void updateRigidbodies();
 
     bool onExitClicked(const CEGUI::EventArgs& e);
 
@@ -51,8 +51,9 @@ private:
     Gutengine::DebugRenderer m_debugRenderer;
     Gutengine::GUI			 m_gui;
 							 
-	std::vector<Gutengine::Rectangle> m_rects;
-	Gutengine::Rectangle *m_selectedShape = nullptr;
+	//std::vector<Gutengine::Rectangle> m_rects;
+	std::weak_ptr<Gutengine::RigidBody> m_selectedShape;
+	std::unique_ptr<Gutengine::GutPhysics2D> m_physicsSystem = nullptr;
 
     bool m_renderDebug = true;
 	
