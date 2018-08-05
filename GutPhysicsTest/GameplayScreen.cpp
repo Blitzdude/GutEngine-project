@@ -136,12 +136,27 @@ void GameplayScreen::draw() {
     if (m_renderDebug) {
 		for (auto& itr : m_physicsSystem->getRigidbodyList()) {
 			itr->DebugDraw(m_debugRenderer);
+			// Draw AABB
 			glm::vec4 ab;
 			ab.x = itr->GetAABB().pos.x;
 			ab.y = itr->GetAABB().pos.y;
 			ab.z = itr->GetAABB().w;
 			ab.w = itr->GetAABB().h;
 			m_debugRenderer.drawBox(ab, Gutengine::ColorRGBA8(255, 255, 255, 255), 0.0f);
+			// Draw Corner velocities
+			auto rect = std::dynamic_pointer_cast<Gutengine::Rectangle>(itr);
+
+			glm::vec2 pVel = rect->getLinearVelocityOfPoint(rect->getTLCorner());
+			m_debugRenderer.drawLine(rect->getTLCorner(), rect->getTLCorner() + pVel, Gutengine::ColorRGBA8(255, 0, 0, 255) );
+
+			pVel = rect->getLinearVelocityOfPoint(rect->getTRCorner());
+			m_debugRenderer.drawLine(rect->getTRCorner(), rect->getTRCorner() + pVel, Gutengine::ColorRGBA8(255, 0, 0, 255));
+			
+			pVel = rect->getLinearVelocityOfPoint(rect->getBRCorner());
+			m_debugRenderer.drawLine(rect->getBRCorner(), rect->getBRCorner() + pVel, Gutengine::ColorRGBA8(255, 0, 0, 255));
+			
+			pVel = rect->getLinearVelocityOfPoint(rect->getBLCorner());
+			m_debugRenderer.drawLine(rect->getBLCorner(), rect->getBLCorner() + pVel, Gutengine::ColorRGBA8(255, 0, 0, 255));
 		}
 		// Render
         m_debugRenderer.end();
@@ -219,10 +234,9 @@ void GameplayScreen::checkInput() {
 		if (!m_selectedShape.expired())
 		{
 			glm::vec2 force = m_selectedShape.lock()->position - m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords());
-			m_selectedShape.lock()->ApplyLinearImpulse(500.0f * force);
+			m_selectedShape.lock()->ApplyLinearImpulse(5.0f * force);
 		
-			m_selectedShape.lock()->velocityAng = force.y > 0.0f ? force.length() : -force.length();
-			std::cout << "shared pointers: " << m_selectedShape.use_count() << std::endl;
+			m_selectedShape.lock()->velocityAng = force.y > 0.0f ? force.length() * 5.0f : -force.length() * 5.0f;
 			m_selectedShape.reset();
 		}
 	}

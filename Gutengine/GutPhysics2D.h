@@ -81,6 +81,7 @@ namespace Gutengine
 		glm::vec2 const getTRCorner() const;
 		glm::vec2 const getBRCorner() const;
 		glm::vec2 const getBLCorner() const;
+		glm::vec2 const getLinearVelocityOfPoint(const glm::vec2 point) const;
 	};
 
 class Particle2D

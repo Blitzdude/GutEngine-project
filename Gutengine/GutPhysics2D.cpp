@@ -199,6 +199,14 @@ namespace Gutengine
 			glm::vec2 pr = { p.x * cosf(orientation) - p.y * sinf(orientation), p.x * sinf(orientation) + p.y * cosf(orientation) };
 			return pr + position;
 		}
+	}
+
+	glm::vec2 const Rectangle::getLinearVelocityOfPoint(const glm::vec2 point) const
+	{
+		glm::vec2 r = point - position;
+		glm::vec2 rNormal = { -r.y, r.x };
+		// Return velocity of corner with Chasles' Theorem
+		return velocity + velocityAng * rNormal;
 	};
 }
 
