@@ -51,7 +51,7 @@ private:
     Gutengine::DebugRenderer m_debugRenderer;
     Gutengine::GUI			 m_gui;
 							 
-	//std::vector<Gutengine::Rectangle> m_rects;
+	glm::vec2 m_torquePoint;
 	std::weak_ptr<Gutengine::RigidBody> m_selectedShape;
 	std::unique_ptr<Gutengine::GutPhysics2D> m_physicsSystem = nullptr;
 

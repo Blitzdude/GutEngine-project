@@ -31,21 +31,23 @@ namespace Gutengine
 		glm::vec2 position;
 		glm::vec2 velocity;
 		glm::vec2 acceleration;
-		float	  mass = 1.0f;
-		int		  id;
+		float mass = 1.0f;
+		float angularMass = 1.0f;
+		int	  id = -1; // -1 = not set
 
 		float orientation = 0.0f;
 		float velocityAng = 0.0f;
 		float accelerationAng = 0.0f;
 		// TODO: SHAPE TYPE enumerator variable
-		bool isStatic;
+		bool isStatic = false;
 
 	public:
 		virtual void Update(float deltaTime) = 0; 
 		virtual void DebugDraw(DebugRenderer & renderer) = 0;
 		virtual bool PointInShape(glm::vec2 point) { return false; };
 		virtual void ApplyLinearImpulse(glm::vec2 force) {};
-		virtual void ApplyTorque(glm::vec2 force) {};
+		virtual void ApplyTorque(float force) {};
+		virtual void ApplyTorqueToPoint(glm::vec2 point, glm::vec2 force) {};
 		virtual void resetAcceleration() = 0;
 
 		// Getters
@@ -56,14 +58,15 @@ namespace Gutengine
 	class Rectangle : public RigidBody
 	{
 	public:
-		Rectangle(glm::vec2 pos, float w, float h, float or = 0.0f);
+		Rectangle(glm::vec2 pos, float w, float h, float or = 0.0f, float m = 1.0f);
 		Rectangle();
 
 		void Update(float deltaTime) override;
 		void DebugDraw(DebugRenderer & renderer) override;
 		bool PointInShape(glm::vec2 point) override;
 		void ApplyLinearImpulse(glm::vec2 force) override;
-		void ApplyTorque(glm::vec2 force) override;
+		void ApplyTorque(float force) override;
+		void ApplyTorqueToPoint(glm::vec2 point, glm::vec2 force) override; // TODO: ApplyForceToPoint ?
 		void resetAcceleration() override;
 		AABB GetAABB() override;
 		

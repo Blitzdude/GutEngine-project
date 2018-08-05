@@ -4,13 +4,15 @@
 
 namespace Gutengine
 {
-	Rectangle::Rectangle(glm::vec2 pos, float w, float h, float or/* = 0.0f */)
+	Rectangle::Rectangle(glm::vec2 pos, float w, float h, float or/* = 0.0f */, float m /* = 1.0f */)
+		: width(w), height(h)
 	{
+		mass = m;
 		position.x = pos.x;
 		position.y = pos.y;
-		width = w;
-		height = h;
 		orientation = or;
+		// J = 1/12 * mass * (w^2 + h^2);
+		angularMass = 0.08333333f * mass * (width*width + height * height);
 	}
 	Rectangle::Rectangle()
 	{
@@ -97,8 +99,21 @@ namespace Gutengine
 		acceleration += force / mass;
 	}
 
-	void Rectangle::ApplyTorque(glm::vec2 force)
+	void Rectangle::ApplyTorque(float force)
 	{
+		accelerationAng += force / angularMass;
+	}
+
+	void Rectangle::ApplyTorqueToPoint(glm::vec2 point, glm::vec2 force)
+	{
+		// vector from CM -> point
+		glm::vec2 r = point - position;
+		// normal of r
+		glm::vec2 rNormal = { -r.y, r.x };
+		// Torque relative from point equals the dot product
+		float torque = glm::dot(rNormal, force);
+		// finally apply torque relative to center
+		ApplyTorque(torque);
 	}
 
 	void Rectangle::resetAcceleration()

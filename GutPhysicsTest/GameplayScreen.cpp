@@ -145,7 +145,7 @@ void GameplayScreen::draw() {
 			m_debugRenderer.drawBox(ab, Gutengine::ColorRGBA8(255, 255, 255, 255), 0.0f);
 			// Draw Corner velocities
 			auto rect = std::dynamic_pointer_cast<Gutengine::Rectangle>(itr);
-
+			/*
 			glm::vec2 pVel = rect->getLinearVelocityOfPoint(rect->getTLCorner());
 			m_debugRenderer.drawLine(rect->getTLCorner(), rect->getTLCorner() + pVel, Gutengine::ColorRGBA8(255, 0, 0, 255) );
 
@@ -157,6 +157,17 @@ void GameplayScreen::draw() {
 			
 			pVel = rect->getLinearVelocityOfPoint(rect->getBLCorner());
 			m_debugRenderer.drawLine(rect->getBLCorner(), rect->getBLCorner() + pVel, Gutengine::ColorRGBA8(255, 0, 0, 255));
+			*/
+
+			// RMB hold
+			if (m_game->inputManager.isKeyDown(SDL_BUTTON_RIGHT))
+			{
+				if (!m_selectedShape.expired())
+				{
+					glm::vec2 mouse = m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords());
+					m_debugRenderer.drawLine(mouse, m_torquePoint, Gutengine::ColorRGBA8(255, 0, 0, 255));
+				}
+			}
 		}
 		// Render
         m_debugRenderer.end();
@@ -198,7 +209,7 @@ void GameplayScreen::checkInput() {
         }
     }
 	// LMB or RMB down
-	if (m_game->inputManager.isKeyPressed(SDL_BUTTON_LEFT) || m_game->inputManager.isKeyPressed(SDL_BUTTON_RIGHT))
+	if (m_game->inputManager.isKeyPressed(SDL_BUTTON_LEFT))
 	{
 		glm::vec2 mouse = m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords());
 		for (auto &s : m_physicsSystem->getRigidbodyList())
@@ -207,6 +218,23 @@ void GameplayScreen::checkInput() {
 			{
 				std::cout << "Shape selected!" << std::endl;
 				m_selectedShape = s;
+				break;
+			}
+		}
+	}
+
+	// RMB down
+	if (m_game->inputManager.isKeyPressed(SDL_BUTTON_RIGHT))
+	{
+		glm::vec2 mouse = m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords());
+		for (auto &s : m_physicsSystem->getRigidbodyList())
+		{
+			if (s->GetAABB().isPointIn(mouse))
+			{
+				std::cout << "Shape selected!" << std::endl;
+				m_selectedShape = s;
+				m_torquePoint = mouse;
+				break;
 			}
 		}
 	}
@@ -223,20 +251,36 @@ void GameplayScreen::checkInput() {
 		}
 	}
 
+	// RMB hold
+	if (m_game->inputManager.isKeyDown(SDL_BUTTON_RIGHT))
+	{
+		if (!m_selectedShape.expired())
+		{
+			auto s = m_selectedShape.lock();
+			//stop shape from moving
+			s->velocity = { 0.0f, 0.0f };
+			s->velocityAng = 0.0f;
+			s->resetAcceleration();
+		}
+	}
+
 	// LMB UP
 	if (m_game->inputManager.isKeyReleased(SDL_BUTTON_LEFT))
 	{
 		m_selectedShape.reset();
 	}
+
 	// RMB UP
 	if (m_game->inputManager.isKeyReleased(SDL_BUTTON_RIGHT))
 	{
 		if (!m_selectedShape.expired())
 		{
-			glm::vec2 force = m_selectedShape.lock()->position - m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords());
-			m_selectedShape.lock()->ApplyLinearImpulse(5.0f * force);
+			// lock the shape
+			auto s = m_selectedShape.lock();
+			glm::vec2 force = s->position - m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords());
+			s->ApplyLinearImpulse(5.0f * force);
 		
-			m_selectedShape.lock()->velocityAng = force.y > 0.0f ? force.length() * 5.0f : -force.length() * 5.0f;
+			s->ApplyTorqueToPoint(m_torquePoint, m_torquePoint - m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords() ) );
 			m_selectedShape.reset();
 		}
 	}
