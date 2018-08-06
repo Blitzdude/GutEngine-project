@@ -21,6 +21,11 @@ namespace Gutengine
 			return (point.x >= pos.x - w / 2.0f && point.x <= pos.x + w / 2.0f &&
 				point.y >= pos.y - h / 2.0f && point.y <= pos.y + h / 2.0f);
 		}
+		bool overlaps(const AABB & other)
+		{
+			return (pos.x - w / 2.0f <= other.pos.x + other.w / 2.0f && pos.x + w / 2.0f >= other.pos.x - other.w / 2.0f &&
+					pos.y - h / 2.0f <= other.pos.y + other.h / 2.0f && pos.y + h / 2.0f >= other.pos.y - other.h / 2.0f);
+		}
 	};
 
 	class RigidBody
@@ -45,7 +50,7 @@ namespace Gutengine
 		virtual void Update(float deltaTime) = 0; 
 		virtual void DebugDraw(DebugRenderer & renderer) = 0;
 		virtual bool PointInShape(glm::vec2 point) { return false; };
-		virtual void ApplyLinearImpulse(glm::vec2 force) {};
+		virtual void ApplyLinearForce(glm::vec2 force) {};
 		virtual void ApplyTorque(float force) {};
 		virtual void ApplyTorqueToPoint(glm::vec2 point, glm::vec2 force) {};
 		virtual void resetAcceleration() = 0;
@@ -64,7 +69,7 @@ namespace Gutengine
 		void Update(float deltaTime) override;
 		void DebugDraw(DebugRenderer & renderer) override;
 		bool PointInShape(glm::vec2 point) override;
-		void ApplyLinearImpulse(glm::vec2 force) override;
+		void ApplyLinearForce(glm::vec2 force) override;
 		void ApplyTorque(float force) override;
 		void ApplyTorqueToPoint(glm::vec2 point, glm::vec2 force) override; // TODO: ApplyForceToPoint ?
 		void resetAcceleration() override;

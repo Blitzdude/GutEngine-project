@@ -96,14 +96,7 @@ void GameplayScreen::update() {
     m_camera.update();
     checkInput();
 	m_physicsSystem->updatePhysics(DELTA_TIME);
-	/* DEAD
-	for (auto &r : m_physicsSystem->getRigidbodyList() )
-	{
-		r->acceleration = -r->velocity * 0.4f;
-		r->accelerationAng = -r->velocityAng * 0.4f;
-		r->Update(DELTA_TIME);
-	}
-	*/
+	
 }
 
 void GameplayScreen::draw() {
@@ -145,19 +138,7 @@ void GameplayScreen::draw() {
 			m_debugRenderer.drawBox(ab, Gutengine::ColorRGBA8(255, 255, 255, 255), 0.0f);
 			// Draw Corner velocities
 			auto rect = std::dynamic_pointer_cast<Gutengine::Rectangle>(itr);
-			/*
-			glm::vec2 pVel = rect->getLinearVelocityOfPoint(rect->getTLCorner());
-			m_debugRenderer.drawLine(rect->getTLCorner(), rect->getTLCorner() + pVel, Gutengine::ColorRGBA8(255, 0, 0, 255) );
-
-			pVel = rect->getLinearVelocityOfPoint(rect->getTRCorner());
-			m_debugRenderer.drawLine(rect->getTRCorner(), rect->getTRCorner() + pVel, Gutengine::ColorRGBA8(255, 0, 0, 255));
 			
-			pVel = rect->getLinearVelocityOfPoint(rect->getBRCorner());
-			m_debugRenderer.drawLine(rect->getBRCorner(), rect->getBRCorner() + pVel, Gutengine::ColorRGBA8(255, 0, 0, 255));
-			
-			pVel = rect->getLinearVelocityOfPoint(rect->getBLCorner());
-			m_debugRenderer.drawLine(rect->getBLCorner(), rect->getBLCorner() + pVel, Gutengine::ColorRGBA8(255, 0, 0, 255));
-			*/
 
 			// RMB hold
 			if (m_game->inputManager.isKeyDown(SDL_BUTTON_RIGHT))
@@ -277,10 +258,10 @@ void GameplayScreen::checkInput() {
 		{
 			// lock the shape
 			auto s = m_selectedShape.lock();
-			glm::vec2 force = s->position - m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords());
-			s->ApplyLinearImpulse(5.0f * force);
-		
-			s->ApplyTorqueToPoint(m_torquePoint, m_torquePoint - m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords() ) );
+			glm::vec2 force = 50.0f * (s->position - m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()) );
+			s->ApplyLinearForce(force);
+			glm::vec2 AngMomentum = 50.0f * (m_torquePoint - m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()) );
+			s->ApplyTorqueToPoint(m_torquePoint, AngMomentum );
 			m_selectedShape.reset();
 		}
 	}

@@ -30,8 +30,8 @@ namespace Gutengine
 
 	void GutPhysics2D::updatePhysics(float deltaTime)
 	{
-		// container holding colliding pairs
-		//std::vector<std::pair<RigidBody*, RigidBody*>> collidingPairs;
+		// container holding colliding pairs TODO: when colliding dynamically
+		//std::vector<std::pair<std::shared_ptr<RigidBody>, std::shared_ptr<RigidBody> > > collidingPairs;
 		// update Rigidbodies
 		for (auto &b : m_rigidBodies)
 		{
@@ -43,6 +43,44 @@ namespace Gutengine
 			b->acceleration = { 0.0f, 0.0f };
 		}
 		// static collisions
+		for (auto &itr = m_rigidBodies.begin(); std::next(itr) != m_rigidBodies.end(); ++itr)
+		{
+			for (auto &itr_n = std::next(itr); itr_n != m_rigidBodies.end(); ++itr_n)
+			{
+				auto current = (*itr)->GetAABB();
+				auto other = (*itr_n)->GetAABB();
+				// Do they overlap
+				if (current.overlaps(other))
+				{
+					// calculate minimum translation vector - MTV
+					float left = (other.pos.x - other.w / 2.0f) - (current.pos.x + current.w / 2.0f);
+					float right = (other.pos.x + other.w / 2.0f) - (current.pos.x - current.w / 2.0f);
+					float top = (other.pos.y - other.h / 2.0f) - (current.pos.y + current.h / 2.0f);
+					float bottom = (other.pos.y + other.h / 2.0f) - (current.pos.y - current.h / 2.0f);
+
+					glm::vec2 mtv;
+
+					if (fabs(left) > right)
+						mtv.x = right;
+					else
+						mtv.x = left;
+					
+					if (fabs(bottom) > top)
+						mtv.y = top;
+					else
+						mtv.y = bottom;
+
+					if (fabs(mtv.x) <= fabs(mtv.y))
+						mtv.y = 0.0f;
+					else
+						mtv.x = 0.0f;
+
+					// now we have minimum translation, move each object with it
+					(*itr)->position += mtv;
+					(*itr_n)->position += -mtv;
+				}
+			}
+		}
 		// dynamic collisions
 			// calculate linear forces
 			// calculate angular forces
@@ -93,7 +131,7 @@ namespace Gutengine
 		return false;
 	}
 
-	void Rectangle::ApplyLinearImpulse(glm::vec2 force)
+	void Rectangle::ApplyLinearForce(glm::vec2 force)
 	{
 		// time is very small so we remove it from equation
 		acceleration += force / mass;
