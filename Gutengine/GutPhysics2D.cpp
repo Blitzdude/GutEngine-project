@@ -53,19 +53,21 @@ namespace Gutengine
 				if (current.overlaps(other))
 				{
 					// calculate minimum translation vector - MTV
-					float left = (other.pos.x - other.w / 2.0f) - (current.pos.x + current.w / 2.0f);
-					float right = (other.pos.x + other.w / 2.0f) - (current.pos.x - current.w / 2.0f);
-					float top = (other.pos.y - other.h / 2.0f) - (current.pos.y + current.h / 2.0f);
-					float bottom = (other.pos.y + other.h / 2.0f) - (current.pos.y - current.h / 2.0f);
+					
+					float left =    (other.pos.x - other.w / 2.0f) - (current.pos.x + current.w / 2.0f) ;
+					float right =   (other.pos.x + other.w / 2.0f) - (current.pos.x - current.w / 2.0f) ;
+					float top =     (other.pos.y - other.h / 2.0f) - (current.pos.y + current.h / 2.0f) ;
+					float bottom =  (other.pos.y + other.h / 2.0f) - (current.pos.y - current.h / 2.0f) ;
+					
 
 					glm::vec2 mtv;
-
-					if (fabs(left) > right)
+					
+					if (fabs(left) > fabs(right))
 						mtv.x = right;
 					else
 						mtv.x = left;
 					
-					if (fabs(bottom) > top)
+					if (fabs(bottom) > fabsf(top))
 						mtv.y = top;
 					else
 						mtv.y = bottom;
@@ -74,7 +76,7 @@ namespace Gutengine
 						mtv.y = 0.0f;
 					else
 						mtv.x = 0.0f;
-
+					
 					// now we have minimum translation, move each object with it
 					(*itr)->position += mtv;
 					(*itr_n)->position += -mtv;
@@ -98,6 +100,15 @@ namespace Gutengine
 	void GutPhysics2D::addRigidBody2D(const Rectangle& obj)
 	{
 		m_rigidBodies.push_back(std::make_shared<Rectangle>(obj));
+	}
+
+	glm::vec2 GutPhysics2D::vectorProjectToAxis(const glm::vec2 & vec, const glm::vec2 & axis) const
+	{
+		// normal of axis
+		glm::vec2 axisN = glm::normalize(axis);
+		// dot product
+		float dot = glm::dot(vec, axisN);
+		return axisN * dot;
 	}
 	
 	void Rectangle::Update(float deltaTime)
@@ -260,7 +271,7 @@ namespace Gutengine
 		glm::vec2 rNormal = { -r.y, r.x };
 		// Return velocity of corner with Chasles' Theorem
 		return velocity + velocityAng * rNormal;
-	};
+	}
 }
 
 /*

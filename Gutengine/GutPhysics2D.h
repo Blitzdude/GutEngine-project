@@ -90,6 +90,8 @@ namespace Gutengine
 		glm::vec2 const getBRCorner() const;
 		glm::vec2 const getBLCorner() const;
 		glm::vec2 const getLinearVelocityOfPoint(const glm::vec2 point) const;
+
+		
 	};
 
 class Particle2D
@@ -137,13 +139,15 @@ public:
 
 	//void destroy();
 	// collision detection methods
-	//static bool checkAABBvsAABB(const RigidBody *lhs, const RigidBody *rhs);
 	//static bool checkRvsR(glm::vec2 &lhs, glm::vec2 &rhs);
 	//static bool checkAABBvsR(RigidBody &lhs, glm::vec2 &rhs);
 	//
 	//static bool checkSameSide(glm::vec2 point1, glm::vec2 point2, glm::vec2 a, glm::vec2 b);
 	//static bool checkPointInTringle(glm::vec2 point, glm::vec2 a, glm::vec2 b, glm::vec2 c);
 	//static bool checkPointInRigidBody(glm::vec2 point, RigidBody &rect);
+
+	// projection
+	glm::vec2 vectorProjectToAxis(const glm::vec2& vec, const glm::vec2& axis) const;
 
 	// setters
 	void setGravity(const glm::vec2 &value) { m_gravity = value; };
