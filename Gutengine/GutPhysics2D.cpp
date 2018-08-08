@@ -52,6 +52,23 @@ namespace Gutengine
 				// Do they overlap
 				if (current.overlaps(other))
 				{
+					// SAT collision
+					// get normals to check
+					auto n1 = (*itr)->getUniqueNormals();
+					auto n2 = (*itr_n)->getUniqueNormals();
+
+					std::vector<glm::vec2> normals;
+
+					normals.insert(std::end(normals), std::begin(n1), std::end(n1) );
+					normals.insert(std::end(normals), std::begin(n2), std::end(n2) );
+
+					// project to normals
+					for (auto n : normals)
+					{
+
+					}
+					// check overlap
+
 					// calculate minimum translation vector - MTV
 					
 					float left =    (other.pos.x - other.w / 2.0f) - (current.pos.x + current.w / 2.0f) ;
@@ -59,7 +76,6 @@ namespace Gutengine
 					float top =     (other.pos.y - other.h / 2.0f) - (current.pos.y + current.h / 2.0f) ;
 					float bottom =  (other.pos.y + other.h / 2.0f) - (current.pos.y - current.h / 2.0f) ;
 					
-
 					glm::vec2 mtv;
 					
 					if (fabs(left) > fabs(right))
@@ -110,6 +126,26 @@ namespace Gutengine
 		float dot = glm::dot(vec, axisN);
 		return axisN * dot;
 	}
+	/* Returns true if overlapping, and returns the reference of minMax values */
+	bool GutPhysics2D::checkSatCollision(const Rectangle & a, const Rectangle & b, glm::vec2 & minMax)
+	{
+		// loop over get Axises
+		// get normals to check
+		auto n1 = a.getUniqueNormals();
+		auto n2 = b.getUniqueNormals();
+
+		std::vector<glm::vec2> normals;
+
+		normals.insert(std::end(normals), std::begin(n1), std::end(n1));
+		normals.insert(std::end(normals), std::begin(n2), std::end(n2));
+
+		// project to normals
+		for (auto n : normals)
+		{
+
+		}
+		return false;
+	}
 	
 	void Rectangle::Update(float deltaTime)
 	{
@@ -135,6 +171,11 @@ namespace Gutengine
 		renderer.drawCircle( getTRCorner(), Gutengine::ColorRGBA8(0, 255, 0, 255), 4.0f);
 		renderer.drawCircle( getBRCorner(), Gutengine::ColorRGBA8(0, 0, 255, 255), 4.0f);
 		renderer.drawCircle( getBLCorner(), Gutengine::ColorRGBA8(255, 255, 0, 255), 4.0f);
+		// normals
+		for (auto n : getUniqueNormals())
+		{
+			renderer.drawLine(position, position + (50.0f * n), Gutengine::ColorRGBA8(0, 0, 255, 255));
+		}
 	}
 
 	bool Rectangle::PointInShape(glm::vec2 point)
@@ -265,11 +306,40 @@ namespace Gutengine
 		}
 	}
 
+	std::vector<glm::vec2> Rectangle::getCorners() const
+	{
+		std::vector<glm::vec2> ret;
+
+		ret.push_back(getTLCorner());
+		ret.push_back(getTRCorner());
+		ret.push_back(getBRCorner());
+		ret.push_back(getBLCorner());
+
+		return ret;
+	}
+
+	std::vector<glm::vec2> Rectangle::getUniqueNormals() const
+	{
+		std::vector<glm::vec2> ret;
+		
+		// get vectors from corner to the next
+		ret.push_back(getTRCorner() - getTLCorner());
+		ret.push_back(getBRCorner() - getTRCorner());
+		// make normals and normalize them
+		for (auto itr = ret.begin(); itr != ret.end(); ++itr)
+		{
+			glm::vec2 temp = glm::normalize(glm::vec2(-itr->y, itr->x));
+			*itr = temp;
+		}
+
+		return ret;
+	}
+
 	glm::vec2 const Rectangle::getLinearVelocityOfPoint(const glm::vec2 point) const
 	{
 		glm::vec2 r = point - position;
 		glm::vec2 rNormal = { -r.y, r.x };
-		// Return velocity of corner with Chasles' Theorem
+		// Return velocity of corner according to  Chasles' Theorem
 		return velocity + velocityAng * rNormal;
 	}
 }

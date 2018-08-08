@@ -8,7 +8,7 @@
 #include "ScreenIndices.h"
 
 const float DELTA_TIME = 1.0f / 60.0f; // TODO: There is no deltatiming in gutengine. Fix?
-const int NUM_RIGID_BOXES = 2;
+const int NUM_RIGID_BOXES = 3;
 
 GameplayScreen::GameplayScreen(Gutengine::Window* window) : m_window(window){
     m_screenIndex = SCREEN_INDEX_GAMEPLAY;
@@ -139,7 +139,6 @@ void GameplayScreen::draw() {
 			// Draw Corner velocities
 			auto rect = std::dynamic_pointer_cast<Gutengine::Rectangle>(itr);
 			
-
 			// RMB hold
 			if (m_game->inputManager.isKeyDown(SDL_BUTTON_RIGHT))
 			{
@@ -149,6 +148,7 @@ void GameplayScreen::draw() {
 					m_debugRenderer.drawLine(mouse, m_torquePoint, Gutengine::ColorRGBA8(255, 0, 0, 255));
 				}
 			}
+
 		}
 		// Render
         m_debugRenderer.end();
@@ -197,7 +197,6 @@ void GameplayScreen::checkInput() {
 		{
 			if (s->GetAABB().isPointIn(mouse))
 			{
-				std::cout << "Shape selected!" << std::endl;
 				m_selectedShape = s;
 				break;
 			}
@@ -212,7 +211,6 @@ void GameplayScreen::checkInput() {
 		{
 			if (s->GetAABB().isPointIn(mouse))
 			{
-				std::cout << "Shape selected!" << std::endl;
 				m_selectedShape = s;
 				m_torquePoint = mouse;
 				break;

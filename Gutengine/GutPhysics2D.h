@@ -57,6 +57,7 @@ namespace Gutengine
 
 		// Getters
 		virtual AABB GetAABB() = 0;
+		virtual std::vector<glm::vec2> getUniqueNormals() const = 0;
 	};
 
 
@@ -89,8 +90,11 @@ namespace Gutengine
 		glm::vec2 const getTRCorner() const;
 		glm::vec2 const getBRCorner() const;
 		glm::vec2 const getBLCorner() const;
-		glm::vec2 const getLinearVelocityOfPoint(const glm::vec2 point) const;
+		std::vector<glm::vec2> getCorners() const;
+		std::vector<glm::vec2> getUniqueNormals() const override;
 
+		glm::vec2 const getLinearVelocityOfPoint(const glm::vec2 point) const;
+		
 		
 	};
 
@@ -148,6 +152,7 @@ public:
 
 	// projection
 	glm::vec2 vectorProjectToAxis(const glm::vec2& vec, const glm::vec2& axis) const;
+	bool checkSatCollision( const Rectangle & a, const Rectangle & b, glm::vec2 & minMax);
 
 	// setters
 	void setGravity(const glm::vec2 &value) { m_gravity = value; };
