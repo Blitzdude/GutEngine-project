@@ -53,6 +53,10 @@ namespace Gutengine
 				if (current.overlaps(other))
 				{
 					// SAT collision
+					glm::vec2 doNothing;
+					//std::dynamic_pointer_cast<Rectangle>((itr->get()));
+					// TODO: HOW TO CAST !!!!
+
 					// get normals to check
 					auto n1 = (*itr)->getUniqueNormals();
 					auto n2 = (*itr_n)->getUniqueNormals();
@@ -118,6 +122,29 @@ namespace Gutengine
 		m_rigidBodies.push_back(std::make_shared<Rectangle>(obj));
 	}
 
+	/* Returns the minimum and maximum values of the projection on vec2 form (x = min, y = max) */
+	glm::vec2 GutPhysics2D::projectShapeToAxis(const Rectangle & shape, const glm::vec2 & axis) const
+	{
+		glm::vec2 axisN = axis;
+		// NOTE: axis should be normalized
+		if (axisN.length() > 1.0f)
+			axisN = glm::normalize(axisN);
+
+		glm::vec2 minMax;
+		minMax.x = glm::dot(axisN, shape.getTLCorner());
+		minMax.y = minMax.x;
+		for (auto itr : shape.getCorners()) // currently some redundacy, with checkin the first element twice
+		{
+			float p = glm::dot(axisN, itr);
+			if (p < minMax.x) // less then minimum
+				minMax.x = p;
+			else if (p > minMax.y) // greater then maximum
+				minMax.y = p;
+		}
+
+		return minMax;
+	}
+	/*
 	glm::vec2 GutPhysics2D::vectorProjectToAxis(const glm::vec2 & vec, const glm::vec2 & axis) const
 	{
 		// normal of axis
@@ -126,6 +153,8 @@ namespace Gutengine
 		float dot = glm::dot(vec, axisN);
 		return axisN * dot;
 	}
+	*/
+
 	/* Returns true if overlapping, and returns the reference of minMax values */
 	bool GutPhysics2D::checkSatCollision(const Rectangle & a, const Rectangle & b, glm::vec2 & minMax)
 	{
@@ -142,8 +171,19 @@ namespace Gutengine
 		// project to normals
 		for (auto n : normals)
 		{
+			// 
+			glm::vec2 projA = projectShapeToAxis(a, n);
+			glm::vec2 projB = projectShapeToAxis(b, n);
 
+			// if projections do not overlap -> break true
+			if (!(projA.x <= projB.y && projA.y >= projB.x))
+			{
+				return true;
+			}
 		}
+		// if no overlaps were found: return false
+		// TODO: calculate Minimum translation vector
+		minMax = glm::vec2(0.0f, 0.0f); // return zero vector for now
 		return false;
 	}
 	

@@ -151,7 +151,8 @@ public:
 	//static bool checkPointInRigidBody(glm::vec2 point, RigidBody &rect);
 
 	// projection
-	glm::vec2 vectorProjectToAxis(const glm::vec2& vec, const glm::vec2& axis) const;
+	glm::vec2 projectShapeToAxis(const Rectangle& shape, const glm::vec2& axis) const;
+	//glm::vec2 vectorProjectToAxis(const glm::vec2& vec, const glm::vec2& axis) const; // DEAD:
 	bool checkSatCollision( const Rectangle & a, const Rectangle & b, glm::vec2 & minMax);
 
 	// setters
