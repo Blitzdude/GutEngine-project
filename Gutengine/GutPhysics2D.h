@@ -159,13 +159,13 @@ public:
 	void setGravity(const glm::vec2 &value) { m_gravity = value; };
 	// getter
 	const glm::vec2& getGravity() const { return m_gravity; }; 
-	std::vector<std::shared_ptr<Gutengine::RigidBody>>& getRigidbodyList() { return m_rigidBodies; };
+	std::vector<std::shared_ptr<Gutengine::Rectangle>>& getRigidbodyList() { return m_rigidBodies; };
 private:
 
 	glm::vec2 m_gravity;
 	
 	//std::vector<std::shared_ptr<Gutengine::Particle2D>>  m_particles;
-	std::vector<std::shared_ptr<Gutengine::RigidBody>> m_rigidBodies;
+	std::vector<std::shared_ptr<Gutengine::Rectangle>> m_rigidBodies;
 };
 
 

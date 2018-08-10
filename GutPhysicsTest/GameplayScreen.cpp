@@ -8,7 +8,7 @@
 #include "ScreenIndices.h"
 
 const float DELTA_TIME = 1.0f / 60.0f; // TODO: There is no deltatiming in gutengine. Fix?
-const int NUM_RIGID_BOXES = 3;
+const int NUM_RIGID_BOXES = 2;
 
 GameplayScreen::GameplayScreen(Gutengine::Window* window) : m_window(window){
     m_screenIndex = SCREEN_INDEX_GAMEPLAY;

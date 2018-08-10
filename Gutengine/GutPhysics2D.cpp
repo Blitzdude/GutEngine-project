@@ -4,9 +4,12 @@
 
 namespace Gutengine
 {
+	unsigned int RigidBody::objectCount = 0;
+
 	Rectangle::Rectangle(glm::vec2 pos, float w, float h, float or/* = 0.0f */, float m /* = 1.0f */)
 		: width(w), height(h)
 	{
+		id = objectCount++;
 		mass = m;
 		position.x = pos.x;
 		position.y = pos.y;
@@ -45,62 +48,58 @@ namespace Gutengine
 		// static collisions
 		for (auto &itr = m_rigidBodies.begin(); std::next(itr) != m_rigidBodies.end(); ++itr)
 		{
-			for (auto &itr_n = std::next(itr); itr_n != m_rigidBodies.end(); ++itr_n)
+			for (auto &itr_n = m_rigidBodies.begin(); itr_n != m_rigidBodies.end(); ++itr_n)
 			{
+				//filter out self self checking
+				if (itr->get()->id == itr_n->get()->id)
+					continue;
+
 				auto current = (*itr)->GetAABB();
 				auto other = (*itr_n)->GetAABB();
 				// Do they overlap
 				if (current.overlaps(other))
 				{
+					std::cout << "AABB collision detected! ";
 					// SAT collision
 					glm::vec2 doNothing;
 					//std::dynamic_pointer_cast<Rectangle>((itr->get()));
 					// TODO: HOW TO CAST !!!!
-
-					// get normals to check
-					auto n1 = (*itr)->getUniqueNormals();
-					auto n2 = (*itr_n)->getUniqueNormals();
-
-					std::vector<glm::vec2> normals;
-
-					normals.insert(std::end(normals), std::begin(n1), std::end(n1) );
-					normals.insert(std::end(normals), std::begin(n2), std::end(n2) );
-
-					// project to normals
-					for (auto n : normals)
+					if (checkSatCollision(*(*itr), *(*itr_n), doNothing))
 					{
+						std::cout << "SAT collision detected!";
+						// check overlap
 
+						// calculate minimum translation vector - MTV
+						/*
+						float left =    (other.pos.x - other.w / 2.0f) - (current.pos.x + current.w / 2.0f) ;
+						float right =   (other.pos.x + other.w / 2.0f) - (current.pos.x - current.w / 2.0f) ;
+						float top =     (other.pos.y - other.h / 2.0f) - (current.pos.y + current.h / 2.0f) ;
+						float bottom =  (other.pos.y + other.h / 2.0f) - (current.pos.y - current.h / 2.0f) ;
+						
+						glm::vec2 mtv;
+						
+						if (fabs(left) > fabs(right))
+							mtv.x = right;
+						else
+							mtv.x = left;
+						
+						if (fabs(bottom) > fabsf(top))
+							mtv.y = top;
+						else
+							mtv.y = bottom;
+
+						if (fabs(mtv.x) <= fabs(mtv.y))
+							mtv.y = 0.0f;
+						else
+							mtv.x = 0.0f;
+						
+						// now we have minimum translation, move each object with it
+						(*itr)->position += mtv;
+						(*itr_n)->position += -mtv;
+						*/
 					}
-					// check overlap
-
-					// calculate minimum translation vector - MTV
-					
-					float left =    (other.pos.x - other.w / 2.0f) - (current.pos.x + current.w / 2.0f) ;
-					float right =   (other.pos.x + other.w / 2.0f) - (current.pos.x - current.w / 2.0f) ;
-					float top =     (other.pos.y - other.h / 2.0f) - (current.pos.y + current.h / 2.0f) ;
-					float bottom =  (other.pos.y + other.h / 2.0f) - (current.pos.y - current.h / 2.0f) ;
-					
-					glm::vec2 mtv;
-					
-					if (fabs(left) > fabs(right))
-						mtv.x = right;
-					else
-						mtv.x = left;
-					
-					if (fabs(bottom) > fabsf(top))
-						mtv.y = top;
-					else
-						mtv.y = bottom;
-
-					if (fabs(mtv.x) <= fabs(mtv.y))
-						mtv.y = 0.0f;
-					else
-						mtv.x = 0.0f;
-					
-					// now we have minimum translation, move each object with it
-					(*itr)->position += mtv;
-					(*itr_n)->position += -mtv;
 				}
+				std::cout << std::endl;
 			}
 		}
 		// dynamic collisions
@@ -125,10 +124,8 @@ namespace Gutengine
 	/* Returns the minimum and maximum values of the projection on vec2 form (x = min, y = max) */
 	glm::vec2 GutPhysics2D::projectShapeToAxis(const Rectangle & shape, const glm::vec2 & axis) const
 	{
-		glm::vec2 axisN = axis;
+		glm::vec2 axisN = glm::normalize(axis);
 		// NOTE: axis should be normalized
-		if (axisN.length() > 1.0f)
-			axisN = glm::normalize(axisN);
 
 		glm::vec2 minMax;
 		minMax.x = glm::dot(axisN, shape.getTLCorner());
@@ -144,20 +141,11 @@ namespace Gutengine
 
 		return minMax;
 	}
-	/*
-	glm::vec2 GutPhysics2D::vectorProjectToAxis(const glm::vec2 & vec, const glm::vec2 & axis) const
-	{
-		// normal of axis
-		glm::vec2 axisN = glm::normalize(axis);
-		// dot product
-		float dot = glm::dot(vec, axisN);
-		return axisN * dot;
-	}
-	*/
 
 	/* Returns true if overlapping, and returns the reference of minMax values */
 	bool GutPhysics2D::checkSatCollision(const Rectangle & a, const Rectangle & b, glm::vec2 & minMax)
 	{
+		glm::vec2 smallestAxis;
 		// loop over get Axises
 		// get normals to check
 		auto n1 = a.getUniqueNormals();
@@ -171,20 +159,27 @@ namespace Gutengine
 		// project to normals
 		for (auto n : normals)
 		{
-			// 
+			// Projection minMax
 			glm::vec2 projA = projectShapeToAxis(a, n);
 			glm::vec2 projB = projectShapeToAxis(b, n);
 
-			// if projections do not overlap -> break true
-			if (!(projA.x <= projB.y && projA.y >= projB.x))
+			/* if projections don't overlap 
+			   there is a gap, and no possibility of collision
+			*/
+			if (projB.x >= projA.y || projA.x >= projB.y )
 			{
-				return true;
+				minMax = glm::vec2(0.0f, 0.0f); // return zero
+				return false;
 			}
+			// get the amount of overlap
+			// if amoount of overlaps is smaller then current amout
+				// set smallstAxis as n
+				// set overlap to the amount
 		}
-		// if no overlaps were found: return false
+		// if no gaps were found: return true
 		// TODO: calculate Minimum translation vector
 		minMax = glm::vec2(0.0f, 0.0f); // return zero vector for now
-		return false;
+		return true;
 	}
 	
 	void Rectangle::Update(float deltaTime)
@@ -360,16 +355,16 @@ namespace Gutengine
 
 	std::vector<glm::vec2> Rectangle::getUniqueNormals() const
 	{
+		std::vector<glm::vec2> sides;
 		std::vector<glm::vec2> ret;
 		
 		// get vectors from corner to the next
-		ret.push_back(getTRCorner() - getTLCorner());
-		ret.push_back(getBRCorner() - getTRCorner());
+		sides.push_back(getTRCorner() - getTLCorner());
+		sides.push_back(getBRCorner() - getTRCorner());
 		// make normals and normalize them
-		for (auto itr = ret.begin(); itr != ret.end(); ++itr)
+		for (auto itr = sides.begin(); itr != sides.end(); ++itr)
 		{
-			glm::vec2 temp = glm::normalize(glm::vec2(-itr->y, itr->x));
-			*itr = temp;
+			ret.push_back(glm::normalize(glm::vec2(itr->y, -itr->x)) );
 		}
 
 		return ret;
@@ -378,7 +373,7 @@ namespace Gutengine
 	glm::vec2 const Rectangle::getLinearVelocityOfPoint(const glm::vec2 point) const
 	{
 		glm::vec2 r = point - position;
-		glm::vec2 rNormal = { -r.y, r.x };
+		glm::vec2 rNormal = { r.y, -r.x };
 		// Return velocity of corner according to  Chasles' Theorem
 		return velocity + velocityAng * rNormal;
 	}
