@@ -61,42 +61,18 @@ namespace Gutengine
 				{
 					std::cout << "AABB collision detected! ";
 					// SAT collision
-					SatMtv doNothing;
+					SatMtv mtv;
 					//std::dynamic_pointer_cast<Rectangle>((itr->get()));
 					// TODO: HOW TO CAST !!!!
-					if (checkSatCollision(*(*itr), *(*itr_n), doNothing))
+					if (checkSatCollision(*(*itr), *(*itr_n), mtv))
 					{
 						std::cout << "SAT collision detected!";
 						// check overlap
 
 						// calculate minimum translation vector - MTV
-						/*
-						float left =    (other.pos.x - other.w / 2.0f) - (current.pos.x + current.w / 2.0f) ;
-						float right =   (other.pos.x + other.w / 2.0f) - (current.pos.x - current.w / 2.0f) ;
-						float top =     (other.pos.y - other.h / 2.0f) - (current.pos.y + current.h / 2.0f) ;
-						float bottom =  (other.pos.y + other.h / 2.0f) - (current.pos.y - current.h / 2.0f) ;
-						
-						glm::vec2 mtv;
-						
-						if (fabs(left) > fabs(right))
-							mtv.x = right;
-						else
-							mtv.x = left;
-						
-						if (fabs(bottom) > fabsf(top))
-							mtv.y = top;
-						else
-							mtv.y = bottom;
-
-						if (fabs(mtv.x) <= fabs(mtv.y))
-							mtv.y = 0.0f;
-						else
-							mtv.x = 0.0f;
-						
 						// now we have minimum translation, move each object with it
-						(*itr)->position += mtv;
-						(*itr_n)->position += -mtv;
-						*/
+						(*itr)->position += mtv.axis * (mtv.length / 2.0f) ;
+						(*itr_n)->position += -mtv.axis * (mtv.length / 2.0f);
 					}
 				}
 				std::cout << std::endl;
@@ -143,47 +119,58 @@ namespace Gutengine
 	}
 
 	/* Returns true if overlapping, and returns the reference of minMax values */
-	bool GutPhysics2D::checkSatCollision(const Rectangle & a, const Rectangle & b, SatMtv & minMax)
+	bool GutPhysics2D::checkSatCollision(const Rectangle & a, const Rectangle & b, SatMtv& mtv)
 	{
-		glm::vec2 smallestAxis;
 		// loop over get Axises
 		// get normals to check
 		auto n1 = a.getUniqueNormals();
 		auto n2 = b.getUniqueNormals();
 
 		std::vector<glm::vec2> normals;
-
 		normals.insert(std::end(normals), std::begin(n1), std::end(n1));
 		normals.insert(std::end(normals), std::begin(n2), std::end(n2));
-		smallestAxis = normals[0];
+
+		glm::vec2 smallestAxis = normals[0];
+		float smallestLength = 99999999.0f;
 		// project to normals
 		for (auto n : normals)
 		{
-			// Projection minMax
+			// Projection minMax, x = min, y = max
 			glm::vec2 projA = projectShapeToAxis(a, n);
 			glm::vec2 projB = projectShapeToAxis(b, n);
 
 			/* if projections don't overlap 
-			   there is a gap, and no possibility of collision
-			*/
+			   there is a gap, and no possibility of collision */
 			if (projB.x >= projA.y || projA.x >= projB.y )
 			{
-				minMax.axis = glm::vec2(0.0f, 0.0f); // return zero
-				minMax.length = 0.0f;
+				mtv.axis = glm::vec2(0.0f, 0.0f); // return zero
+				mtv.length = 0.0f;
 				return false;
 			}
 			else
 			{
 				// get the amount of overlap
-				
-				// if amount of overlaps is smaller then current amout
-					// set smallstAxis as n
-					// set overlap to the amount
+				// TODO figuire out what is going on with getting the overlap of the projections
+				// possible to do with the direction of the normal.
+				float o;
+				float o1 = projA.y - projB.x;
+				float o2 = projB.y - projA.x;
+				if (fabs(o1) < fabs(o2))
+					o = fabs(o1);
+				else
+					o = fabs(o2);
 
+				// if amount of overlaps is smaller then current amount
+				if (o < smallestLength)
+				{
+					smallestLength = o;
+					smallestAxis = n;
+				}			
 			}
 		}
+		mtv.length = smallestLength;
+		mtv.axis = smallestAxis;
 		// if no gaps were found: return true
-		// TODO: calculate Minimum translation vector
 		return true;
 	}
 	
@@ -382,44 +369,4 @@ namespace Gutengine
 		// Return velocity of corner according to  Chasles' Theorem
 		return velocity + velocityAng * rNormal;
 	}
-}
-
-/*
-bool GutPhysics2D::checkSameSide(glm::vec2 point1, glm::vec2 point2, glm::vec2 a, glm::vec2 b)
-{
-	// homogenize the points
-	glm::vec3 hpoint1 = { point1.x, point1.y, 0.0f };
-	glm::vec3 hpoint2 = { point2.x, point2.y, 0.0f };
-	glm::vec3 ha =		{ a.x, a.y, 0.0f };
-	glm::vec3 hb =		{ b.x, b.y, 0.0f };
-
-	// cross products
-	glm::vec3 cp1 = glm::cross(hb - ha, hpoint1 - ha);
-	glm::vec3 cp2 = glm::cross(hb - ha, hpoint2 - ha);
-
-	return (glm::dot(cp1, cp2) >= 0.0f);
-}
-
-bool GutPhysics2D::checkPointInTringle(glm::vec2 point, glm::vec2 a, glm::vec2 b, glm::vec2 c)
-{
-	if (checkSameSide(point, a, b, c) &&
-		checkSameSide(point, b, a, c) &&
-		checkSameSide(point, c, a, b))
-	{
-		return true;
-	}
-	return false;
-}
-
-bool GutPhysics2D::checkPointInRigidBody(glm::vec2 point, RigidBody2D & rect)
-{
-	if (checkPointInTringle(point, rect.getBLCorner(), rect.getTRCorner(), rect.getTLCorner()) &&
-		checkPointInTringle(point, rect.getBLCorner(), rect.getBRCorner(), rect.getTRCorner()))
-	{
-		return true;
-	}
-	return false;
-}
-
-} // namespace end
-*/
+} // Namespace end

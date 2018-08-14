@@ -78,7 +78,7 @@ void GameplayScreen::onEntry() {
 	// Init rigidBodies
 	for (int i = 0; i < NUM_RIGID_BOXES; ++i) 
 	{
-		Gutengine::Rectangle temp({ 100 * i, 50 }, 100, 200);
+		Gutengine::Rectangle temp({ 120 * i, 50 }, 100, 200);
 		m_physicsSystem->addRigidBody2D(temp);
 	}
 

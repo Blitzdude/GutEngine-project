@@ -165,7 +165,7 @@ public:
 	// projection
 	glm::vec2 projectShapeToAxis(const Rectangle& shape, const glm::vec2& axis) const;
 	//glm::vec2 vectorProjectToAxis(const glm::vec2& vec, const glm::vec2& axis) const; // DEAD:
-	bool checkSatCollision( const Rectangle & a, const Rectangle & b, SatMtv & minMax);
+	bool checkSatCollision( const Rectangle & a, const Rectangle & b, SatMtv & mtv);
 
 	// setters
 	void setGravity(const glm::vec2 &value) { m_gravity = value; };
