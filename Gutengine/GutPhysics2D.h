@@ -27,6 +27,18 @@ namespace Gutengine
 					pos.y - h / 2.0f <= other.pos.y + other.h / 2.0f && pos.y + h / 2.0f >= other.pos.y - other.h / 2.0f);
 		}
 	};
+	
+	struct SatMtv
+	{
+		SatMtv()
+		{
+			axis = { 0.0f, 0.0f };
+			length = 0.0f;
+		};
+
+		glm::vec2 axis;
+		float length;
+	};
 
 	class RigidBody
 	{
@@ -153,7 +165,7 @@ public:
 	// projection
 	glm::vec2 projectShapeToAxis(const Rectangle& shape, const glm::vec2& axis) const;
 	//glm::vec2 vectorProjectToAxis(const glm::vec2& vec, const glm::vec2& axis) const; // DEAD:
-	bool checkSatCollision( const Rectangle & a, const Rectangle & b, glm::vec2 & minMax);
+	bool checkSatCollision( const Rectangle & a, const Rectangle & b, SatMtv & minMax);
 
 	// setters
 	void setGravity(const glm::vec2 &value) { m_gravity = value; };

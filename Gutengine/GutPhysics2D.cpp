@@ -61,7 +61,7 @@ namespace Gutengine
 				{
 					std::cout << "AABB collision detected! ";
 					// SAT collision
-					glm::vec2 doNothing;
+					SatMtv doNothing;
 					//std::dynamic_pointer_cast<Rectangle>((itr->get()));
 					// TODO: HOW TO CAST !!!!
 					if (checkSatCollision(*(*itr), *(*itr_n), doNothing))
@@ -143,7 +143,7 @@ namespace Gutengine
 	}
 
 	/* Returns true if overlapping, and returns the reference of minMax values */
-	bool GutPhysics2D::checkSatCollision(const Rectangle & a, const Rectangle & b, glm::vec2 & minMax)
+	bool GutPhysics2D::checkSatCollision(const Rectangle & a, const Rectangle & b, SatMtv & minMax)
 	{
 		glm::vec2 smallestAxis;
 		// loop over get Axises
@@ -155,7 +155,7 @@ namespace Gutengine
 
 		normals.insert(std::end(normals), std::begin(n1), std::end(n1));
 		normals.insert(std::end(normals), std::begin(n2), std::end(n2));
-
+		smallestAxis = normals[0];
 		// project to normals
 		for (auto n : normals)
 		{
@@ -168,17 +168,22 @@ namespace Gutengine
 			*/
 			if (projB.x >= projA.y || projA.x >= projB.y )
 			{
-				minMax = glm::vec2(0.0f, 0.0f); // return zero
+				minMax.axis = glm::vec2(0.0f, 0.0f); // return zero
+				minMax.length = 0.0f;
 				return false;
 			}
-			// get the amount of overlap
-			// if amoount of overlaps is smaller then current amout
-				// set smallstAxis as n
-				// set overlap to the amount
+			else
+			{
+				// get the amount of overlap
+				
+				// if amount of overlaps is smaller then current amout
+					// set smallstAxis as n
+					// set overlap to the amount
+
+			}
 		}
 		// if no gaps were found: return true
 		// TODO: calculate Minimum translation vector
-		minMax = glm::vec2(0.0f, 0.0f); // return zero vector for now
 		return true;
 	}
 	
