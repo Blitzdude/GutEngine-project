@@ -71,8 +71,16 @@ namespace Gutengine
 
 						// calculate minimum translation vector - MTV
 						// now we have minimum translation, move each object with it
-						(*itr)->position += mtv.axis * (mtv.length / 2.0f) ;
-						(*itr_n)->position += -mtv.axis * (mtv.length / 2.0f);
+						if (glm::dot((*itr_n)->position - (*itr)->position, mtv.axis) < 0.0f)
+						{
+							(*itr)->position += mtv.axis * (mtv.length / 2.0f) ;
+							(*itr_n)->position += -mtv.axis * (mtv.length / 2.0f);
+						}
+						else
+						{
+							(*itr)->position += -mtv.axis * (mtv.length / 2.0f);
+							(*itr_n)->position += mtv.axis * (mtv.length / 2.0f);
+						}
 					}
 				}
 				std::cout << std::endl;
