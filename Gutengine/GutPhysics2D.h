@@ -8,6 +8,9 @@
 // TODO: Change all function names to camelBack
 namespace Gutengine
 {
+	// Forward declare classes
+	class Rectangle;
+
 	struct AABB
 	{
 		// x,y - center
@@ -15,6 +18,7 @@ namespace Gutengine
 		glm::vec2 pos;
 		float w;
 		float h;
+		float e = 0.0f; // Coefficient of restitution
 
 		bool isPointIn(glm::vec2 point)
 		{
@@ -28,16 +32,20 @@ namespace Gutengine
 		}
 	};
 	
-	struct SatMtv
+	struct SatManifold
 	{
-		SatMtv()
+		SatManifold()
 		{
 			axis = { 0.0f, 0.0f };
 			length = 0.0f;
+			left = nullptr;
+			right = nullptr;
 		};
 
 		glm::vec2 axis;
 		float length;
+		std::shared_ptr<Rectangle> left;
+		std::shared_ptr<Rectangle> right;
 	};
 
 	class RigidBody
@@ -154,18 +162,10 @@ public:
 	//void addParticle();
 
 	//void destroy();
-	// collision detection methods
-	//static bool checkRvsR(glm::vec2 &lhs, glm::vec2 &rhs);
-	//static bool checkAABBvsR(RigidBody &lhs, glm::vec2 &rhs);
-	//
-	//static bool checkSameSide(glm::vec2 point1, glm::vec2 point2, glm::vec2 a, glm::vec2 b);
-	//static bool checkPointInTringle(glm::vec2 point, glm::vec2 a, glm::vec2 b, glm::vec2 c);
-	//static bool checkPointInRigidBody(glm::vec2 point, RigidBody &rect);
 
 	// projection
 	glm::vec2 projectShapeToAxis(const Rectangle& shape, const glm::vec2& axis) const;
-	//glm::vec2 vectorProjectToAxis(const glm::vec2& vec, const glm::vec2& axis) const; // DEAD:
-	bool checkSatCollision( const Rectangle & a, const Rectangle & b, SatMtv & mtv);
+	bool checkSatCollision( Rectangle & a, Rectangle & b, SatManifold & mtv);
 
 	// setters
 	void setGravity(const glm::vec2 &value) { m_gravity = value; };
@@ -179,6 +179,5 @@ private:
 	//std::vector<std::shared_ptr<Gutengine::Particle2D>>  m_particles;
 	std::vector<std::shared_ptr<Gutengine::Rectangle>> m_rigidBodies;
 };
-
 
 } // namespace end

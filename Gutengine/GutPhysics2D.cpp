@@ -33,8 +33,8 @@ namespace Gutengine
 
 	void GutPhysics2D::updatePhysics(float deltaTime)
 	{
-		// container holding colliding pairs TODO: when colliding dynamically
-		//std::vector<std::pair<std::shared_ptr<RigidBody>, std::shared_ptr<RigidBody> > > collidingPairs;
+		// container holding colliding pairs
+		std::vector<SatManifold> vecManifolds;
 		// update Rigidbodies
 		for (auto &b : m_rigidBodies)
 		{
@@ -56,21 +56,18 @@ namespace Gutengine
 
 				auto current = (*itr)->GetAABB();
 				auto other = (*itr_n)->GetAABB();
-				// Do they overlap
+				// AABB Do they overlap
 				if (current.overlaps(other))
 				{
-					std::cout << "AABB collision detected! ";
 					// SAT collision
-					SatMtv mtv;
+					SatManifold mtv;
 					//std::dynamic_pointer_cast<Rectangle>((itr->get()));
 					// TODO: HOW TO CAST !!!!
 					if (checkSatCollision(*(*itr), *(*itr_n), mtv))
 					{
-						std::cout << "SAT collision detected!";
-						// check overlap
-
 						// calculate minimum translation vector - MTV
 						// now we have minimum translation, move each object with it
+						vecManifolds.push_back(mtv);
 						if (glm::dot((*itr_n)->position - (*itr)->position, mtv.axis) < 0.0f)
 						{
 							(*itr)->position += mtv.axis * (mtv.length / 2.0f) ;
@@ -83,14 +80,19 @@ namespace Gutengine
 						}
 					}
 				}
-				std::cout << std::endl;
 			}
 		}
 		// dynamic collisions
+		for (auto itr : vecManifolds)
+		{
 			// calculate linear forces
+			// TODO: dynamic collision response for each manifold
+			// need to calculate the collision point (P)
+		}
 			// calculate angular forces
 		
 		// reset accelerations
+		vecManifolds.clear();
 		for (auto &b : m_rigidBodies)
 		{
 			b->resetAcceleration();
@@ -127,7 +129,7 @@ namespace Gutengine
 	}
 
 	/* Returns true if overlapping, and returns the reference of minMax values */
-	bool GutPhysics2D::checkSatCollision(const Rectangle & a, const Rectangle & b, SatMtv& mtv)
+	bool GutPhysics2D::checkSatCollision(Rectangle & a, Rectangle & b, SatManifold& mtv)
 	{
 		// loop over get Axises
 		// get normals to check
@@ -153,13 +155,14 @@ namespace Gutengine
 			{
 				mtv.axis = glm::vec2(0.0f, 0.0f); // return zero
 				mtv.length = 0.0f;
+				mtv.left = nullptr;
+				mtv.right = nullptr;
+
 				return false;
 			}
 			else
 			{
 				// get the amount of overlap
-				// TODO figuire out what is going on with getting the overlap of the projections
-				// possible to do with the direction of the normal.
 				float o;
 				float o1 = projA.y - projB.x;
 				float o2 = projB.y - projA.x;
@@ -176,6 +179,8 @@ namespace Gutengine
 				}			
 			}
 		}
+		mtv.left = std::make_shared<Rectangle>(a);
+		mtv.right = std::make_shared<Rectangle>(b);
 		mtv.length = smallestLength;
 		mtv.axis = smallestAxis;
 		// if no gaps were found: return true
@@ -202,10 +207,10 @@ namespace Gutengine
 		renderer.drawBox(rect, Gutengine::ColorRGBA8(255, 0, 255, 255), orientation);
 		renderer.drawCircle({ position.x, position.y }, Gutengine::ColorRGBA8(255, 0, 0, 255), 2.0f);
 		// Corners
-		renderer.drawCircle( getTLCorner(), Gutengine::ColorRGBA8(255, 0, 0, 255), 4.0f);
-		renderer.drawCircle( getTRCorner(), Gutengine::ColorRGBA8(0, 255, 0, 255), 4.0f);
-		renderer.drawCircle( getBRCorner(), Gutengine::ColorRGBA8(0, 0, 255, 255), 4.0f);
-		renderer.drawCircle( getBLCorner(), Gutengine::ColorRGBA8(255, 255, 0, 255), 4.0f);
+		//renderer.drawCircle( getTLCorner(), Gutengine::ColorRGBA8(255, 0, 0, 255), 4.0f);
+		//renderer.drawCircle( getTRCorner(), Gutengine::ColorRGBA8(0, 255, 0, 255), 4.0f);
+		//renderer.drawCircle( getBRCorner(), Gutengine::ColorRGBA8(0, 0, 255, 255), 4.0f);
+		//renderer.drawCircle( getBLCorner(), Gutengine::ColorRGBA8(255, 255, 0, 255), 4.0f);
 		// normals
 		for (auto n : getUniqueNormals())
 		{
@@ -291,7 +296,6 @@ namespace Gutengine
 			return pr + position;
 		}
 	}
-
 	glm::vec2 const Rectangle::getTRCorner() const
 	{
 		if (orientation == 0.0f) // TODO: % 180.0f ?
@@ -308,7 +312,6 @@ namespace Gutengine
 		}
 		
 	};
-
 	glm::vec2 const Rectangle::getBRCorner() const
 	{
 		if (orientation == 0.0f) // TODO: % 180.0f ?
@@ -324,7 +327,6 @@ namespace Gutengine
 			return pr + position;
 		}
 	};
-
 	glm::vec2 const Rectangle::getBLCorner() const
 	{
 		if (orientation == 0.0f) // TODO: % 180.0f ?
@@ -340,7 +342,6 @@ namespace Gutengine
 			return pr + position;
 		}
 	}
-
 	std::vector<glm::vec2> Rectangle::getCorners() const
 	{
 		std::vector<glm::vec2> ret;
