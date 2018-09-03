@@ -68,6 +68,7 @@ namespace Gutengine
 						// calculate minimum translation vector - MTV
 						// now we have minimum translation, move each object with it
 						vecManifolds.push_back(mtv);
+						// check if which direction to push objects with dot product 
 						if (glm::dot((*itr_n)->position - (*itr)->position, mtv.axis) < 0.0f)
 						{
 							(*itr)->position += mtv.axis * (mtv.length / 2.0f) ;
@@ -85,7 +86,22 @@ namespace Gutengine
 		// dynamic collisions
 		for (auto itr : vecManifolds)
 		{
-			// calculate linear forces
+			// Find contact vertex --> mtv.contactPoint
+			// calculate J
+			float numerator = glm::dot(-(1 + itr.left->e)*(itr.left->position - itr.right->position), itr.axis);
+			// calculate vectors r_AP_perp and r_AB_perp
+			glm::vec2 r_AP = itr.contactPoint - itr.left->position;
+			glm::vec2 r_APp = { -r_AP.y, r_AP.x };
+
+			glm::vec2 r_BP = itr.contactPoint - itr.right->position;
+			glm::vec2 r_BPp = { -r_BP.y, r_BP.x };
+
+			float denominator = glm::dot(itr.axis, ((1 / itr.left->mass) + (1 / itr.right->mass)) * itr.axis) +
+								std::powf(glm::dot(r_APp, itr.axis), 2) / itr.left->angularMass + std::powf(glm::dot(r_BPp, itr.axis), 2) / itr.right->angularMass;
+
+			float j = numerator / denominator;
+			// calculate linear velocity
+			// calculate angular velocity
 			// TODO: dynamic collision response for each manifold
 			// need to calculate the collision point (P)
 		}
@@ -154,6 +170,7 @@ namespace Gutengine
 			if (projB.x >= projA.y || projA.x >= projB.y )
 			{
 				mtv.axis = glm::vec2(0.0f, 0.0f); // return zero
+				mtv.contactPoint = glm::vec2(0.0f, 0.0f); // return zero
 				mtv.length = 0.0f;
 				mtv.left = nullptr;
 				mtv.right = nullptr;
@@ -183,7 +200,16 @@ namespace Gutengine
 		mtv.right = std::make_shared<Rectangle>(b);
 		mtv.length = smallestLength;
 		mtv.axis = smallestAxis;
-		// if no gaps were found: return true
+		// if no gaps were found: rects overlap;
+		// find the contact point
+		for (auto itr : a.getCorners())
+		{
+			if (b.PointInShape(itr))
+			{
+				mtv.contactPoint = itr;
+				break;
+			}
+		}
 		return true;
 	}
 	
@@ -220,7 +246,30 @@ namespace Gutengine
 
 	bool Rectangle::PointInShape(glm::vec2 point)
 	{
-		return false;
+		// for triangle in point detection
+		auto sameSide = [&](glm::vec2 p1, glm::vec2 p2, glm::vec2 a, glm::vec2 b) -> bool 
+		{
+			glm::vec3 p1_3 = { p1.x, p1.y, 0.0f };
+			glm::vec3 p2_3 = { p2.x, p2.y, 0.0f };
+			glm::vec3 a_3 = { a.x, a.y, 0.0f };
+			glm::vec3 b_3 = { b.x, b.y, 0.0f };
+
+			glm::vec3 cp1 = glm::cross(b_3 - a_3, p1_3 - a_3);
+			glm::vec3 cp2 = glm::cross(b_3 - a_3, p2_3 - a_3);
+
+			if (glm::dot(cp1, cp2) >= 0.0f)
+				return true;
+			else
+				return false;
+		};
+
+		auto pointInTringle = [&](glm::vec2 p, glm::vec2 a, glm::vec2 b, glm::vec2 c) -> bool
+		{
+			return (sameSide(p, a, b, c) && sameSide(p, b, a, c) && sameSide(p, c, a, b));
+		};
+
+		return (pointInTringle(point, getTLCorner(), getTRCorner(), getBRCorner() ) ||
+				pointInTringle(point, getBRCorner(), getBLCorner(), getTLCorner() ) );
 	}
 
 	void Rectangle::ApplyLinearForce(glm::vec2 force)
@@ -278,7 +327,7 @@ namespace Gutengine
 	|tl					tr|
 	|					  |
 	|bl					br|
-	x-wh,y-hh ------ x+wh,y+hh
+	x-wh,y-hh ---- x+wh,y+hh
 	*/
 
 	glm::vec2 const Rectangle::getTLCorner() const

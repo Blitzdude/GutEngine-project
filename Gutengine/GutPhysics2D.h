@@ -18,7 +18,6 @@ namespace Gutengine
 		glm::vec2 pos;
 		float w;
 		float h;
-		float e = 0.0f; // Coefficient of restitution
 
 		bool isPointIn(glm::vec2 point)
 		{
@@ -37,12 +36,14 @@ namespace Gutengine
 		SatManifold()
 		{
 			axis = { 0.0f, 0.0f };
+			contactPoint = { 0.0f, 0.0f };
 			length = 0.0f;
 			left = nullptr;
 			right = nullptr;
 		};
 
 		glm::vec2 axis;
+		glm::vec2 contactPoint;
 		float length;
 		std::shared_ptr<Rectangle> left;
 		std::shared_ptr<Rectangle> right;
@@ -52,6 +53,8 @@ namespace Gutengine
 	{
 	public:
 		static unsigned int objectCount;
+
+		float e = 0.0f; // Coefficient of restitution
 
 		glm::vec2 position;
 		glm::vec2 velocity;
