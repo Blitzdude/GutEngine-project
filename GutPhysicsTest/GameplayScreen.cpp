@@ -64,23 +64,32 @@ void GameplayScreen::onEntry() {
 	//m_physicsSystem.setGravity({ 0.0f, -0.02f });
 
 	// Init random generator
-	/*
+	
 	std::mt19937 randGenerator;
 	randGenerator.seed((unsigned int)time(NULL));
 
 	std::uniform_real<float> _xPos(-10.0, 800.0f);
-	std::uniform_real<float> _yPos(-10.0, 500.0f);
-	std::uniform_real<float> _w(10.0, 50.0f);
-	std::uniform_real<float> _h(10.0, 50.0f);
-	*/
+	std::uniform_real<float> _yPos(-10.0, 300.0f);
+	std::uniform_real<float> _w(50.0, 300.0f);
+	std::uniform_real<float> _h(50.0, 300.0f);
+	
 	m_physicsSystem = std::make_unique<Gutengine::GutPhysics2D>();
 
+	Gutengine::Rectangle rect1({ 0.0f, 0.0f }, 100.0f, 100.0f, 0.0f, 10.0f);
+	Gutengine::Rectangle rect2({ 150.0f, 150.0f }, 150.0f, 300.0f, 0.0f, 10.0f);
+
+	m_physicsSystem->addRigidBody2D(rect1);
+	m_physicsSystem->addRigidBody2D(rect2);
+
 	// Init rigidBodies
+	/*
 	for (int i = 0; i < NUM_RIGID_BOXES; ++i) 
 	{
-		Gutengine::Rectangle temp({ 120 * i, 50 }, 100, 200);
+		Gutengine::Rectangle temp(glm::vec2(_xPos(randGenerator), _yPos(randGenerator)) , _w(randGenerator), _h(randGenerator));
+		temp.mass = (temp.position.x * temp.position.y) * 0.001f;
 		m_physicsSystem->addRigidBody2D(temp);
 	}
+	*/
 
     initUI();
 }
@@ -138,6 +147,7 @@ void GameplayScreen::draw() {
 			m_debugRenderer.drawBox(ab, Gutengine::ColorRGBA8(255, 255, 255, 255), 0.0f);
 			// Draw Corner velocities
 			auto rect = std::dynamic_pointer_cast<Gutengine::Rectangle>(itr);
+		}
 			
 			// RMB hold
 			if (m_game->inputManager.isKeyDown(SDL_BUTTON_RIGHT))
@@ -148,8 +158,21 @@ void GameplayScreen::draw() {
 					m_debugRenderer.drawLine(mouse, m_torquePoint, Gutengine::ColorRGBA8(255, 0, 0, 255));
 				}
 			}
+			// manifold drawing
+			for (auto itr : m_physicsSystem->getManifolds())
+			{
+				m_debugRenderer.drawCircle(itr.left->position, Gutengine::ColorRGBA8(0, 255, 0, 255), 8.0f);
+				m_debugRenderer.drawCircle(itr.right->position, Gutengine::ColorRGBA8(255, 255, 0, 255), 8.0f);
 
-		}
+				m_debugRenderer.drawCircle(itr.contactPoint, Gutengine::ColorRGBA8(255, 255, 0, 255), 5.0f);
+				m_debugRenderer.drawLine(itr.contactPoint, itr.contactPoint + 25.0f * itr.normal, Gutengine::ColorRGBA8(255, 125, 125, 255));
+				
+				m_debugRenderer.drawLine(itr.edge.a, itr.edge.b, Gutengine::ColorRGBA8(0, 255, 0, 255));
+				m_debugRenderer.drawCircle(itr.edge.b, Gutengine::ColorRGBA8(0, 255, 0, 255), 5.0f);
+
+			}
+
+
 		// Render
         m_debugRenderer.end();
         m_debugRenderer.render(projectionMatrix, 2.0f);
@@ -256,7 +279,7 @@ void GameplayScreen::checkInput() {
 		{
 			// lock the shape
 			auto s = m_selectedShape.lock();
-			glm::vec2 force = 50.0f * (s->position - m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()) );
+			glm::vec2 force = 500.0f * (s->position - m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()) );
 			s->ApplyLinearForce(force);
 			glm::vec2 AngMomentum = 50.0f * (m_torquePoint - m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()) );
 			s->ApplyTorqueToPoint(m_torquePoint, AngMomentum );

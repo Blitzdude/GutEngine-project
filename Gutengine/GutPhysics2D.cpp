@@ -2,6 +2,8 @@
 #include <iostream>
 #include <algorithm>
 
+/// https://research.ncl.ac.uk/game/mastersdegree/gametechnologies/physics6collisionresponse/
+
 namespace Gutengine
 {
 	unsigned int RigidBody::objectCount = 0;
@@ -33,18 +35,17 @@ namespace Gutengine
 
 	void GutPhysics2D::updatePhysics(float deltaTime)
 	{
-		// container holding colliding pairs
-		std::vector<SatManifold> vecManifolds;
+		// clear manifolds list from previous iteration
+		vecManifolds.clear();
+
 		// update Rigidbodies
 		for (auto &b : m_rigidBodies)
 		{
 			// Add drag
 			b->acceleration += -b->velocity * 0.8f;
 			b->accelerationAng += -b->velocityAng * 0.8f;
-
-			b->Update(deltaTime);
-			b->acceleration = { 0.0f, 0.0f };
 		}
+		
 		// static collisions
 		for (auto &itr = m_rigidBodies.begin(); std::next(itr) != m_rigidBodies.end(); ++itr)
 		{
@@ -68,49 +69,74 @@ namespace Gutengine
 						// calculate minimum translation vector - MTV
 						// now we have minimum translation, move each object with it
 						vecManifolds.push_back(mtv);
+						// TODO: Move static collision resolution to manifold resolutio section
+
 						// check if which direction to push objects with dot product 
 						if (glm::dot((*itr_n)->position - (*itr)->position, mtv.axis) < 0.0f)
 						{
-							(*itr)->position += mtv.axis * (mtv.length / 2.0f) ;
-							(*itr_n)->position += -mtv.axis * (mtv.length / 2.0f);
+							(*itr)->position += mtv.axis * (mtv.length) ;
+							//(*itr_n)->position += -mtv.axis * (mtv.length / 2.0f);
 						}
 						else
 						{
-							(*itr)->position += -mtv.axis * (mtv.length / 2.0f);
-							(*itr_n)->position += mtv.axis * (mtv.length / 2.0f);
+							(*itr)->position += -mtv.axis * (mtv.length);
+							//(*itr_n)->position += mtv.axis * (mtv.length / 2.0f);
 						}
 					}
 				}
 			}
 		}
 		// dynamic collisions
-		for (auto itr : vecManifolds)
+		if (!vecManifolds.empty())
 		{
-			// Find contact vertex --> mtv.contactPoint
-			// calculate J
-			float numerator = glm::dot(-(1 + itr.left->e)*(itr.left->position - itr.right->position), itr.axis);
-			// calculate vectors r_AP_perp and r_AB_perp
-			glm::vec2 r_AP = itr.contactPoint - itr.left->position;
-			glm::vec2 r_APp = { -r_AP.y, r_AP.x };
+			for (auto itr : vecManifolds)
+			{
+				// TODO: Check if either of the objects is static
+				
+				/// normal is the normalized vector perpendicular to the edge beign interpenetrated.
+				/// pointing away from b.
 
-			glm::vec2 r_BP = itr.contactPoint - itr.right->position;
-			glm::vec2 r_BPp = { -r_BP.y, r_BP.x };
+				auto a = itr.left; // a penetrates b
+				auto b = itr.right;
+				auto p = itr.contactPoint;
 
-			float denominator = glm::dot(itr.axis, ((1 / itr.left->mass) + (1 / itr.right->mass)) * itr.axis) +
-								std::powf(glm::dot(r_APp, itr.axis), 2) / itr.left->angularMass + std::powf(glm::dot(r_BPp, itr.axis), 2) / itr.right->angularMass;
+				glm::vec2 normal = itr.normal;
 
-			float j = numerator / denominator;
-			// calculate linear velocity
-			// calculate angular velocity
-			// TODO: dynamic collision response for each manifold
-			// need to calculate the collision point (P)
+				glm::vec2 r_ap = p - a->position;
+				glm::vec2 rp_ap = {-r_ap.y, r_ap.x}; // perpendicular
+				glm::vec2 r_bp = p - b->position;
+				glm::vec2 rp_bp = { -r_bp.y, r_bp.x }; // perpendicular
+
+				glm::vec2 v_ap = a->getLinearVelocityOfPoint(p);
+				glm::vec2 v_bp = b->getLinearVelocityOfPoint(p);
+				
+				glm::vec2 v_ab = v_ap - v_bp;
+				
+				// if relative normal velocity (v_ab dot normal) is < 0 -> rects are colliding
+				if (glm::dot(v_ab, normal) >= 0.0f)
+					continue; // a and b not colliding, but moving away from each other.
+
+				// calculate j
+				float j_numerator = -(1 + e) * glm::dot(v_ab, normal);
+				float j_denominator = 
+					  (1.0f / a->mass) + (1.0f / b->mass)
+					+ (glm::dot(rp_ap, normal) * glm::dot(rp_ap, normal)) / a->angularMass
+					+ (glm::dot(rp_bp, normal) * glm::dot(rp_bp, normal)) / b->angularMass;
+
+				float j = j_numerator / j_denominator;
+				
+				itr.left->velocity += j * normal / itr.left->mass;
+				itr.right->velocity -= j * normal / itr.right->mass;
+
+				itr.left->velocityAng += glm::dot(rp_ap, j*normal) / itr.left->angularMass;
+				itr.right->velocityAng -= glm::dot(rp_bp, j*normal) / itr.right->angularMass;
+
+
+			}
 		}
-			// calculate angular forces
-		
-		// reset accelerations
-		vecManifolds.clear();
 		for (auto &b : m_rigidBodies)
 		{
+			b->Update(deltaTime);
 			b->resetAcceleration();
 		}
 	}
@@ -196,20 +222,53 @@ namespace Gutengine
 				}			
 			}
 		}
-		mtv.left = std::make_shared<Rectangle>(a);
-		mtv.right = std::make_shared<Rectangle>(b);
+		mtv.left = &a; // asume that a penetrates b;
+		mtv.right = &b;
 		mtv.length = smallestLength;
 		mtv.axis = smallestAxis;
 		// if no gaps were found: rects overlap;
-		// find the contact point
-		for (auto itr : a.getCorners())
+		// find the contact point and determine if a is penetrating b or vice versa.
+		bool penetrationFound = false;
+		for (auto corner : a.getCorners())
 		{
-			if (b.PointInShape(itr))
+			if (b.PointInShape(corner))
 			{
-				mtv.contactPoint = itr;
+				// a is penetrating b
+				mtv.contactPoint = corner;
+				// get the edge normal pointing away from b
+				mtv.edge = b.getClosestEdge(corner);
+				// make it perpendicular
+				glm::vec2 vecN = (mtv.edge.b - mtv.edge.a);
+				mtv.normal = glm::normalize(glm::vec2( -vecN.y, vecN.x ) );
+				penetrationFound = true;
 				break;
 			}
+			// TODO: is b penetrating a?
 		}
+		if (penetrationFound == false)
+		{
+			// check if b penetrates a
+			for (auto corner : b.getCorners())
+			{
+				if (a.PointInShape(corner))
+				{
+					mtv.left = &b;
+					mtv.right = &a;
+					// b is penetrating a
+					mtv.contactPoint = corner;
+					// get the closest edge
+					mtv.edge = a.getClosestEdge(corner);
+					// Create edge normal away from b
+					glm::vec2 vecN = (mtv.edge.b - mtv.edge.a);
+					mtv.normal = glm::normalize(glm::vec2(-vecN.y, vecN.x));
+					penetrationFound = true;
+					break;
+				}
+			}
+			
+		}
+		//assert(penetrationFound == true);
+		assert(mtv.left != nullptr && mtv.right != nullptr);
 		return true;
 	}
 	
@@ -423,8 +482,45 @@ namespace Gutengine
 	glm::vec2 const Rectangle::getLinearVelocityOfPoint(const glm::vec2 point) const
 	{
 		glm::vec2 r = point - position;
-		glm::vec2 rNormal = { r.y, -r.x };
+		glm::vec2 rNormal = { -r.y, r.x };
 		// Return velocity of corner according to  Chasles' Theorem
 		return velocity + velocityAng * rNormal;
+	}
+	std::vector<Edge> Rectangle::getEdges() const
+	{
+		/*
+		TL --> TR
+		 ^		|
+		 |		v
+		BL <-- BL
+		*/
+		std::vector<Edge> ret;
+		ret.push_back({getTLCorner(), getTRCorner()}); // 1
+		ret.push_back({getTRCorner(), getBRCorner()}); // 2
+		ret.push_back({getBRCorner(), getBLCorner()}); // 3
+		ret.push_back({getBLCorner(), getTLCorner()}); // 4
+
+		return ret;
+	}
+	Edge Rectangle::getClosestEdge(glm::vec2 point) const
+	{
+		auto edges = getEdges();
+
+		float smallest = INFINITY; // Huge number to start with
+		Edge ret;
+		// test distance from point to all edges
+		for (auto e : edges)
+		{
+			glm::vec2 p = e.b - e.a;
+			glm::vec2 perp = { -p.y, p.x }; // perpendicular to edge
+			float pseudDist = std::fabsf(glm::dot(point - e.a, perp)); // pseudodistance from point to edge
+			if (smallest > pseudDist)
+			{
+				smallest = pseudDist;
+				ret = e;
+			}
+		}
+		// return the vector of the edge
+		return ret;
 	}
 } // Namespace end

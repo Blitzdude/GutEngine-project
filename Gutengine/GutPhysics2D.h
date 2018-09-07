@@ -11,6 +11,12 @@ namespace Gutengine
 	// Forward declare classes
 	class Rectangle;
 
+	struct Edge // TODO: Rename Edge to LineSegment ???
+	{
+		glm::vec2 a;
+		glm::vec2 b;
+	};
+
 	struct AABB
 	{
 		// x,y - center
@@ -36,6 +42,8 @@ namespace Gutengine
 		SatManifold()
 		{
 			axis = { 0.0f, 0.0f };
+			edge = { glm::vec2(0.0f,0.0f), glm::vec2(0.0f,0.0f) };
+			normal = { 0.0f, 0.0f };
 			contactPoint = { 0.0f, 0.0f };
 			length = 0.0f;
 			left = nullptr;
@@ -43,10 +51,12 @@ namespace Gutengine
 		};
 
 		glm::vec2 axis;
+		Edge edge;
+		glm::vec2 normal;
 		glm::vec2 contactPoint;
 		float length;
-		std::shared_ptr<Rectangle> left;
-		std::shared_ptr<Rectangle> right;
+		Rectangle* left;
+		Rectangle* right;
 	};
 
 	class RigidBody
@@ -54,7 +64,6 @@ namespace Gutengine
 	public:
 		static unsigned int objectCount;
 
-		float e = 0.0f; // Coefficient of restitution
 
 		glm::vec2 position;
 		glm::vec2 velocity;
@@ -81,6 +90,9 @@ namespace Gutengine
 		// Getters
 		virtual AABB GetAABB() = 0;
 		virtual std::vector<glm::vec2> getUniqueNormals() const = 0;
+		virtual std::vector<Edge> getEdges() const = 0;
+		virtual Edge getClosestEdge(glm::vec2 point) const = 0;
+
 	};
 
 
@@ -117,6 +129,9 @@ namespace Gutengine
 		std::vector<glm::vec2> getUniqueNormals() const override;
 
 		glm::vec2 const getLinearVelocityOfPoint(const glm::vec2 point) const;
+
+		std::vector<Edge> getEdges() const;
+		Edge getClosestEdge(glm::vec2 point) const;
 		
 		
 	};
@@ -124,6 +139,7 @@ namespace Gutengine
 class Particle2D
 {
 public:
+	// NOT USED FOR NOW
 	/// Default constructor
 	Particle2D() {}
 	/// Parameter constructors
@@ -175,11 +191,14 @@ public:
 	// getter
 	const glm::vec2& getGravity() const { return m_gravity; }; 
 	std::vector<std::shared_ptr<Gutengine::Rectangle>>& getRigidbodyList() { return m_rigidBodies; };
+	std::vector<SatManifold> getManifolds() { return vecManifolds; };
 private:
 
+	float e = 0.0f; // Coefficient of restitution
 	glm::vec2 m_gravity;
 	
 	//std::vector<std::shared_ptr<Gutengine::Particle2D>>  m_particles;
+	std::vector<SatManifold> vecManifolds;
 	std::vector<std::shared_ptr<Gutengine::Rectangle>> m_rigidBodies;
 };
 
