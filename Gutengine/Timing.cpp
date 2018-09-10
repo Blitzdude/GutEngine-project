@@ -32,15 +32,17 @@ FpsLimiter::end()
 {
     calculateFPS();
 
-    float frameTicks = (float)(SDL_GetTicks() - m_startTicks);
+    m_frameTicks = (float)(SDL_GetTicks() - m_startTicks);
     //Limit the FPS to the max FPS
-    if (1000.0f / m_maxFPS > frameTicks) 
+	
+    if (1000.0f / m_maxFPS > m_frameTicks) 
 	{
-        SDL_Delay((Uint32)(1000.0f / m_maxFPS - frameTicks));
+        SDL_Delay((Uint32)(1000.0f / m_maxFPS - m_frameTicks));
     }
 
     return m_fps;
 }
+
 
 void
 FpsLimiter::calculateFPS() 
@@ -95,5 +97,6 @@ FpsLimiter::calculateFPS()
         m_fps = 60.0f; // only happens once.
     }
 }
+
 
 } // namespace end

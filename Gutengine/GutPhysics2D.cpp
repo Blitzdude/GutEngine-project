@@ -2,8 +2,6 @@
 #include <iostream>
 #include <algorithm>
 
-/// https://research.ncl.ac.uk/game/mastersdegree/gametechnologies/physics6collisionresponse/
-
 namespace Gutengine
 {
 	unsigned int RigidBody::objectCount = 0;
@@ -16,8 +14,8 @@ namespace Gutengine
 		position.x = pos.x;
 		position.y = pos.y;
 		orientation = or;
-		// J = 1/12 * mass * (w^2 + h^2);
-		angularMass = 0.08333333f * mass * (width*width + height * height);
+		// J = mass * (w^2 + h^2);
+		angularMass = mass * width * height;
 	}
 	Rectangle::Rectangle()
 	{
@@ -35,118 +33,42 @@ namespace Gutengine
 
 	void GutPhysics2D::updatePhysics(float deltaTime)
 	{
-		// clear manifolds list from previous iteration
-		vecManifolds.clear();
-
-		// update Rigidbodies
+		// CALCULATE FORCES AND TORQUES
+		computeForces(deltaTime);
 		for (auto &b : m_rigidBodies)
 		{
-			// Add drag
-			b->acceleration += -b->velocity * 0.8f;
-			b->accelerationAng += -b->velocityAng * 0.8f;
+			if (!b->getStatic())
+			{
+				// Add drag
+				b->acceleration += b->velocity * 0.8f;
+				b->accelerationAng += b->velocityAng * 0.8f;
+				// gravity
+				b->acceleration += m_gravity;
+			}
 		}
+
+		// COLLISION CHECKING
+		checkCollisions();
 		
-		// static collisions
-		for (auto &itr = m_rigidBodies.begin(); std::next(itr) != m_rigidBodies.end(); ++itr)
-		{
-			for (auto &itr_n = m_rigidBodies.begin(); itr_n != m_rigidBodies.end(); ++itr_n)
-			{
-				//filter out self self checking
-				if (itr->get()->id == itr_n->get()->id)
-					continue;
-
-				auto current = (*itr)->GetAABB();
-				auto other = (*itr_n)->GetAABB();
-				// AABB Do they overlap
-				if (current.overlaps(other))
-				{
-					// SAT collision
-					SatManifold mtv;
-					//std::dynamic_pointer_cast<Rectangle>((itr->get()));
-					// TODO: HOW TO CAST !!!!
-					if (checkSatCollision(*(*itr), *(*itr_n), mtv))
-					{
-						// calculate minimum translation vector - MTV
-						// now we have minimum translation, move each object with it
-						vecManifolds.push_back(mtv);
-						// TODO: Move static collision resolution to manifold resolutio section
-
-						// check if which direction to push objects with dot product 
-						if (glm::dot((*itr_n)->position - (*itr)->position, mtv.axis) < 0.0f)
-						{
-							(*itr)->position += mtv.axis * (mtv.length) ;
-							//(*itr_n)->position += -mtv.axis * (mtv.length / 2.0f);
-						}
-						else
-						{
-							(*itr)->position += -mtv.axis * (mtv.length);
-							//(*itr_n)->position += mtv.axis * (mtv.length / 2.0f);
-						}
-					}
-				}
-			}
-		}
-		// dynamic collisions
-		if (!vecManifolds.empty())
-		{
-			for (auto itr : vecManifolds)
-			{
-				// TODO: Check if either of the objects is static
-				
-				/// normal is the normalized vector perpendicular to the edge beign interpenetrated.
-				/// pointing away from b.
-
-				auto a = itr.left; // a penetrates b
-				auto b = itr.right;
-				auto p = itr.contactPoint;
-
-				glm::vec2 normal = itr.normal;
-
-				glm::vec2 r_ap = p - a->position;
-				glm::vec2 rp_ap = {-r_ap.y, r_ap.x}; // perpendicular
-				glm::vec2 r_bp = p - b->position;
-				glm::vec2 rp_bp = { -r_bp.y, r_bp.x }; // perpendicular
-
-				glm::vec2 v_ap = a->getLinearVelocityOfPoint(p);
-				glm::vec2 v_bp = b->getLinearVelocityOfPoint(p);
-				
-				glm::vec2 v_ab = v_ap - v_bp;
-				
-				// if relative normal velocity (v_ab dot normal) is < 0 -> rects are colliding
-				if (glm::dot(v_ab, normal) >= 0.0f)
-					continue; // a and b not colliding, but moving away from each other.
-
-				// calculate j
-				float j_numerator = -(1 + e) * glm::dot(v_ab, normal);
-				float j_denominator = 
-					  (1.0f / a->mass) + (1.0f / b->mass)
-					+ (glm::dot(rp_ap, normal) * glm::dot(rp_ap, normal)) / a->angularMass
-					+ (glm::dot(rp_bp, normal) * glm::dot(rp_bp, normal)) / b->angularMass;
-
-				float j = j_numerator / j_denominator;
-				
-				itr.left->velocity += j * normal / itr.left->mass;
-				itr.right->velocity -= j * normal / itr.right->mass;
-
-				itr.left->velocityAng += glm::dot(rp_ap, j*normal) / itr.left->angularMass;
-				itr.right->velocityAng -= glm::dot(rp_bp, j*normal) / itr.right->angularMass;
-
-
-			}
-		}
+		// COLLISION RESOLUTION
+		resolveCollisions();
+		
+		// UPDATE OBJECT VELOCITY AND POSITION
 		for (auto &b : m_rigidBodies)
 		{
 			b->Update(deltaTime);
-			b->resetAcceleration();
 		}
+		// CLEAR ACCELERATIONS AND VECTORS
 	}
-	void GutPhysics2D::addRigidBody2D(glm::vec2 pos, float w, float h, float o)
+	std::shared_ptr<Gutengine::Rectangle> GutPhysics2D::addRigidBody2D(glm::vec2 pos, float w, float h, float o)
 	{
 		m_rigidBodies.push_back(std::make_shared<Rectangle>(pos, w, h, o));
+		return m_rigidBodies.back();
 	}
-	void GutPhysics2D::addRigidBody2D(const Rectangle& obj)
+	std::shared_ptr<Gutengine::Rectangle> GutPhysics2D::addRigidBody2D(const Rectangle& obj)
 	{
 		m_rigidBodies.push_back(std::make_shared<Rectangle>(obj));
+		return m_rigidBodies.back();
 	}
 
 	/* Returns the minimum and maximum values of the projection on vec2 form (x = min, y = max) */
@@ -173,7 +95,6 @@ namespace Gutengine
 	/* Returns true if overlapping, and returns the reference of minMax values */
 	bool GutPhysics2D::checkSatCollision(Rectangle & a, Rectangle & b, SatManifold& mtv)
 	{
-		// loop over get Axises
 		// get normals to check
 		auto n1 = a.getUniqueNormals();
 		auto n2 = b.getUniqueNormals();
@@ -183,7 +104,7 @@ namespace Gutengine
 		normals.insert(std::end(normals), std::begin(n2), std::end(n2));
 
 		glm::vec2 smallestAxis = normals[0];
-		float smallestLength = 99999999.0f;
+		float smallestLength = INFINITY;
 		// project to normals
 		for (auto n : normals)
 		{
@@ -243,7 +164,6 @@ namespace Gutengine
 				penetrationFound = true;
 				break;
 			}
-			// TODO: is b penetrating a?
 		}
 		if (penetrationFound == false)
 		{
@@ -265,41 +185,248 @@ namespace Gutengine
 					break;
 				}
 			}
-			
 		}
-		//assert(penetrationFound == true);
-		assert(mtv.left != nullptr && mtv.right != nullptr);
+
 		return true;
+	}
+
+	void GutPhysics2D::resolveCollisions()
+	{
+		if (!vecManifolds.empty())
+		{
+			for (auto itr : vecManifolds)
+			{
+				// STATIC RESOLUTION
+				// Check which side to push objects with dot product
+				if (glm::dot(itr.left->position - itr.right->position, itr.axis) < 0.0f)
+				{
+					if (itr.right->getStatic())
+					{
+						itr.left->position += -itr.axis * (itr.length);
+
+					}
+					else if (itr.left->getStatic())
+					{
+						itr.right->position += itr.axis * (itr.length);
+					}
+					else
+					{
+						itr.left->position += -itr.axis * (itr.length / 2.0f);
+						itr.right->position += itr.axis * (itr.length / 2.0f);
+					}
+
+				}
+				else
+				{
+					if (itr.right->getStatic())
+					{
+						itr.left->position += itr.axis * (itr.length);
+					}
+					else if (itr.left->getStatic())
+					{
+						itr.right->position += -itr.axis * (itr.length);
+					}
+					else
+					{
+						itr.left->position += itr.axis * (itr.length / 2.0f);
+						itr.right->position += -itr.axis * (itr.length / 2.0f);
+					}
+
+				}
+
+				// DYNAMIC RESOLUTION
+				// A IS STATIC
+				if (itr.left->getStatic()) 
+				{
+					auto a = itr.left; 
+					auto b = itr.right;
+					auto p = itr.contactPoint;
+
+					// normal is the normalized vector perpendicular to the edge beign interpenetrated.
+					// pointing away from b.
+					glm::vec2 normal = itr.normal;
+
+					glm::vec2 r_ap = p - a->position;
+					glm::vec2 rp_ap = { -r_ap.y, r_ap.x }; // perpendicular
+					glm::vec2 r_bp = p - b->position;
+					glm::vec2 rp_bp = { -r_bp.y, r_bp.x }; // perpendicular
+
+					glm::vec2 v_ap = a->getLinearVelocityOfPoint(p);
+					glm::vec2 v_bp = b->getLinearVelocityOfPoint(p);
+
+					glm::vec2 v_ab = -v_bp;
+
+					// if relative normal velocity (v_ab dot normal) is < 0 -> rects are colliding
+					if (glm::dot(v_ab, normal) >= 0.0f)
+						continue; // a and b not colliding, but moving away from each other.
+
+					// calculate j (a is static)
+					float j_numerator = -(1 + e) * glm::dot(v_ab, normal);
+					float j_denominator =
+						(1.0f / b->mass)
+						+ (glm::dot(rp_bp, normal) * glm::dot(rp_bp, normal)) / b->angularMass;
+
+					float j = j_numerator / j_denominator;
+
+					itr.right->velocity -= (j * normal) / itr.right->mass;
+					itr.right->velocityAng -= glm::dot(rp_bp, j*normal) / itr.right->angularMass;
+
+				}
+				// B IS STATIC
+				else if (itr.right->getStatic())
+				{
+					auto a = itr.left; // a penetrates b
+					auto b = itr.right;
+					auto p = itr.contactPoint;
+
+					// normal is the normalized vector perpendicular to the edge beign interpenetrated.
+					// pointing away from b.
+					glm::vec2 normal = itr.normal;
+
+					glm::vec2 r_ap = p - a->position;
+					glm::vec2 rp_ap = { -r_ap.y, r_ap.x }; // perpendicular
+
+					glm::vec2 v_ap = a->getLinearVelocityOfPoint(p);
+
+					glm::vec2 v_ab = v_ap; // assume that static object doesn't have velocity
+
+					// if relative normal velocity (v_ab dot normal) is < 0 -> rects are colliding
+					if (glm::dot(v_ab, normal) >= 0.0f)
+						continue; // a and b not colliding, but moving away from each other.
+
+					// calculate j ( b is static)
+					float j_numerator = -(1 + e) * glm::dot(v_ab, normal);
+					float j_denominator =
+						(1.0f / a->mass)
+						+ (glm::dot(rp_ap, normal) * glm::dot(rp_ap, normal)) / a->angularMass;
+
+					float j = j_numerator / j_denominator;
+
+					itr.left->velocity += (j * normal) / itr.left->mass;
+					itr.left->velocityAng += glm::dot(rp_ap, j*normal) / itr.left->angularMass;
+
+					//itr.left->velocity += (j * normal) / itr.left->mass;
+					//itr.left->velocityAng += glm::dot(rp_ap, j*normal) / itr.left->angularMass;
+				}
+				else // NEITHER IS STATIC 
+				{
+					auto a = itr.left; // a penetrates b
+					auto b = itr.right;
+					auto p = itr.contactPoint;
+
+					// normal is the normalized vector perpendicular to the edge beign interpenetrated.
+					// pointing away from b.
+					glm::vec2 normal = itr.normal;
+
+					glm::vec2 r_ap = p - a->position;
+					glm::vec2 rp_ap = { -r_ap.y, r_ap.x }; // perpendicular
+					glm::vec2 r_bp = p - b->position;
+					glm::vec2 rp_bp = { -r_bp.y, r_bp.x }; // perpendicular
+
+					glm::vec2 v_ap = a->getLinearVelocityOfPoint(p);
+					glm::vec2 v_bp = b->getLinearVelocityOfPoint(p);
+
+					glm::vec2 v_ab = v_ap - v_bp;
+
+					// if relative normal velocity (v_ab dot normal) is < 0 -> rects are colliding
+					if (glm::dot(v_ab, normal) >= 0.0f)
+						continue; // a and b not colliding, but moving away from each other.
+
+					// calculate j
+					float j_numerator = -(1 + e) * glm::dot(v_ab, normal);
+					float j_denominator =
+						(1.0f / a->mass) + (1.0f / b->mass)
+						+ (glm::dot(rp_ap, normal) * glm::dot(rp_ap, normal)) / a->angularMass
+						+ (glm::dot(rp_bp, normal) * glm::dot(rp_bp, normal)) / b->angularMass;
+
+					float j = j_numerator / j_denominator;
+
+					itr.left->velocity +=  (j * normal) / itr.left->mass;
+					itr.left->velocityAng += glm::dot(rp_ap, j*normal) / itr.left->angularMass;
+
+					itr.right->velocity -= (j * normal) / itr.right->mass;
+					itr.right->velocityAng -= glm::dot(rp_bp, j*normal) / itr.right->angularMass;
+				}
+
+			}
+		}
+	}
+
+	void GutPhysics2D::computeForces(float deltaTime)
+	{
+		// TODO: Is static checking
+		for (auto itr : m_rigidBodies)
+		{
+			if (!itr->getStatic())
+			{
+				// apply gravity
+				itr->acceleration += m_gravity / itr->mass;
+				// apply damping
+				itr->acceleration -= 0.8f * itr->velocity;
+				itr->accelerationAng -= 0.8f * itr->velocityAng;
+				// integrate accelration and velocity
+				itr->Update(deltaTime);
+			}
+		}
+	}
+
+	void GutPhysics2D::checkCollisions()
+	{
+		for (auto &itr = m_rigidBodies.begin(); std::next(itr) != m_rigidBodies.end(); ++itr)
+		{
+			// COLLISION CHECKING
+			for (auto &itr_n = m_rigidBodies.begin(); itr_n != m_rigidBodies.end(); ++itr_n)
+			{
+				//filter out self self checking
+				if (itr->get()->id == itr_n->get()->id)
+					continue;
+
+				auto current = (*itr)->GetAABB();
+				auto other = (*itr_n)->GetAABB();
+				// AABB Do they overlap
+				if (current.overlaps(other))
+				{
+					// SAT collision
+					SatManifold mtv;
+					//std::dynamic_pointer_cast<Rectangle>((itr->get()));
+					// TODO: HOW TO CAST !!!!
+					if (checkSatCollision(*(*itr), *(*itr_n), mtv))
+					{
+						// calculate minimum translation vector - MTV
+						// now we have minimum translation, move each object with it
+						vecManifolds.push_back(mtv);
+					}
+				}
+			}
+		}
+	}
+
+	void GutPhysics2D::clear()
+	{
+		for (auto b : m_rigidBodies)
+		{
+			b->resetAcceleration();
+		}
+		vecManifolds.clear();
 	}
 	
 	void Rectangle::Update(float deltaTime)
 	{
-		// linear
-		velocity += acceleration * deltaTime;
-		position += velocity * deltaTime;
-		// angular
-		velocityAng += accelerationAng * deltaTime;
-		orientation += velocityAng * deltaTime;
-	}
-
-	void Rectangle::DebugDraw(DebugRenderer & renderer)
-	{
-		glm::vec4 rect;
-		rect.x = position.x;
-		rect.y = position.y;
-		rect.w = height;
-		rect.z = width;
-		renderer.drawBox(rect, Gutengine::ColorRGBA8(255, 0, 255, 255), orientation);
-		renderer.drawCircle({ position.x, position.y }, Gutengine::ColorRGBA8(255, 0, 0, 255), 2.0f);
-		// Corners
-		//renderer.drawCircle( getTLCorner(), Gutengine::ColorRGBA8(255, 0, 0, 255), 4.0f);
-		//renderer.drawCircle( getTRCorner(), Gutengine::ColorRGBA8(0, 255, 0, 255), 4.0f);
-		//renderer.drawCircle( getBRCorner(), Gutengine::ColorRGBA8(0, 0, 255, 255), 4.0f);
-		//renderer.drawCircle( getBLCorner(), Gutengine::ColorRGBA8(255, 255, 0, 255), 4.0f);
-		// normals
-		for (auto n : getUniqueNormals())
+		// velocity
+		if (this->getStatic())
 		{
-			renderer.drawLine(position, position + (50.0f * n), Gutengine::ColorRGBA8(0, 0, 255, 255));
+			velocity = { 0.0f, 0.0f };
+			velocityAng = 0.0f;
+		}
+		else
+		{
+			velocity += acceleration * deltaTime;
+			velocityAng += accelerationAng * deltaTime;
+			// position - with damping
+			if (glm::length(velocity) > 0.1f)
+				position += velocity * deltaTime;
+			if (fabs(velocityAng) > 0.5f);
+				orientation += velocityAng * deltaTime;
 		}
 	}
 

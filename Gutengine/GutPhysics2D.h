@@ -1,5 +1,6 @@
 #pragma once
 #include "DebugRenderer.h"
+#include "InputManager.h"
 #include <glm/glm.hpp>
 //
 #include <vector>
@@ -64,7 +65,6 @@ namespace Gutengine
 	public:
 		static unsigned int objectCount;
 
-
 		glm::vec2 position;
 		glm::vec2 velocity;
 		glm::vec2 acceleration;
@@ -76,18 +76,28 @@ namespace Gutengine
 		float velocityAng = 0.0f;
 		float accelerationAng = 0.0f;
 		// TODO: SHAPE TYPE enumerator variable
+	private:
+
 		bool isStatic = false;
 
 	public:
 		virtual void Update(float deltaTime) = 0; 
-		virtual void DebugDraw(DebugRenderer & renderer) = 0;
 		virtual bool PointInShape(glm::vec2 point) { return false; };
 		virtual void ApplyLinearForce(glm::vec2 force) {};
 		virtual void ApplyTorque(float force) {};
 		virtual void ApplyTorqueToPoint(glm::vec2 point, glm::vec2 force) {};
 		virtual void resetAcceleration() = 0;
-
+		// Setters
+		void setStatic(bool t) 
+		{ 
+			isStatic = t;
+			// make sure non-static objects do not have infinite mass
+			if (isStatic == false && mass == 0.0f)
+				mass = 1.0f;
+		}
 		// Getters
+		bool getStatic() { return (isStatic || mass == 0.0f); };
+
 		virtual AABB GetAABB() = 0;
 		virtual std::vector<glm::vec2> getUniqueNormals() const = 0;
 		virtual std::vector<Edge> getEdges() const = 0;
@@ -103,7 +113,6 @@ namespace Gutengine
 		Rectangle();
 
 		void Update(float deltaTime) override;
-		void DebugDraw(DebugRenderer & renderer) override;
 		bool PointInShape(glm::vec2 point) override;
 		void ApplyLinearForce(glm::vec2 force) override;
 		void ApplyTorque(float force) override;
@@ -130,42 +139,11 @@ namespace Gutengine
 
 		glm::vec2 const getLinearVelocityOfPoint(const glm::vec2 point) const;
 
-		std::vector<Edge> getEdges() const;
-		Edge getClosestEdge(glm::vec2 point) const;
-		
-		
+		std::vector<Edge> getEdges() const override;
+		Edge getClosestEdge(glm::vec2 point) const override;
 	};
 
-class Particle2D
-{
-public:
-	// NOT USED FOR NOW
-	/// Default constructor
-	Particle2D() {}
-	/// Parameter constructors
-	Particle2D(float x, float y, float vX = 0.0f, float vY = 0.0f, float m = 1.0f) : mass(m) 
-	{
-		position.x = x;
-		position.y = y;
-		velocity.x = vX;
-		velocity.y = vY;
-	}
 
-	Particle2D(glm::vec2 _p, glm::vec2 _v, float m = 1.0f) : mass(m) 
-	{ 
-		position = _p; 
-		velocity = _v; 
-	}
-
-	// destructor
-	~Particle2D() {};
-	
-	/// attributes
-	glm::vec2 position;
-	glm::vec2 velocity;
-	glm::vec2 acceleration;
-	float mass;
-};
 
 class GutPhysics2D
 {
@@ -175,31 +153,75 @@ public:
 
 	void updatePhysics(float deltaTime);
 
-	void addRigidBody2D(glm::vec2 pos, float w, float h, float o = 0.0f);
-	void addRigidBody2D(const Rectangle& obj);
+	std::shared_ptr<Gutengine::Rectangle> addRigidBody2D(glm::vec2 pos, float w, float h, float o = 0.0f);
+	std::shared_ptr<Gutengine::Rectangle> addRigidBody2D(const Rectangle& obj);
 
-	//void addParticle();
-
-	//void destroy();
-
-	// projection
-	glm::vec2 projectShapeToAxis(const Rectangle& shape, const glm::vec2& axis) const;
-	bool checkSatCollision( Rectangle & a, Rectangle & b, SatManifold & mtv);
 
 	// setters
 	void setGravity(const glm::vec2 &value) { m_gravity = value; };
+	void setElasticity(float val) 
+	{
+		e = val;
+		if (e > 1.0f)
+			e = 1.0f;
+		else if (e < 0.0f)
+			e = 0.0f;
+	};
 	// getter
 	const glm::vec2& getGravity() const { return m_gravity; }; 
 	std::vector<std::shared_ptr<Gutengine::Rectangle>>& getRigidbodyList() { return m_rigidBodies; };
 	std::vector<SatManifold> getManifolds() { return vecManifolds; };
+	void clear();
+private: 
+	// simulation
+	glm::vec2 projectShapeToAxis(const Rectangle& shape, const glm::vec2& axis) const;
+	
+	void computeForces(float deltaTime);
+	void checkCollisions();
+	bool checkSatCollision( Rectangle & a, Rectangle & b, SatManifold & mtv);
+	void resolveCollisions();
+
 private:
 
-	float e = 0.0f; // Coefficient of restitution
+	float e = 1.0f; // Coefficient of restitution
 	glm::vec2 m_gravity;
 	
-	//std::vector<std::shared_ptr<Gutengine::Particle2D>>  m_particles;
 	std::vector<SatManifold> vecManifolds;
 	std::vector<std::shared_ptr<Gutengine::Rectangle>> m_rigidBodies;
 };
 
 } // namespace end
+
+
+  /*
+  class Particle2D
+  {
+  public:
+  // NOT USED FOR NOW
+  /// Default constructor
+  Particle2D() {}
+  /// Parameter constructors
+  Particle2D(float x, float y, float vX = 0.0f, float vY = 0.0f, float m = 1.0f) : mass(m)
+  {
+  position.x = x;
+  position.y = y;
+  velocity.x = vX;
+  velocity.y = vY;
+  }
+
+  Particle2D(glm::vec2 _p, glm::vec2 _v, float m = 1.0f) : mass(m)
+  {
+  position = _p;
+  velocity = _v;
+  }
+
+  // destructor
+  ~Particle2D() {};
+
+  /// attributes
+  glm::vec2 position;
+  glm::vec2 velocity;
+  glm::vec2 acceleration;
+  float mass;
+  };
+  */

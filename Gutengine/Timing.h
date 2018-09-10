@@ -20,6 +20,7 @@ public:
 
     // end() will return the current FPS as a float
     float end();
+	float getFrameTicks() { return m_frameTicks; };
 private:
     // Calculates the current FPS
     void calculateFPS();
@@ -28,6 +29,7 @@ private:
     float m_fps;
     float m_maxFPS;
     float m_frameTime;
+	float m_frameTicks;
     unsigned int m_startTicks;
 };
 

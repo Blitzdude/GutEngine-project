@@ -62,9 +62,6 @@ Window::create(std::string windowName, int screenWidth, int screenHeight, unsign
 	std::printf("***   OpenGL Renderer: %s   ***\n", glGetString(GL_RENDERER));
 	std::printf("***   OpenGL GLSL Version: %s   ***\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
-
-
-
     //Set the background color to blue
     glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
 

@@ -20,7 +20,7 @@ IMainGame::~IMainGame()
 void 
 IMainGame::run() 
 {
-    if (!init()) 
+    if (!init("Physics Demo", 1680, 960)) 
 		return;
 
     FpsLimiter limiter;
@@ -38,8 +38,8 @@ IMainGame::run()
         if (m_isRunning) 
 		{
             draw();
-
             m_fps = limiter.end();
+			m_deltaTime = limiter.getFrameTicks() / 1000.0f;
             m_window.swapBuffer();
         }
     }
@@ -105,6 +105,28 @@ IMainGame::init()
     return true;
 }
 
+
+bool
+IMainGame::init(const char* name, int width, int height)
+{
+	Gutengine::init();
+
+	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+
+	if (!initSystems(name, width, height))
+		return false;
+
+	onInit();
+	addScreens();
+
+	m_currentScreen = m_screenList->getCurrent();
+	m_currentScreen->onEntry();
+	m_currentScreen->setRunning();
+
+	return true;
+}
+
+
 bool
 IMainGame::initSystems() 
 {
@@ -112,6 +134,12 @@ IMainGame::initSystems()
     return true;
 }
 
+bool
+IMainGame::initSystems(const char* name, int width, int height )
+{
+	m_window.create(name, width, height, 0);
+	return true;
+}
 
 void 
 IMainGame::update()

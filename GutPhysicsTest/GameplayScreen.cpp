@@ -7,8 +7,8 @@
 #include <time.h>
 #include "ScreenIndices.h"
 
-const float DELTA_TIME = 1.0f / 60.0f; // TODO: There is no deltatiming in gutengine. Fix?
-const int NUM_RIGID_BOXES = 5;
+// const float DELTA_TIME = 1.0f / 60.0f; // TODO: There is no deltatiming in gutengine. Fix?
+const int NUM_RIGID_BOXES = 10;
 
 GameplayScreen::GameplayScreen(Gutengine::Window* window) : m_window(window){
     m_screenIndex = SCREEN_INDEX_GAMEPLAY;
@@ -34,62 +34,60 @@ void GameplayScreen::destroy() {
 
 void GameplayScreen::onEntry() {
 
-    // Load the texture
-	Gutengine::ResourceManager::getTexture("assets/blank.png");
-    // Initialize spritebatch
-    m_spriteBatch.init();
+	// Load the texture
+	//auto blank = Gutengine::ResourceManager::getTexture("assets/blank.png");
+	// Initialize spritebatch
+	m_spriteBatch.init();
 
-    // Shader init
-    // Compile our texture shader
-    m_textureProgram.compileShaders("Shaders/textureShading.vert", "Shaders/textureShading.frag");
-    m_textureProgram.addAttribute("vertexPosition");
-    m_textureProgram.addAttribute("vertexColor");
-    m_textureProgram.addAttribute("vertexUV");
-    m_textureProgram.linkShaders();
-    // Compile our light shader
-    m_lightProgram.compileShaders("Shaders/lightShading.vert", "Shaders/lightShading.frag");
-    m_lightProgram.addAttribute("vertexPosition");
-    m_lightProgram.addAttribute("vertexColor");
-    m_lightProgram.addAttribute("vertexUV");
-    m_lightProgram.linkShaders();
+	// Shader init
+	// Compile our texture shader
+	m_textureProgram.compileShaders("Shaders/textureShading.vert", "Shaders/textureShading.frag");
+	m_textureProgram.addAttribute("vertexPosition");
+	m_textureProgram.addAttribute("vertexColor");
+	m_textureProgram.addAttribute("vertexUV");
+	m_textureProgram.linkShaders();
+	// Compile our light shader
+	m_lightProgram.compileShaders("Shaders/lightShading.vert", "Shaders/lightShading.frag");
+	m_lightProgram.addAttribute("vertexPosition");
+	m_lightProgram.addAttribute("vertexColor");
+	m_lightProgram.addAttribute("vertexUV");
+	m_lightProgram.linkShaders();
 
 	// init debug renderer
 	m_debugRenderer.init();
 
-    // Init camera
-    m_camera.init(m_window->getScreenWidth(), m_window->getScreenHeight());
-    m_camera.setScale(1.0f);
-
-	// Init GutPhysics gravity
-	//m_physicsSystem.setGravity({ 0.0f, -0.02f });
+	// Init camera
+	m_camera.init(m_window->getScreenWidth(), m_window->getScreenHeight());
+	m_camera.setScale(1.0f);
 
 	// Init random generator
-	
 	std::mt19937 randGenerator;
 	randGenerator.seed((unsigned int)time(NULL));
 
-	std::uniform_real<float> _xPos(-10.0, 800.0f);
+	std::uniform_real<float> _xPos(-200.0, 800.0f);
 	std::uniform_real<float> _yPos(-10.0, 300.0f);
-	std::uniform_real<float> _w(50.0, 300.0f);
-	std::uniform_real<float> _h(50.0, 300.0f);
-	
+	std::uniform_real<float> _w(50.0, 200.0f);
+	std::uniform_real<float> _h(50.0, 200.0f);
+
 	m_physicsSystem = std::make_unique<Gutengine::GutPhysics2D>();
-
-	Gutengine::Rectangle rect1({ 0.0f, 0.0f }, 100.0f, 100.0f, 0.0f, 10.0f);
-	Gutengine::Rectangle rect2({ 150.0f, 150.0f }, 150.0f, 300.0f, 0.0f, 10.0f);
-
-	m_physicsSystem->addRigidBody2D(rect1);
-	m_physicsSystem->addRigidBody2D(rect2);
+	m_physicsSystem->setGravity({0.0f, -40.0f});
+	m_physicsSystem->setElasticity(0.20f);
 
 	// Init rigidBodies
-	/*
 	for (int i = 0; i < NUM_RIGID_BOXES; ++i) 
 	{
 		Gutengine::Rectangle temp(glm::vec2(_xPos(randGenerator), _yPos(randGenerator)) , _w(randGenerator), _h(randGenerator));
-		temp.mass = (temp.position.x * temp.position.y) * 0.001f;
+		temp.mass = (temp.width * 0.01f) * (temp.height * 0.01f);
 		m_physicsSystem->addRigidBody2D(temp);
 	}
-	*/
+	// Floor
+	Gutengine::Rectangle floor(glm::vec2(0.0f, -400.0f), 1200.0f, 100.0f, 0.0f, 1.0f);
+	floor.setStatic(true);
+	m_physicsSystem->addRigidBody2D(floor);
+	// floating platform
+	Gutengine::Rectangle platform(glm::vec2(-200.0f, 0.0f), 600.0f, 100.0f, -0.5f, 1.0f);
+	platform.setStatic(true);
+	m_physicsSystem->addRigidBody2D(platform);
 
     initUI();
 }
@@ -99,13 +97,13 @@ void GameplayScreen::onExit() {
 }
 
 void GameplayScreen::update() {
-	//std::cout << m_game->getFps() << std::endl;
-	//m_physicsSystem.updatePhysics();
-
+	
+	m_physicsSystem->clear();
     m_camera.update();
     checkInput();
-	m_physicsSystem->updatePhysics(DELTA_TIME);
-	
+	m_physicsSystem->updatePhysics(1 / 60.0f);
+	handleWrapping();
+	updateUI();
 }
 
 void GameplayScreen::draw() {
@@ -137,45 +135,59 @@ void GameplayScreen::draw() {
     // Debug rendering
     if (m_renderDebug) {
 		for (auto& itr : m_physicsSystem->getRigidbodyList()) {
-			itr->DebugDraw(m_debugRenderer);
-			// Draw AABB
-			glm::vec4 ab;
-			ab.x = itr->GetAABB().pos.x;
-			ab.y = itr->GetAABB().pos.y;
-			ab.z = itr->GetAABB().w;
-			ab.w = itr->GetAABB().h;
-			m_debugRenderer.drawBox(ab, Gutengine::ColorRGBA8(255, 255, 255, 255), 0.0f);
-			// Draw Corner velocities
-			auto rect = std::dynamic_pointer_cast<Gutengine::Rectangle>(itr);
+
+			// Draw Rectangle
+			glm::vec4 destRect;
+			Gutengine::ColorRGBA8 c = { 0,0,0,255 };
+			if (itr->getStatic()) {
+				c.b = 255; c.g = 255;
+			}
+			else {
+				c.b = 255, c.r = 255;
+			}
+			destRect.x = itr->position.x;
+			destRect.y = itr->position.y;
+			destRect.z = itr->width;
+			destRect.w = itr->height;
+			m_debugRenderer.drawBox(destRect, c, itr->orientation);
+			m_debugRenderer.drawCircle(itr->position, Gutengine::ColorRGBA8(255, 0, 0, 255), 2.0f); // Center of mass
+			m_debugRenderer.drawLine(itr->position, itr->position + itr->velocity, Gutengine::ColorRGBA8(255, 0, 0, 255));
 		}
 			
-			// RMB hold
-			if (m_game->inputManager.isKeyDown(SDL_BUTTON_RIGHT))
+		// RMB hold
+		if (m_game->inputManager.isKeyDown(SDL_BUTTON_RIGHT))
+		{
+			if (!m_selectedShape.expired())
 			{
-				if (!m_selectedShape.expired())
-				{
-					glm::vec2 mouse = m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords());
-					m_debugRenderer.drawLine(mouse, m_torquePoint, Gutengine::ColorRGBA8(255, 0, 0, 255));
-				}
+				glm::vec2 mouse = m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords());
+				m_debugRenderer.drawLine(mouse, m_torquePoint, Gutengine::ColorRGBA8(255, 0, 0, 255));
 			}
-			// manifold drawing
-			for (auto itr : m_physicsSystem->getManifolds())
+		}
+
+		// LMB hold
+		if (m_game->inputManager.isKeyDown(SDL_BUTTON_LEFT))
+		{
+			if (!m_selectedShape.expired())
 			{
-				m_debugRenderer.drawCircle(itr.left->position, Gutengine::ColorRGBA8(0, 255, 0, 255), 8.0f);
-				m_debugRenderer.drawCircle(itr.right->position, Gutengine::ColorRGBA8(255, 255, 0, 255), 8.0f);
-
-				m_debugRenderer.drawCircle(itr.contactPoint, Gutengine::ColorRGBA8(255, 255, 0, 255), 5.0f);
-				m_debugRenderer.drawLine(itr.contactPoint, itr.contactPoint + 25.0f * itr.normal, Gutengine::ColorRGBA8(255, 125, 125, 255));
-				
-				m_debugRenderer.drawLine(itr.edge.a, itr.edge.b, Gutengine::ColorRGBA8(0, 255, 0, 255));
-				m_debugRenderer.drawCircle(itr.edge.b, Gutengine::ColorRGBA8(0, 255, 0, 255), 5.0f);
-
+				glm::vec2 mouse = m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords());
+				m_debugRenderer.drawLine(mouse, m_selectedShape.lock()->position, Gutengine::ColorRGBA8(255, 125, 0, 255));
 			}
+		}
 
+		// manifold drawing
+		for (auto itr : m_physicsSystem->getManifolds())
+		{
+			// Contact point
+			m_debugRenderer.drawCircle(itr.contactPoint, Gutengine::ColorRGBA8(0, 0, 255, 255), 5.0f);
+			// normal
+			m_debugRenderer.drawLine(itr.contactPoint, itr.contactPoint + 50.0f * itr.normal, Gutengine::ColorRGBA8(0, 0, 255, 255));
+			// collision edge
+			m_debugRenderer.drawLine(itr.contactPoint, itr.contactPoint + 50.0f* glm::normalize(itr.edge.a - itr.edge.b), Gutengine::ColorRGBA8(0, 0, 255, 255));
+		}
 
 		// Render
         m_debugRenderer.end();
-        m_debugRenderer.render(projectionMatrix, 2.0f);
+        m_debugRenderer.render(projectionMatrix, 3.0f);
     }
 
     m_gui.draw();
@@ -188,10 +200,11 @@ void GameplayScreen::initUI() {
     m_gui.setFont("DejaVuSans-10");
 	// Init button object
     CEGUI::PushButton* testButton = static_cast<CEGUI::PushButton*>(m_gui.createWidget("TaharezLook/Button", glm::vec4(0.01f, 0.01f, 0.1f, 0.05f), glm::vec4(0.0f), "TestButton"));
-    testButton->setText("Exit Game!");
+    testButton->setText("Exit Demo!");
 
 	// init fps counter TODO: Not used
-	CEGUI::Window* fpsText = static_cast<CEGUI::Window*>(m_gui.createWidget("TaharezLook/Label", glm::vec4(0.1f, 0.01f, 0.1f, 0.05f), glm::vec4(0.0f), "fpsText"));
+	fpsText = static_cast<CEGUI::Window*>(m_gui.createWidget("TaharezLook/Label", glm::vec4(0.1f, 0.01f, 0.1f, 0.05f), glm::vec4(0.0f), "fpsText"));
+	fpsText->setText("0.00");
 
     // Set the event to be called when we click
     testButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameplayScreen::onExitClicked, this));
@@ -199,6 +212,13 @@ void GameplayScreen::initUI() {
     //m_gui.setMouseCursor("TaharezLook/MouseArrow");
     m_gui.showMouseCursor();
     SDL_ShowCursor(1);
+}
+
+void GameplayScreen::updateUI()
+{
+	m_gui.update();
+	float fps = m_game->getFps();
+	fpsText->setText(std::to_string(fps));
 }
 
 void GameplayScreen::checkInput() {
@@ -212,7 +232,7 @@ void GameplayScreen::checkInput() {
                 break;
         }
     }
-	// LMB or RMB down
+	// LMB down
 	if (m_game->inputManager.isKeyPressed(SDL_BUTTON_LEFT))
 	{
 		glm::vec2 mouse = m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords());
@@ -221,6 +241,7 @@ void GameplayScreen::checkInput() {
 			if (s->GetAABB().isPointIn(mouse))
 			{
 				m_selectedShape = s;
+				m_torquePoint = mouse;
 				break;
 			}
 		}
@@ -241,7 +262,7 @@ void GameplayScreen::checkInput() {
 		}
 	}
 
-	// LMB hold
+	// LMB hold -> pull object
 	if (m_game->inputManager.isKeyDown(SDL_BUTTON_LEFT))
 	{
 		if (!m_selectedShape.expired())
@@ -249,11 +270,19 @@ void GameplayScreen::checkInput() {
 			glm::vec2 mouse = m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords() );
 			// Set new position for selected shape
 			auto s = m_selectedShape.lock();
-			s->position = mouse;
+			if (glm::length(mouse - s->position) < 40.0f)
+			{
+				s->velocity -= s->velocity * (1.0f / glm::length(mouse - s->position));
+			}
+			else
+			{
+				s->ApplyLinearForce((mouse - s->position));
+			}
+			//s->position = mouse;
 		}
 	}
 
-	// RMB hold
+	// RMB hold -> cuestick
 	if (m_game->inputManager.isKeyDown(SDL_BUTTON_RIGHT))
 	{
 		if (!m_selectedShape.expired())
@@ -266,20 +295,20 @@ void GameplayScreen::checkInput() {
 		}
 	}
 
-	// LMB UP
+	// LMB UP -> release object
 	if (m_game->inputManager.isKeyReleased(SDL_BUTTON_LEFT))
 	{
 		m_selectedShape.reset();
 	}
 
-	// RMB UP
+	// RMB UP -> apply acceleration
 	if (m_game->inputManager.isKeyReleased(SDL_BUTTON_RIGHT))
 	{
 		if (!m_selectedShape.expired())
 		{
 			// lock the shape
 			auto s = m_selectedShape.lock();
-			glm::vec2 force = 500.0f * (s->position - m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()) );
+			glm::vec2 force = 5.0f * (s->position - m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()) );
 			s->ApplyLinearForce(force);
 			glm::vec2 AngMomentum = 50.0f * (m_torquePoint - m_camera.convertScreenToWorld(m_game->inputManager.getMouseCoords()) );
 			s->ApplyTorqueToPoint(m_torquePoint, AngMomentum );
@@ -288,8 +317,21 @@ void GameplayScreen::checkInput() {
 	}
 }
 
+void GameplayScreen::handleWrapping()
+{
+	for (auto b : m_physicsSystem->getRigidbodyList())
+	{
+		if (b->position.x <= -m_window->getScreenWidth() / 2.0f - b->width)
+			b->position.x = m_window->getScreenWidth() / 2.0f + b->width;
+		else if (b->position.x >= m_window->getScreenWidth() / 2.0f + b->width)
+			b->position.x = -m_window->getScreenWidth() / 2.0f - b->width;
+		else if (b->position.y <= -m_window->getScreenHeight() / 2.0f - b->height)
+			b->position.y = m_window->getScreenHeight() / 2.0f + b->height;
+	}
+}
 
 bool GameplayScreen::onExitClicked(const CEGUI::EventArgs& e) {
+	
     m_currentState = Gutengine::ScreenState::EXIT_APPLICATION;
     return true;
 }

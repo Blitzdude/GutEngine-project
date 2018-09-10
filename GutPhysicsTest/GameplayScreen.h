@@ -12,6 +12,7 @@
 
 #include <Gutengine/GUI.h>
 
+
 // Our custom gameplay screen that inherits from the IGameScreen
 class GameplayScreen : public Gutengine::IGameScreen {
 public:
@@ -36,9 +37,9 @@ public:
 
 private:
     void initUI();
+	void updateUI();
     void checkInput();
-	//void updateParticles();
-	//void updateRigidbodies();
+	void handleWrapping();
 
     bool onExitClicked(const CEGUI::EventArgs& e);
 
@@ -51,10 +52,11 @@ private:
     Gutengine::DebugRenderer m_debugRenderer;
     Gutengine::GUI			 m_gui;
 							 
+	CEGUI::Window* fpsText = nullptr;
 	glm::vec2 m_torquePoint;
 	std::weak_ptr<Gutengine::RigidBody> m_selectedShape;
 	std::unique_ptr<Gutengine::GutPhysics2D> m_physicsSystem = nullptr;
-
+	
     bool m_renderDebug = true;
 	
 };

@@ -36,6 +36,10 @@ public:
 		return m_fps;
     }
 
+	const float getDeltaTime() const
+	{
+		return m_deltaTime == 0.0f ? 1.0f : m_deltaTime;
+	}
     InputManager inputManager;
 
 protected:
@@ -45,12 +49,17 @@ protected:
     virtual void draw();
 
     bool init();
-    bool initSystems();
+	bool init(const char* name, int width, int height);
+
+	bool initSystems();
+    bool initSystems(const char* name, int width, int height);
+
 
     std::unique_ptr<ScreenList> m_screenList = nullptr;
     IGameScreen* m_currentScreen			 = nullptr;
     bool m_isRunning						 = false;
     float m_fps								 = 0.0f;
+	float m_deltaTime = 0.0f;
     Window m_window;
 };
 
