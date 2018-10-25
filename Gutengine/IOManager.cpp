@@ -1,10 +1,12 @@
 #include "IOManager.h"
 
+#include <iostream>
 #include <filesystem>
+#include <experimental/filesystem>
 #include <fstream>
 
 // Namespace alias
-namespace fs = std::tr2::sys;
+ namespace fs = std::tr2::sys;
 
 namespace Gutengine 
 {
@@ -66,6 +68,7 @@ IOManager::readFileToBuffer(std::string filePath, std::string& buffer)
 bool
 IOManager::getDirectoryEntries(const char* path, std::vector<DirEntry>& rvEntries)
 {
+	
     auto dpath = fs::path(path);
     // Must be directory
     if (!fs::is_directory(dpath)) return false;
