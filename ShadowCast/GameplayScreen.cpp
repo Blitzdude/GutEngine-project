@@ -118,10 +118,9 @@ void GameplayScreen::onExit()
 void GameplayScreen::update()
 {
 	
-	// Update the player
+
 	m_player.update(m_game->inputManager, m_camera);
 
-	// Update the camera
 	m_camera.update();
 	checkInput();
 
