@@ -183,6 +183,9 @@ desktop.ini
 # Python files
 *.pyc
 
+# Exclude deps folder
+!deps
+
 # A Folder To Put Personal Stuff
 Mine/
 
