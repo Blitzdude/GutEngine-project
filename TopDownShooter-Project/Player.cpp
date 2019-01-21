@@ -72,7 +72,7 @@ void Player::update(const std::vector<std::string>& levelData,
 
     if (_currentGunIndex != -1) {
 
-        _guns[_currentGunIndex]->update(_inputManager->isKeyDown(SDL_BUTTON_LEFT),
+    _guns[_currentGunIndex]->update(_inputManager->isKeyDown(SDL_BUTTON_LEFT),
                                         centerPosition,
                                         m_direction,
                                         *_bullets,

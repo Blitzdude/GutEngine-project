@@ -262,7 +262,6 @@ void MainGame::updateAgents(float deltaTime) {
         }
     }
 
-    // Dont forget to update zombies
 }
 
 void MainGame::updateBullets(float deltaTime) {
