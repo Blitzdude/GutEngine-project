@@ -5,6 +5,7 @@
 #include <Gutengine/Camera2D.h>
 #include "Bullet.h"
 
+class InputHandler;
 class Gun;
 
 class Player : public Human
@@ -21,8 +22,16 @@ public:
                 std::vector<Human*>& humans,
                 std::vector<Zombie*>& zombies,
                 float deltaTime) override;
+
+    void moveUp() override;
+    void moveDown() override;
+    void moveLeft() override;
+    void moveRight() override;
+
+    void fire() override;
 private:
-    Gutengine::InputManager* _inputManager;
+    InputHandler* m_inputHandler;
+    // Gutengine::InputManager* _inputManager;
 
     std::vector<Gun*> _guns;
     int _currentGunIndex;

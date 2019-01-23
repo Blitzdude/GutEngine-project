@@ -2,6 +2,7 @@
 #include <SDL/SDL.h>
 #include <Gutengine/ResourceManager.h>
 
+#include "InputHandler.h"
 #include "Gun.h"
 
 Player::Player() :
@@ -16,7 +17,8 @@ Player::~Player() {
 void Player::init(float speed, glm::vec2 pos, Gutengine::InputManager* inputManager, Gutengine::Camera2D* camera, std::vector<Bullet>* bullets) {
     _speed = speed;
     _position = pos;
-    _inputManager = inputManager;
+    m_inputHandler = new InputHandler();
+    // _inputManager = inputManager;
     _bullets = bullets;
     _camera = camera;
     _color.r = 255;
@@ -42,6 +44,9 @@ void Player::update(const std::vector<std::string>& levelData,
                     std::vector<Zombie*>& zombies,
                     float deltaTime) {
 
+
+    m_inputHandler->handleInput();
+    /*
     if (_inputManager->isKeyDown(SDLK_w)) {
         _position.y += _speed * deltaTime;
     } else if (_inputManager->isKeyDown(SDLK_s)) {
@@ -60,9 +65,10 @@ void Player::update(const std::vector<std::string>& levelData,
     } else if (_inputManager->isKeyDown(SDLK_3) && _guns.size() >= 2) {
         _currentGunIndex = 2;
     }
+    */
 
 	// check the mouse coordinates and turn the player sprite to face there
-    glm::vec2 mouseCoords = _inputManager->getMouseCoords();
+    glm::vec2 mouseCoords = m_inputHandler->getMouseCoordinates();
     mouseCoords = _camera->convertScreenToWorld(mouseCoords);
 
 
@@ -70,8 +76,9 @@ void Player::update(const std::vector<std::string>& levelData,
 
     m_direction = glm::normalize(mouseCoords - centerPosition);
 
-    if (_currentGunIndex != -1) {
-
+    if (_currentGunIndex != -1) 
+    {
+    // fire current gun
     _guns[_currentGunIndex]->update(_inputManager->isKeyDown(SDL_BUTTON_LEFT),
                                         centerPosition,
                                         m_direction,
@@ -82,4 +89,25 @@ void Player::update(const std::vector<std::string>& levelData,
     }
 
     collideWithLevel(levelData);
+}
+
+void Player::moveUp()
+{
+}
+
+void Player::moveDown()
+{
+}
+
+void Player::moveLeft()
+{
+}
+
+void Player::moveRight()
+{
+}
+
+
+void Player::fire()
+{
 }

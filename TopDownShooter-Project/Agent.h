@@ -20,6 +20,12 @@ public:
                         std::vector<Zombie*>& zombies,
                         float deltaTime) = 0;
 
+    virtual void moveUp() = 0;
+    virtual void moveDown() = 0;
+    virtual void moveLeft() = 0;
+    virtual void moveRight() = 0;
+    virtual void fire() {};
+
     bool collideWithLevel(const std::vector<std::string>& levelData);
 
     bool collideWithAgent(Agent* agent);
